@@ -16,7 +16,7 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 export const translations = {
   en: {
     // Common
-    "site.name": "Hamduk Islamic Foundation",
+    "site.name": "HIF",
     "site.tagline": "Promoting unity, education, and understanding amongst the Muslim Ummah",
     "nav.about": "About",
     "nav.focus": "Our Focus",
