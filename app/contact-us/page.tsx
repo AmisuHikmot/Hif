@@ -1,18 +1,81 @@
-import type { Metadata } from "next"
-import { Mail, Phone, MapPin, Send } from "lucide-react"
+"use client"
+
+import type React from "react"
+import { useState } from "react"
+import { Mail, Phone, MapPin, Send, Loader2, CheckCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Separator } from "@/components/ui/separator"
-
-export const metadata: Metadata = {
-  title: "Contact Us | Hamduk Islamic Foundation",
-  description: "Get in touch with Hamduk Islamic Foundation for inquiries, feedback, or support",
-}
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { useToast } from "@/components/ui/use-toast"
+import { createClient } from "@/lib/supabase/client"
 
 export default function ContactPage() {
+  const [isLoading, setIsLoading] = useState(false)
+  const [isSuccess, setIsSuccess] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const { toast } = useToast()
+
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    subject: "",
+    message: "",
+  })
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setFormData({ ...formData, [e.target.id]: e.target.value })
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const supabase = createClient()
+      const { error: submitError } = await supabase.from("contact_submissions").insert({
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        email: formData.email,
+        phone: formData.phone || null,
+        subject: formData.subject,
+        message: formData.message,
+        status: "pending",
+      })
+
+      if (submitError) throw submitError
+
+      setIsSuccess(true)
+      toast({
+        title: "Message sent successfully!",
+        description: "We'll get back to you as soon as possible.",
+      })
+      setFormData({
+        firstName: "",
+        lastName: "",
+        email: "",
+        phone: "",
+        subject: "",
+        message: "",
+      })
+    } catch (err) {
+      setError("Failed to send message. Please try again.")
+      toast({
+        title: "Error",
+        description: "Failed to send message. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return (
     <main className="container mx-auto px-4 py-12">
       <div className="mb-10 text-center">
@@ -73,45 +136,110 @@ export default function ContactPage() {
               <CardDescription>Fill out the form below and we'll get back to you as soon as possible.</CardDescription>
             </CardHeader>
             <CardContent>
-              <form className="space-y-4">
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="first-name">First Name</Label>
-                    <Input id="first-name" placeholder="John" required />
+              {isSuccess ? (
+                <div className="text-center py-8">
+                  <CheckCircle className="mx-auto h-12 w-12 text-emerald-600 mb-4" />
+                  <h3 className="text-lg font-medium">Message Sent!</h3>
+                  <p className="text-muted-foreground mt-2">
+                    Thank you for contacting us. We'll respond to your message shortly.
+                  </p>
+                  <Button className="mt-4" onClick={() => setIsSuccess(false)}>
+                    Send Another Message
+                  </Button>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  {error && (
+                    <Alert variant="destructive">
+                      <AlertDescription>{error}</AlertDescription>
+                    </Alert>
+                  )}
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <div className="space-y-2">
+                      <Label htmlFor="firstName">First Name</Label>
+                      <Input
+                        id="firstName"
+                        placeholder="John"
+                        required
+                        value={formData.firstName}
+                        onChange={handleChange}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="lastName">Last Name</Label>
+                      <Input
+                        id="lastName"
+                        placeholder="Doe"
+                        required
+                        value={formData.lastName}
+                        onChange={handleChange}
+                      />
+                    </div>
                   </div>
+
                   <div className="space-y-2">
-                    <Label htmlFor="last-name">Last Name</Label>
-                    <Input id="last-name" placeholder="Doe" required />
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="john.doe@example.com"
+                      required
+                      value={formData.email}
+                      onChange={handleChange}
+                    />
                   </div>
-                </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" placeholder="john.doe@example.com" required />
-                </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="phone">Phone Number (Optional)</Label>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      placeholder="+234 XXX XXX XXXX"
+                      value={formData.phone}
+                      onChange={handleChange}
+                    />
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number (Optional)</Label>
-                  <Input id="phone" type="tel" placeholder="+234 XXX XXX XXXX" />
-                </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="subject">Subject</Label>
+                    <Input
+                      id="subject"
+                      placeholder="How can we help you?"
+                      required
+                      value={formData.subject}
+                      onChange={handleChange}
+                    />
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="subject">Subject</Label>
-                  <Input id="subject" placeholder="How can we help you?" required />
-                </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="message">Message</Label>
+                    <Textarea
+                      id="message"
+                      placeholder="Please provide details about your inquiry..."
+                      rows={5}
+                      required
+                      value={formData.message}
+                      onChange={handleChange}
+                    />
+                  </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="message">Message</Label>
-                  <Textarea id="message" placeholder="Please provide details about your inquiry..." rows={5} required />
-                </div>
-              </form>
+                  <Button type="submit" className="w-full" disabled={isLoading}>
+                    {isLoading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Sending...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="mr-2 h-4 w-4" />
+                        Send Message
+                      </>
+                    )}
+                  </Button>
+                </form>
+              )}
             </CardContent>
-            <CardFooter>
-              <Button className="w-full">
-                <Send className="mr-2 h-4 w-4" />
-                Send Message
-              </Button>
-            </CardFooter>
           </Card>
 
           <div className="space-y-8">
@@ -166,7 +294,7 @@ export default function ContactPage() {
                 </div>
               </CardContent>
               <CardFooter>
-                <Button variant="outline" className="w-full">
+                <Button variant="outline" className="w-full bg-transparent">
                   View All FAQs
                 </Button>
               </CardFooter>

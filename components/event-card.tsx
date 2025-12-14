@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { CalendarDays, MapPin, Clock } from "lucide-react"
@@ -8,6 +7,7 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/components/ui/use-toast"
+import { useAuth } from "@/contexts/auth-context"
 
 interface EventCardProps {
   title: string
@@ -17,6 +17,7 @@ interface EventCardProps {
   imageSrc: string
   time?: string
   isPast?: boolean
+  slug?: string
 }
 
 export default function EventCard({
@@ -27,30 +28,30 @@ export default function EventCard({
   imageSrc,
   time,
   isPast = false,
+  slug,
 }: EventCardProps) {
   const router = useRouter()
   const { toast } = useToast()
-  const [isLoggedIn, setIsLoggedIn] = useState(false) // Mock auth state
+  const { isAuthenticated } = useAuth()
+
+  const eventSlug = slug || encodeURIComponent(title.toLowerCase().replace(/\s+/g, "-"))
 
   const handleRegister = () => {
-    if (!isLoggedIn) {
+    if (!isAuthenticated) {
       toast({
         title: "Authentication Required",
         description: "Please log in to register for this event",
         variant: "destructive",
       })
-      router.push("/auth/login")
+      router.push(`/auth/login?redirect=/events/${eventSlug}`)
       return
     }
 
-    // If logged in, navigate to event details
-    const eventSlug = encodeURIComponent(title.toLowerCase().replace(/\s+/g, "-"))
     router.push(`/events/${eventSlug}`)
     window.scrollTo({ top: 0, behavior: "smooth" })
   }
 
   const handleViewDetails = () => {
-    const eventSlug = encodeURIComponent(title.toLowerCase().replace(/\s+/g, "-"))
     router.push(`/events/${eventSlug}`)
     window.scrollTo({ top: 0, behavior: "smooth" })
   }
@@ -92,7 +93,7 @@ export default function EventCard({
       <CardFooter className="p-4 pt-0">
         <Button
           variant={isPast ? "outline" : "default"}
-          className="w-full"
+          className={`w-full ${isPast ? "bg-transparent" : ""}`}
           onClick={isPast ? handleViewDetails : handleRegister}
         >
           {isPast ? "View Details" : "Register Now"}

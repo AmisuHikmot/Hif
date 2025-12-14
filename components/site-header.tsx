@@ -1,21 +1,31 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { ModeToggle } from "@/components/mode-toggle"
 import { LanguageSwitcher } from "@/components/language-switcher"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { ChevronDown, Menu, Search, X } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu"
+import { ChevronDown, Menu, Search, X, User, LogOut, LayoutDashboard, Settings } from "lucide-react"
 import { useState } from "react"
 import { useLanguage } from "@/contexts/language-context"
+import { useAuth } from "@/contexts/auth-context"
 import { SearchDialog } from "@/components/search/search-dialog"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 export function SiteHeader() {
   const { t } = useLanguage()
+  const { user, profile, isAuthenticated, isAdmin, signOut, isLoading } = useAuth()
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const pathname = usePathname()
+  const router = useRouter()
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen)
@@ -23,6 +33,21 @@ export function SiteHeader() {
 
   const openSearch = () => {
     setIsSearchOpen(true)
+  }
+
+  const handleSignOut = async () => {
+    await signOut()
+    router.push("/")
+  }
+
+  const getInitials = () => {
+    if (profile?.first_name && profile?.last_name) {
+      return `${profile.first_name[0]}${profile.last_name[0]}`.toUpperCase()
+    }
+    if (user?.email) {
+      return user.email[0].toUpperCase()
+    }
+    return "U"
   }
 
   return (
@@ -152,6 +177,13 @@ export function SiteHeader() {
                 <DropdownMenuItem asChild>
                   <Link href="/media/downloads">Downloads</Link>
                 </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/publications/papers">Research Papers</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/publications/journals">Journals</Link>
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
 
@@ -174,14 +206,81 @@ export function SiteHeader() {
             </Button>
             <LanguageSwitcher />
             <ModeToggle />
-            <Link href="/auth/login">
-              <Button variant="ghost" size="sm">
-                {t("nav.login")}
-              </Button>
-            </Link>
-            <Link href="/auth/register">
-              <Button size="sm">{t("nav.register")}</Button>
-            </Link>
+
+            {isLoading ? (
+              <div className="h-8 w-8 animate-pulse rounded-full bg-muted" />
+            ) : isAuthenticated ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.first_name || "User"} />
+                      <AvatarFallback className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300">
+                        {getInitials()}
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <div className="flex items-center justify-start gap-2 p-2">
+                    <div className="flex flex-col space-y-1 leading-none">
+                      {profile?.first_name && (
+                        <p className="font-medium">
+                          {profile.first_name} {profile.last_name}
+                        </p>
+                      )}
+                      <p className="w-[200px] truncate text-sm text-muted-foreground">{user?.email}</p>
+                    </div>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard" className="cursor-pointer">
+                      <LayoutDashboard className="mr-2 h-4 w-4" />
+                      Dashboard
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard/profile" className="cursor-pointer">
+                      <User className="mr-2 h-4 w-4" />
+                      Profile
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href="/dashboard/settings" className="cursor-pointer">
+                      <Settings className="mr-2 h-4 w-4" />
+                      Settings
+                    </Link>
+                  </DropdownMenuItem>
+                  {isAdmin && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem asChild>
+                        <Link href="/admin" className="cursor-pointer">
+                          <LayoutDashboard className="mr-2 h-4 w-4" />
+                          Admin Panel
+                        </Link>
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-red-600 dark:text-red-400">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <>
+                <Link href="/auth/login">
+                  <Button variant="ghost" size="sm">
+                    {t("nav.login")}
+                  </Button>
+                </Link>
+                <Link href="/auth/register">
+                  <Button size="sm">{t("nav.register")}</Button>
+                </Link>
+              </>
+            )}
           </div>
           <div className="flex md:hidden items-center gap-2">
             <Button variant="ghost" size="icon" onClick={openSearch} className="h-8 w-8">
@@ -299,6 +398,12 @@ export function SiteHeader() {
                 <Link href="/media/downloads" className="text-sm" onClick={toggleMenu}>
                   Downloads
                 </Link>
+                <Link href="/publications/papers" className="text-sm" onClick={toggleMenu}>
+                  Research Papers
+                </Link>
+                <Link href="/publications/journals" className="text-sm" onClick={toggleMenu}>
+                  Journals
+                </Link>
               </div>
             </div>
 
@@ -313,14 +418,58 @@ export function SiteHeader() {
             </Link>
 
             <div className="flex flex-col gap-2 mt-2">
-              <Link href="/auth/login" onClick={toggleMenu}>
-                <Button variant="outline" className="w-full">
-                  {t("nav.login")}
-                </Button>
-              </Link>
-              <Link href="/auth/register" onClick={toggleMenu}>
-                <Button className="w-full">{t("nav.register")}</Button>
-              </Link>
+              {isAuthenticated ? (
+                <>
+                  <div className="flex items-center gap-3 p-2 rounded-lg bg-muted">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={profile?.avatar_url || undefined} />
+                      <AvatarFallback>{getInitials()}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="font-medium">
+                        {profile?.first_name} {profile?.last_name}
+                      </p>
+                      <p className="text-sm text-muted-foreground">{user?.email}</p>
+                    </div>
+                  </div>
+                  <Link href="/dashboard" onClick={toggleMenu}>
+                    <Button variant="outline" className="w-full justify-start bg-transparent">
+                      <LayoutDashboard className="mr-2 h-4 w-4" />
+                      Dashboard
+                    </Button>
+                  </Link>
+                  {isAdmin && (
+                    <Link href="/admin" onClick={toggleMenu}>
+                      <Button variant="outline" className="w-full justify-start bg-transparent">
+                        <Settings className="mr-2 h-4 w-4" />
+                        Admin Panel
+                      </Button>
+                    </Link>
+                  )}
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-red-600 bg-transparent"
+                    onClick={() => {
+                      handleSignOut()
+                      toggleMenu()
+                    }}
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign out
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Link href="/auth/login" onClick={toggleMenu}>
+                    <Button variant="outline" className="w-full bg-transparent">
+                      {t("nav.login")}
+                    </Button>
+                  </Link>
+                  <Link href="/auth/register" onClick={toggleMenu}>
+                    <Button className="w-full">{t("nav.register")}</Button>
+                  </Link>
+                </>
+              )}
               <div className="flex justify-center mt-2">
                 <ModeToggle />
               </div>

@@ -1,10 +1,9 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Eye, EyeOff, Mail, Lock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,22 +11,39 @@ import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { useAuth } from "@/contexts/auth-context"
 
 export default function LoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirect = searchParams.get("redirect") || "/dashboard"
+  const { signIn } = useAuth()
+
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setError(null)
 
-    // Simulate authentication
-    setTimeout(() => {
+    try {
+      const { error } = await signIn(email, password)
+      if (error) {
+        setError(error.message)
+      } else {
+        router.push(redirect)
+        router.refresh()
+      }
+    } catch (err) {
+      setError("An unexpected error occurred. Please try again.")
+    } finally {
       setIsLoading(false)
-      router.push("/dashboard")
-    }, 1500)
+    }
   }
 
   return (
@@ -38,6 +54,12 @@ export default function LoginPage() {
           <CardDescription>Sign in to your Hamduk Islamic Foundation account</CardDescription>
         </CardHeader>
         <CardContent>
+          {error && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
           <Tabs defaultValue="email" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="email">Email</TabsTrigger>
@@ -49,7 +71,15 @@ export default function LoginPage() {
                   <Label htmlFor="email">Email</Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
-                    <Input id="email" type="email" placeholder="m@example.com" className="pl-10" required />
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="m@example.com"
+                      className="pl-10"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                    />
                   </div>
                 </div>
                 <div className="space-y-2">
@@ -64,7 +94,14 @@ export default function LoginPage() {
                   </div>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
-                    <Input id="password" type={showPassword ? "text" : "password"} className="pl-10 pr-10" required />
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      className="pl-10 pr-10"
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                    />
                     <button
                       type="button"
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
@@ -132,24 +169,6 @@ export default function LoginPage() {
               </form>
             </TabsContent>
           </Tabs>
-
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <Separator />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <Button variant="outline" className="w-full">
-              Google
-            </Button>
-            <Button variant="outline" className="w-full">
-              Facebook
-            </Button>
-          </div>
         </CardContent>
         <CardFooter className="flex flex-col">
           <p className="mt-2 text-center text-sm text-muted-foreground">

@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { createClient } from "@/lib/supabase/server"
 import { Calendar, Filter, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -11,7 +12,62 @@ export const metadata: Metadata = {
   description: "Upcoming and past events organized by Hamduk Islamic Foundation.",
 }
 
-export default function EventsPage() {
+async function getEvents() {
+  const supabase = await createClient()
+  const today = new Date().toISOString().split("T")[0]
+
+  const { data: upcomingEvents } = await supabase
+    .from("events")
+    .select("*")
+    .gte("event_date", today)
+    .order("event_date", { ascending: true })
+
+  const { data: pastEvents } = await supabase
+    .from("events")
+    .select("*")
+    .lt("event_date", today)
+    .order("event_date", { ascending: false })
+    .limit(12)
+
+  const { data: ongoingEvents } = await supabase
+    .from("events")
+    .select("*")
+    .eq("status", "ongoing")
+    .order("event_date", { ascending: true })
+
+  return {
+    upcoming: upcomingEvents || [],
+    past: pastEvents || [],
+    ongoing: ongoingEvents || [],
+  }
+}
+
+async function getCategories() {
+  const supabase = await createClient()
+  const { data } = await supabase.from("events").select("category")
+
+  const categories = [...new Set(data?.map((item) => item.category).filter(Boolean))]
+  return categories as string[]
+}
+
+export default async function EventsPage() {
+  const { upcoming, past, ongoing } = await getEvents()
+  const categories = await getCategories()
+
+  const formatEventDate = (date: string) => {
+    return new Date(date).toLocaleDateString("en-US", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    })
+  }
+
+  const formatEventTime = (start: string, end?: string) => {
+    const startTime = start?.substring(0, 5) || "TBA"
+    const endTime = end?.substring(0, 5)
+    return endTime ? `${startTime} - ${endTime}` : startTime
+  }
+
   return (
     <main className="container mx-auto px-4 py-12">
       <div className="mb-10 text-center">
@@ -36,13 +92,14 @@ export default function EventsPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Categories</SelectItem>
-              <SelectItem value="lectures">Lectures</SelectItem>
-              <SelectItem value="workshops">Workshops</SelectItem>
-              <SelectItem value="conferences">Conferences</SelectItem>
-              <SelectItem value="community">Community Events</SelectItem>
+              {categories.map((category) => (
+                <SelectItem key={category} value={category}>
+                  {category}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
-          <Button variant="outline">
+          <Button variant="outline" className="bg-transparent">
             <Calendar className="mr-2 h-4 w-4" />
             Calendar View
           </Button>
@@ -51,150 +108,79 @@ export default function EventsPage() {
 
       <Tabs defaultValue="upcoming" className="w-full">
         <TabsList className="mb-8 grid w-full grid-cols-2 md:w-auto md:grid-cols-3">
-          <TabsTrigger value="upcoming">Upcoming Events</TabsTrigger>
-          <TabsTrigger value="ongoing">Ongoing Programs</TabsTrigger>
-          <TabsTrigger value="past">Past Events</TabsTrigger>
+          <TabsTrigger value="upcoming">Upcoming Events ({upcoming.length})</TabsTrigger>
+          <TabsTrigger value="ongoing">Ongoing Programs ({ongoing.length})</TabsTrigger>
+          <TabsTrigger value="past">Past Events ({past.length})</TabsTrigger>
         </TabsList>
 
         <TabsContent value="upcoming">
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            <EventCard
-              title="RAMADAN LECTURE AND QUIZ COMPETITION"
-              description="Event is in memory of Alhaja H.A Raji"
-              date="23rd of March 2025; 23rd of Ramadan 1446A.H"
-              time="10:00 AM - 2:00 PM"
-              location="No. 1 Amusugbo Area, Gomajayi, Lagos State"
-              imageSrc="/placeholder.svg?height=200&width=400"
-            />
-            <EventCard
-              title="Islamic Leadership Conference"
-              description="Annual conference on Islamic leadership principles"
-              date="15th of June 2025"
-              time="9:00 AM - 5:00 PM"
-              location="Hamduk Islamic Center, Lagos"
-              imageSrc="/placeholder.svg?height=200&width=400"
-            />
-            <EventCard
-              title="Youth Development Workshop"
-              description="Building the next generation of Muslim leaders"
-              date="10th of August 2025"
-              time="2:00 PM - 6:00 PM"
-              location="Various locations across Lagos State"
-              imageSrc="/placeholder.svg?height=200&width=400"
-            />
-            <EventCard
-              title="Islamic Finance Seminar"
-              description="Understanding Islamic banking and finance principles"
-              date="5th of September 2025"
-              time="10:00 AM - 1:00 PM"
-              location="Hamduk Conference Hall, Lagos"
-              imageSrc="/placeholder.svg?height=200&width=400"
-            />
-            <EventCard
-              title="Women in Islam Conference"
-              description="Celebrating the role of women in Islamic history and society"
-              date="20th of October 2025"
-              time="11:00 AM - 4:00 PM"
-              location="Central Mosque, Lagos"
-              imageSrc="/placeholder.svg?height=200&width=400"
-            />
-            <EventCard
-              title="Islamic Art Exhibition"
-              description="Showcasing Islamic calligraphy, architecture, and visual arts"
-              date="15th of November 2025"
-              time="10:00 AM - 6:00 PM"
-              location="National Museum, Lagos"
-              imageSrc="/placeholder.svg?height=200&width=400"
-            />
-          </div>
+          {upcoming.length > 0 ? (
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {upcoming.map((event) => (
+                <EventCard
+                  key={event.id}
+                  title={event.title}
+                  description={event.description}
+                  date={formatEventDate(event.event_date)}
+                  time={formatEventTime(event.start_time, event.end_time)}
+                  location={event.location}
+                  imageSrc="/islamic-gathering.png"
+                  slug={event.id}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">No upcoming events at the moment. Check back soon!</p>
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="ongoing">
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            <EventCard
-              title="Weekly Tafsir Program"
-              description="Regular Quranic interpretation sessions"
-              date="Every Saturday"
-              time="4:00 PM - 6:00 PM"
-              location="Hamduk Islamic Center, Lagos"
-              imageSrc="/placeholder.svg?height=200&width=400"
-            />
-            <EventCard
-              title="Islamic Education Classes"
-              description="Ongoing classes for children and adults"
-              date="Every Sunday"
-              time="10:00 AM - 12:00 PM"
-              location="Multiple Branches"
-              imageSrc="/placeholder.svg?height=200&width=400"
-            />
-            <EventCard
-              title="Arabic Language Course"
-              description="Learn to read, write and speak Arabic"
-              date="Tuesdays and Thursdays"
-              time="5:00 PM - 7:00 PM"
-              location="Hamduk Education Center"
-              imageSrc="/placeholder.svg?height=200&width=400"
-            />
-          </div>
+          {ongoing.length > 0 ? (
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {ongoing.map((event) => (
+                <EventCard
+                  key={event.id}
+                  title={event.title}
+                  description={event.description}
+                  date={formatEventDate(event.event_date)}
+                  time={formatEventTime(event.start_time, event.end_time)}
+                  location={event.location}
+                  imageSrc="/islamic-program.png"
+                  slug={event.id}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">No ongoing programs at the moment.</p>
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="past">
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            <EventCard
-              title="Annual Islamic Conference 2024"
-              description="Exploring contemporary challenges facing Muslims"
-              date="12th of January 2024"
-              time="9:00 AM - 5:00 PM"
-              location="Hamduk Conference Center, Lagos"
-              imageSrc="/placeholder.svg?height=200&width=400"
-              isPast={true}
-            />
-            <EventCard
-              title="Ramadan Tafsir Series"
-              description="Daily Quranic interpretation during Ramadan"
-              date="March-April 2024"
-              time="8:00 PM - 10:00 PM"
-              location="Central Mosque, Lagos"
-              imageSrc="/placeholder.svg?height=200&width=400"
-              isPast={true}
-            />
-            <EventCard
-              title="Islamic Education Symposium"
-              description="Strategies for modern Islamic education"
-              date="5th of February 2024"
-              time="10:00 AM - 3:00 PM"
-              location="University of Lagos"
-              imageSrc="/placeholder.svg?height=200&width=400"
-              isPast={true}
-            />
-            <EventCard
-              title="Charity Drive for Orphans"
-              description="Fundraising event for local orphanages"
-              date="20th of March 2024"
-              time="2:00 PM - 6:00 PM"
-              location="Community Hall, Lagos"
-              imageSrc="/placeholder.svg?height=200&width=400"
-              isPast={true}
-            />
-            <EventCard
-              title="Islamic Finance Workshop"
-              description="Introduction to Islamic banking principles"
-              date="15th of April 2024"
-              time="10:00 AM - 1:00 PM"
-              location="Hamduk Islamic Center"
-              imageSrc="/placeholder.svg?height=200&width=400"
-              isPast={true}
-            />
-            <EventCard
-              title="Eid Celebration"
-              description="Community gathering for Eid-ul-Fitr"
-              date="10th of April 2024"
-              time="9:00 AM - 2:00 PM"
-              location="Central Prayer Ground, Lagos"
-              imageSrc="/placeholder.svg?height=200&width=400"
-              isPast={true}
-            />
-          </div>
+          {past.length > 0 ? (
+            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              {past.map((event) => (
+                <EventCard
+                  key={event.id}
+                  title={event.title}
+                  description={event.description}
+                  date={formatEventDate(event.event_date)}
+                  time={formatEventTime(event.start_time, event.end_time)}
+                  location={event.location}
+                  imageSrc="/past-islamic-event.jpg"
+                  isPast={true}
+                  slug={event.id}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">No past events to display.</p>
+            </div>
+          )}
         </TabsContent>
       </Tabs>
     </main>
