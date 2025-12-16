@@ -19,7 +19,7 @@ async function getDashboardData(userId: string) {
   const supabase = await createClient()
 
   // Get user profile
-  const { data: profile } = await supabase.from("users").select("*").eq("id", userId).single()
+  const { data: profile } = await supabase.from("profiles").select("*").eq("id", userId).single()
 
   // Get membership info
   const { data: membership } = await supabase

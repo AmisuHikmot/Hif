@@ -49,7 +49,7 @@ export default function SettingsPage() {
     try {
       const supabase = createClient()
       const { error } = await supabase
-        .from("users")
+        .from("profiles")
         .update({
           email_notifications: settings.emailNotifications,
           sms_notifications: settings.smsNotifications,
@@ -80,7 +80,7 @@ export default function SettingsPage() {
     try {
       const supabase = createClient()
       const { error } = await supabase
-        .from("users")
+        .from("profiles")
         .update({ is_active: false, updated_at: new Date().toISOString() })
         .eq("id", user!.id)
 

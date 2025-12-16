@@ -82,7 +82,7 @@ export default function ProfilePage() {
     try {
       const supabase = createClient()
       const { error: updateError } = await supabase
-        .from("users")
+        .from("profiles")
         .update({
           first_name: formData.firstName,
           last_name: formData.lastName,
@@ -164,7 +164,7 @@ export default function ProfilePage() {
     try {
       const supabase = createClient()
       const { error: updateError } = await supabase
-        .from("users")
+        .from("profiles")
         .update({
           email_notifications: notifications.emailNotifications,
           sms_notifications: notifications.smsNotifications,

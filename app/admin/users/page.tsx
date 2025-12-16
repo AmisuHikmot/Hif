@@ -62,7 +62,7 @@ export default function AdminUsersPage() {
     setIsLoading(true)
     try {
       const supabase = createClient()
-      const { data, error } = await supabase.from("users").select("*").order("created_at", { ascending: false })
+      const { data, error } = await supabase.from("profiles").select("*").order("created_at", { ascending: false })
 
       if (error) throw error
       setUsers(data || [])
@@ -80,7 +80,7 @@ export default function AdminUsersPage() {
   const handleRoleChange = async (userId: string, newRole: string) => {
     try {
       const supabase = createClient()
-      const { error } = await supabase.from("users").update({ role: newRole }).eq("id", userId)
+      const { error } = await supabase.from("profiles").update({ role: newRole }).eq("id", userId)
 
       if (error) throw error
 
@@ -102,7 +102,7 @@ export default function AdminUsersPage() {
   const handleStatusChange = async (userId: string, isActive: boolean) => {
     try {
       const supabase = createClient()
-      const { error } = await supabase.from("users").update({ is_active: isActive }).eq("id", userId)
+      const { error } = await supabase.from("profiles").update({ is_active: isActive }).eq("id", userId)
 
       if (error) throw error
 
@@ -124,7 +124,7 @@ export default function AdminUsersPage() {
   const handleMembershipApproval = async (userId: string, status: string) => {
     try {
       const supabase = createClient()
-      const { error } = await supabase.from("users").update({ membership_status: status }).eq("id", userId)
+      const { error } = await supabase.from("profiles").update({ membership_status: status }).eq("id", userId)
 
       if (error) throw error
 

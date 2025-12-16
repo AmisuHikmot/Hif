@@ -20,7 +20,7 @@ export default async function AdminDashboardPage() {
   }
 
   // Check if user is admin
-  const { data: profile } = await supabase.from("users").select("role").eq("id", user.id).single()
+  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single()
 
   if (!profile || profile.role !== "admin") {
     redirect("/dashboard")
@@ -36,7 +36,7 @@ export default async function AdminDashboardPage() {
     { data: upcomingEvents },
     { data: pendingRegistrations },
   ] = await Promise.all([
-    supabase.from("users").select("*", { count: "exact", head: true }).eq("is_active", true),
+    supabase.from("profiles").select("*", { count: "exact", head: true }).eq("is_active", true),
     supabase.from("events").select("*", { count: "exact", head: true }).or(`status.eq.upcoming,status.eq.ongoing`),
     supabase.from("publications").select("*", { count: "exact", head: true }),
     supabase.from("donations").select("amount").eq("status", "completed"),
@@ -45,7 +45,7 @@ export default async function AdminDashboardPage() {
       .select(
         `
         *,
-        user:users(first_name, last_name, avatar_url)
+        user:profiles(first_name, last_name, avatar_url)
       `,
       )
       .order("created_at", { ascending: false })
