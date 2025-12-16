@@ -40,7 +40,7 @@ export function SiteFooter() {
                 </Link>
               </li>
               <li>
-                <Link href="/about" className="hover:text-emerald-400 transition-colors">
+                <Link href="/about/history" className="hover:text-emerald-400 transition-colors">
                   About Us
                 </Link>
               </li>
@@ -50,12 +50,12 @@ export function SiteFooter() {
                 </Link>
               </li>
               <li>
-                <Link href="/contact" className="hover:text-emerald-400 transition-colors">
+                <Link href="/contact-us" className="hover:text-emerald-400 transition-colors">
                   Contact Us
                 </Link>
               </li>
               <li>
-                <Link href="/membership" className="hover:text-emerald-400 transition-colors">
+                <Link href="/membership/who-can-join" className="hover:text-emerald-400 transition-colors">
                   Membership
                 </Link>
               </li>
@@ -71,17 +71,17 @@ export function SiteFooter() {
             <h4 className="mb-4 text-md font-semibold text-white">Resources</h4>
             <ul className="space-y-2">
               <li>
-                <Link href="/focus/tafsir" className="hover:text-emerald-400 transition-colors">
+                <Link href="/focus/ramadan-tafsir" className="hover:text-emerald-400 transition-colors">
                   Tafsir
                 </Link>
               </li>
               <li>
-                <Link href="/conference" className="hover:text-emerald-400 transition-colors">
+                <Link href="/conference/islam-in-nigeria" className="hover:text-emerald-400 transition-colors">
                   Conference
                 </Link>
               </li>
               <li>
-                <Link href="/publications/journal" className="hover:text-emerald-400 transition-colors">
+                <Link href="/publications/journals" className="hover:text-emerald-400 transition-colors">
                   Journal
                 </Link>
               </li>
