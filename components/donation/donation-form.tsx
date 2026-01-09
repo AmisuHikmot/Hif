@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -9,10 +9,8 @@ import { Label } from "@/components/ui/label"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Textarea } from "@/components/ui/textarea"
 import { Separator } from "@/components/ui/separator"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useToast } from "@/components/ui/use-toast"
-import { createClient } from "@/lib/supabase/client"
 import { useAuth } from "@/contexts/auth-context"
 import { Loader2, CheckCircle } from "lucide-react"
 
@@ -26,6 +24,7 @@ export default function DonationForm() {
   const [isProcessing, setIsProcessing] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [paystackLoaded, setPaystackLoaded] = useState(false)
 
   const [formData, setFormData] = useState({
     donorName: profile ? `${profile.first_name} ${profile.last_name}` : "",
@@ -34,6 +33,13 @@ export default function DonationForm() {
     purpose: "",
     isAnonymous: false,
   })
+
+  useEffect(() => {
+    const script = document.createElement("script")
+    script.src = "https://js.paystack.co/v1/inline.js"
+    script.onload = () => setPaystackLoaded(true)
+    document.body.appendChild(script)
+  }, [])
 
   const handleAmountSelect = (value: string) => {
     setAmount(value)
@@ -58,37 +64,77 @@ export default function DonationForm() {
       return
     }
 
+    if (!formData.donorEmail) {
+      setError("Email address is required")
+      setIsProcessing(false)
+      return
+    }
+
     try {
-      const supabase = createClient()
-      const { error: donationError } = await supabase.from("donations").insert({
-        user_id: user?.id || null,
-        amount: finalAmount,
-        currency: "NGN",
-        donation_type: donationType,
-        donor_name: formData.isAnonymous ? "Anonymous" : formData.donorName,
-        donor_email: formData.donorEmail,
-        donor_phone: formData.donorPhone || null,
-        message: formData.purpose || null,
-        is_anonymous: formData.isAnonymous,
-        payment_status: "pending",
-        payment_method: "card",
+      const initResponse = await fetch("/api/payments/initialize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: finalAmount,
+          email: formData.donorEmail,
+          donorName: formData.isAnonymous ? "Anonymous" : formData.donorName,
+          purpose: formData.purpose,
+        }),
       })
 
-      if (donationError) throw donationError
+      if (!initResponse.ok) {
+        throw new Error("Failed to initialize payment")
+      }
 
-      setIsSuccess(true)
-      toast({
-        title: "Donation recorded!",
-        description: "Thank you for your generous donation. You will receive a confirmation email shortly.",
+      const initData = await initResponse.json()
+
+      const handler = (window as any).PaystackPop.setup({
+        key: (window as any).NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
+        email: formData.donorEmail,
+        amount: finalAmount * 100,
+        ref: initData.reference,
+        onClose: () => {
+          toast({
+            title: "Payment Cancelled",
+            description: "You have cancelled the payment",
+          })
+          setIsProcessing(false)
+        },
+        onSuccess: async (message: any) => {
+          const verifyResponse = await fetch(`/api/payments/verify?reference=${initData.reference}`)
+
+          if (verifyResponse.ok) {
+            const verifyData = await verifyResponse.json()
+
+            if (verifyData.success) {
+              setIsSuccess(true)
+              toast({
+                title: "Donation Successful!",
+                description: "Thank you for your generous donation.",
+              })
+            } else {
+              setError("Payment verification failed. Please contact support.")
+              toast({
+                title: "Verification Failed",
+                description: "Could not verify your payment",
+                variant: "destructive",
+              })
+            }
+          }
+
+          setIsProcessing(false)
+        },
       })
+
+      handler.openIframe()
     } catch (err) {
       setError("Failed to process donation. Please try again.")
+      console.error("Donation error:", err)
       toast({
         title: "Error",
         description: "Failed to process donation. Please try again.",
         variant: "destructive",
       })
-    } finally {
       setIsProcessing(false)
     }
   }
@@ -203,120 +249,63 @@ export default function DonationForm() {
         <Card>
           <CardHeader>
             <CardTitle>Payment Information</CardTitle>
-            <CardDescription>Your information will be kept private</CardDescription>
+            <CardDescription>Powered by Paystack</CardDescription>
           </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="card">
-              <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="card">Card</TabsTrigger>
-                <TabsTrigger value="bank">Bank Transfer</TabsTrigger>
-                <TabsTrigger value="mobile">Mobile Money</TabsTrigger>
-              </TabsList>
-              <TabsContent value="card" className="space-y-4 pt-4">
-                <div className="space-y-2">
-                  <Label htmlFor="card-number">Card Number</Label>
-                  <Input id="card-number" placeholder="1234 5678 9012 3456" />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="expiry">Expiry Date</Label>
-                    <Input id="expiry" placeholder="MM/YY" />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="cvv">CVV</Label>
-                    <Input id="cvv" placeholder="123" />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="card-name">Name on Card</Label>
-                  <Input id="card-name" placeholder="John Doe" />
-                </div>
-              </TabsContent>
-              <TabsContent value="bank" className="pt-4">
-                <div className="rounded-md bg-muted p-4">
-                  <p className="font-medium">Bank Transfer Details</p>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Account Name: Hamduk Islamic Foundation
-                    <br />
-                    Account Number: 0123456789
-                    <br />
-                    Bank: Sample Bank
-                    <br />
-                    Reference: Your Name + Donation
-                  </p>
-                  <p className="text-sm mt-4">
-                    Please send a confirmation email to donations@hamdukislamicfoundation.org after making the transfer.
-                  </p>
-                </div>
-              </TabsContent>
-              <TabsContent value="mobile" className="space-y-4 pt-4">
-                <div className="space-y-2">
-                  <Label htmlFor="phone-number">Phone Number</Label>
-                  <Input id="phone-number" placeholder="+234 XXX XXX XXXX" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="provider">Mobile Money Provider</Label>
-                  <select
-                    id="provider"
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    <option value="">Select provider</option>
-                    <option value="mtn">MTN Mobile Money</option>
-                    <option value="airtel">Airtel Money</option>
-                    <option value="glo">Glo Mobile Money</option>
-                    <option value="9mobile">9Mobile Money</option>
-                  </select>
-                </div>
-              </TabsContent>
-            </Tabs>
+          <CardContent className="space-y-4">
+            <div className="rounded-lg bg-blue-50 p-4 dark:bg-blue-900/20">
+              <p className="text-sm text-blue-800 dark:text-blue-200">
+                We use Paystack to securely process your donation. Your card information is encrypted and never stored
+                on our servers.
+              </p>
+            </div>
 
-            <Separator className="my-4" />
+            <Separator />
 
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="donor-name">Full Name</Label>
-                <Input
-                  id="donor-name"
-                  placeholder="Your full name"
-                  value={formData.donorName}
-                  onChange={(e) => setFormData({ ...formData, donorName: e.target.value })}
-                  required={!formData.isAnonymous}
-                  disabled={formData.isAnonymous}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="Your email address"
-                  value={formData.donorEmail}
-                  onChange={(e) => setFormData({ ...formData, donorEmail: e.target.value })}
-                  required
-                />
-                <p className="text-xs text-muted-foreground">We'll send your donation receipt to this email</p>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="donor-phone">Phone (Optional)</Label>
-                <Input
-                  id="donor-phone"
-                  type="tel"
-                  placeholder="+234 XXX XXX XXXX"
-                  value={formData.donorPhone}
-                  onChange={(e) => setFormData({ ...formData, donorPhone: e.target.value })}
-                />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="donor-name">Full Name</Label>
+              <Input
+                id="donor-name"
+                placeholder="Your full name"
+                value={formData.donorName}
+                onChange={(e) => setFormData({ ...formData, donorName: e.target.value })}
+                required={!formData.isAnonymous}
+                disabled={formData.isAnonymous}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email Address</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="Your email address"
+                value={formData.donorEmail}
+                onChange={(e) => setFormData({ ...formData, donorEmail: e.target.value })}
+                required
+              />
+              <p className="text-xs text-muted-foreground">We'll send your donation receipt to this email</p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="donor-phone">Phone (Optional)</Label>
+              <Input
+                id="donor-phone"
+                type="tel"
+                placeholder="+234 XXX XXX XXXX"
+                value={formData.donorPhone}
+                onChange={(e) => setFormData({ ...formData, donorPhone: e.target.value })}
+              />
             </div>
           </CardContent>
           <CardFooter>
-            <Button type="submit" className="w-full" disabled={isProcessing}>
+            <Button type="submit" className="w-full" disabled={isProcessing || !paystackLoaded}>
               {isProcessing ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Processing...
                 </>
+              ) : !paystackLoaded ? (
+                "Loading Payment Gateway..."
               ) : (
-                "Complete Donation"
+                "Donate with Paystack"
               )}
             </Button>
           </CardFooter>

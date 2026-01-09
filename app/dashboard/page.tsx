@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
-import { CalendarDays, Clock, Download, FileText, Gift, Bell, TrendingUp } from "lucide-react"
+import { Download, FileText, Gift, Bell, TrendingUp, CheckCircle, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -57,6 +57,15 @@ async function getDashboardData(userId: string) {
 
   const totalDonationsThisYear = yearlyDonations?.reduce((sum, d) => sum + Number(d.amount), 0) || 0
 
+  // Get total all-time donations
+  const { data: allDonations } = await supabase
+    .from("donations")
+    .select("amount")
+    .eq("user_id", userId)
+    .eq("payment_status", "completed")
+
+  const totalAllTimeDonations = allDonations?.reduce((sum, d) => sum + Number(d.amount), 0) || 0
+
   // Get activity logs
   const { data: activities } = await supabase
     .from("activity_logs")
@@ -83,15 +92,26 @@ async function getDashboardData(userId: string) {
     .order("event_date", { ascending: true })
     .limit(3)
 
+  // Get event attendance count
+  const { data: eventAttendance } = await supabase
+    .from("event_registrations")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("status", "confirmed")
+
+  const attendedEventsCount = eventAttendance?.length || 0
+
   return {
     profile,
     membership,
     registrations: registrations || [],
     donations: donations || [],
     totalDonationsThisYear,
+    totalAllTimeDonations,
     activities: activities || [],
     notifications: notifications || [],
     upcomingEvents: upcomingEvents || [],
+    attendedEventsCount,
   }
 }
 
@@ -111,9 +131,11 @@ export default async function DashboardPage() {
     registrations,
     donations,
     totalDonationsThisYear,
+    totalAllTimeDonations,
     activities,
     notifications,
     upcomingEvents,
+    attendedEventsCount,
   } = await getDashboardData(user.id)
 
   const donationGoal = 100000
@@ -147,7 +169,7 @@ export default async function DashboardPage() {
             </div>
           )}
 
-          <div className="mb-8 grid gap-4 md:grid-cols-3">
+          <div className="mb-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium">Membership Status</CardTitle>
@@ -157,89 +179,91 @@ export default async function DashboardPage() {
                   <Badge className={membership?.status === "active" ? "bg-emerald-500" : "bg-yellow-500"}>
                     {membership?.status || "Pending"}
                   </Badge>
-                  <span className="text-xs text-muted-foreground">
-                    {membership?.end_date ? `Expires: ${new Date(membership.end_date).toLocaleDateString()}` : "N/A"}
-                  </span>
+                  <CheckCircle className="h-4 w-4 text-emerald-600" />
                 </div>
-                <Separator className="my-4" />
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>Member since:</span>
-                    <span className="font-medium">
-                      {membership?.start_date
-                        ? new Date(membership.start_date).toLocaleDateString()
-                        : new Date(profile?.created_at || Date.now()).toLocaleDateString()}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Member ID:</span>
+                <Separator className="my-3" />
+                <div className="space-y-1">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">Member ID:</span>
                     <span className="font-medium">HIF-{user.id.substring(0, 8).toUpperCase()}</span>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Type:</span>
-                    <span className="font-medium">{membership?.membership_type || "Standard"}</span>
-                  </div>
+                  {membership?.start_date && (
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Since:</span>
+                      <span className="font-medium">{new Date(membership.start_date).toLocaleDateString()}</span>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Donation Progress</CardTitle>
+                <CardTitle className="text-sm font-medium">Donations This Year</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex items-center justify-between">
-                  <span className="text-2xl font-bold">₦{totalDonationsThisYear.toLocaleString()}</span>
-                  <span className="text-xs text-muted-foreground">Goal: ₦{donationGoal.toLocaleString()}</span>
-                </div>
+                <div className="text-2xl font-bold">₦{totalDonationsThisYear.toLocaleString()}</div>
                 <Progress value={donationProgress} className="mt-2" />
                 <p className="mt-2 text-xs text-muted-foreground">
-                  {Math.round(donationProgress)}% of your annual goal
+                  {Math.round(donationProgress)}% of ₦{donationGoal.toLocaleString()} goal
                 </p>
-                <Button asChild className="mt-4 w-full" size="sm">
-                  <Link href="/donate">Make a Donation</Link>
+                <Button asChild size="sm" className="mt-3 w-full">
+                  <Link href="/donate">Donate</Link>
                 </Button>
               </CardContent>
             </Card>
 
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Upcoming Events</CardTitle>
+                <CardTitle className="text-sm font-medium">All-Time Donations</CardTitle>
               </CardHeader>
               <CardContent>
-                {upcomingEvents.length > 0 ? (
-                  <div className="space-y-4">
-                    {upcomingEvents.slice(0, 2).map((event) => (
-                      <div key={event.id}>
-                        <h3 className="font-medium line-clamp-1">{event.title}</h3>
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <CalendarDays className="h-3 w-3" />
-                          <span>{new Date(event.event_date).toLocaleDateString()}</span>
-                        </div>
-                        {registrations.some((r) => r.event_id === event.id) ? (
-                          <Badge variant="outline" className="mt-1">
-                            Registered
-                          </Badge>
-                        ) : (
-                          <Button variant="outline" size="sm" className="mt-1 bg-transparent" asChild>
-                            <Link href={`/events/${event.id}`}>Register</Link>
-                          </Button>
-                        )}
-                      </div>
-                    ))}
+                <div className="text-2xl font-bold">₦{totalAllTimeDonations.toLocaleString()}</div>
+                <Separator className="my-3" />
+                <div className="space-y-2">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">Total Donations:</span>
+                    <span className="font-medium">
+                      {donations.filter((d) => d.payment_status === "completed").length}
+                    </span>
                   </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-muted-foreground">Avg per Donation:</span>
+                    <span className="font-medium">
+                      ₦
+                      {donations.length > 0
+                        ? Math.round(totalAllTimeDonations / donations.length).toLocaleString()
+                        : "0"}
+                    </span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium">Event Participation</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{attendedEventsCount}</div>
+                <p className="mt-2 text-xs text-muted-foreground">events attended</p>
+                <Separator className="my-3" />
+                {upcomingEvents.length > 0 ? (
+                  <Button asChild size="sm" className="w-full">
+                    <Link href="/events">View Events</Link>
+                  </Button>
                 ) : (
-                  <p className="text-sm text-muted-foreground">No upcoming events</p>
+                  <p className="text-xs text-muted-foreground">No upcoming events</p>
                 )}
               </CardContent>
             </Card>
           </div>
 
-          <Tabs defaultValue="activities">
-            <TabsList className="mb-4">
+          <Tabs defaultValue="activities" className="space-y-4">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="activities">Recent Activities</TabsTrigger>
               <TabsTrigger value="resources">Resources</TabsTrigger>
-              <TabsTrigger value="donations">Donation History</TabsTrigger>
+              <TabsTrigger value="donations">Donations</TabsTrigger>
             </TabsList>
 
             <TabsContent value="activities" className="space-y-4">
@@ -250,131 +274,21 @@ export default async function DashboardPage() {
                 </CardHeader>
                 <CardContent>
                   {activities.length > 0 ? (
-                    <div className="space-y-6">
-                      {activities.map((activity) => (
-                        <div key={activity.id} className="flex items-start gap-4">
-                          <div className="rounded-full bg-emerald-100 p-2 dark:bg-emerald-900/20">
-                            {activity.entity_type === "event" && (
-                              <CalendarDays className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                            )}
-                            {activity.entity_type === "donation" && (
-                              <Gift className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                            )}
-                            {activity.entity_type === "resource" && (
-                              <Download className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                            )}
-                            {!["event", "donation", "resource"].includes(activity.entity_type) && (
-                              <Clock className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                            )}
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-center justify-between">
-                              <h3 className="font-medium">{activity.action}</h3>
-                              <span className="text-xs text-muted-foreground">
-                                {new Date(activity.created_at).toLocaleDateString()}
-                              </span>
-                            </div>
-                            <p className="text-sm text-muted-foreground">
-                              {activity.details?.description || `${activity.entity_type} activity`}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <TrendingUp className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                      <p className="text-muted-foreground">No recent activities to display.</p>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Start by registering for an event or making a donation!
-                      </p>
-                    </div>
-                  )}
-                </CardContent>
-                {activities.length > 0 && (
-                  <CardFooter>
-                    <Button variant="outline" className="w-full bg-transparent">
-                      View All Activities
-                    </Button>
-                  </CardFooter>
-                )}
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="resources" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Member Resources</CardTitle>
-                  <CardDescription>Access exclusive resources for Hamduk Islamic Foundation members</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="flex items-start gap-4">
-                          <div className="rounded-md bg-emerald-100 p-2 dark:bg-emerald-900/20">
-                            <FileText className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
-                          </div>
-                          <div>
-                            <h3 className="font-medium">Islamic Finance Guide</h3>
-                            <p className="text-xs text-muted-foreground">PDF • 2.4 MB</p>
-                            <Button variant="link" className="h-auto p-0 text-xs" asChild>
-                              <Link href="/media/downloads">Download</Link>
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card>
-                      <CardContent className="p-4">
-                        <div className="flex items-start gap-4">
-                          <div className="rounded-md bg-emerald-100 p-2 dark:bg-emerald-900/20">
-                            <FileText className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
-                          </div>
-                          <div>
-                            <h3 className="font-medium">Ramadan Prayer Timetable</h3>
-                            <p className="text-xs text-muted-foreground">PDF • 1.2 MB</p>
-                            <Button variant="link" className="h-auto p-0 text-xs" asChild>
-                              <Link href="/media/downloads">Download</Link>
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                </CardContent>
-                <CardFooter>
-                  <Button variant="outline" className="w-full bg-transparent" asChild>
-                    <Link href="/media/downloads">View All Resources</Link>
-                  </Button>
-                </CardFooter>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="donations" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Donation History</CardTitle>
-                  <CardDescription>Record of your contributions to Hamduk Islamic Foundation</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {donations.length > 0 ? (
                     <div className="space-y-4">
-                      {donations.map((donation) => (
-                        <div key={donation.id}>
-                          <div className="flex items-center justify-between">
-                            <div>
-                              <h3 className="font-medium">{donation.project_name || "General Donation"}</h3>
-                              <p className="text-sm text-muted-foreground">{donation.donation_type} donation</p>
+                      {activities.map((activity) => (
+                        <div key={activity.id}>
+                          <div className="flex items-start gap-4">
+                            <div className="rounded-full bg-emerald-100 p-2 dark:bg-emerald-900/20">
+                              <TrendingUp className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                             </div>
-                            <div className="text-right">
-                              <p className="font-medium">
-                                {donation.currency} {Number(donation.amount).toLocaleString()}
-                              </p>
-                              <p className="text-xs text-muted-foreground">
-                                {new Date(donation.created_at).toLocaleDateString()}
-                              </p>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between">
+                                <h3 className="font-medium">{activity.action}</h3>
+                                <span className="text-xs text-muted-foreground">
+                                  {new Date(activity.created_at).toLocaleDateString()}
+                                </span>
+                              </div>
+                              <p className="text-sm text-muted-foreground line-clamp-2">{activity.description}</p>
                             </div>
                           </div>
                           <Separator className="mt-4" />
@@ -383,22 +297,99 @@ export default async function DashboardPage() {
                     </div>
                   ) : (
                     <div className="text-center py-8">
+                      <AlertCircle className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                      <p className="text-muted-foreground">No recent activities</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="resources" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Member Resources</CardTitle>
+                  <CardDescription>Access exclusive resources for members</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <Card className="bg-muted/50">
+                      <CardContent className="p-4">
+                        <div className="flex items-start gap-4">
+                          <FileText className="h-8 w-8 text-emerald-600" />
+                          <div className="flex-1">
+                            <h3 className="font-medium">Publications</h3>
+                            <p className="text-xs text-muted-foreground">Research papers and journals</p>
+                            <Button variant="link" size="sm" className="h-auto p-0 mt-2" asChild>
+                              <Link href="/publications/papers">Browse</Link>
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="bg-muted/50">
+                      <CardContent className="p-4">
+                        <div className="flex items-start gap-4">
+                          <Download className="h-8 w-8 text-blue-600" />
+                          <div className="flex-1">
+                            <h3 className="font-medium">Downloads</h3>
+                            <p className="text-xs text-muted-foreground">Educational materials</p>
+                            <Button variant="link" size="sm" className="h-auto p-0 mt-2" asChild>
+                              <Link href="/media/downloads">Browse</Link>
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="donations" className="space-y-4">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Donation History</CardTitle>
+                  <CardDescription>Your recent donation records</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {donations.length > 0 ? (
+                    <div className="space-y-4">
+                      {donations.slice(0, 5).map((donation) => (
+                        <div key={donation.id}>
+                          <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                            <div>
+                              <h3 className="font-medium">{donation.project_name || "General Donation"}</h3>
+                              <p className="text-sm text-muted-foreground">{donation.donation_type} donation</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-bold">₦{Number(donation.amount).toLocaleString()}</p>
+                              <Badge
+                                variant={donation.payment_status === "completed" ? "default" : "outline"}
+                                className="mt-1"
+                              >
+                                {donation.payment_status}
+                              </Badge>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
                       <Gift className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                      <p className="text-muted-foreground">No donations yet.</p>
-                      <Button className="mt-4" asChild>
+                      <p className="text-muted-foreground">No donations yet</p>
+                      <Button asChild className="mt-4">
                         <Link href="/donate">Make Your First Donation</Link>
                       </Button>
                     </div>
                   )}
                 </CardContent>
                 {donations.length > 0 && (
-                  <CardFooter className="flex flex-col gap-4">
-                    <div className="flex w-full items-center justify-between rounded-lg bg-muted p-4">
-                      <span className="font-medium">Total Donations ({new Date().getFullYear()})</span>
-                      <span className="text-xl font-bold">₦{totalDonationsThisYear.toLocaleString()}</span>
-                    </div>
-                    <Button className="w-full" asChild>
-                      <Link href="/donate">Make a New Donation</Link>
+                  <CardFooter>
+                    <Button variant="outline" className="w-full bg-transparent" asChild>
+                      <Link href="/dashboard/donations">View All Donations</Link>
                     </Button>
                   </CardFooter>
                 )}

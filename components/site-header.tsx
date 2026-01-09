@@ -51,20 +51,29 @@ export function SiteHeader() {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between">
-        <div className="flex items-center gap-6 md:gap-10">
-          <Link href="/" className="flex items-center space-x-2">
-            <span className="text-xl font-bold">{t("site.name")}</span>
+    <header className="sticky top-0 z-50 w-full border-b bg-white/95 dark:bg-slate-950/95 backdrop-blur supports-[backdrop-filter]:bg-white/75 dark:supports-[backdrop-filter]:bg-slate-950/75 shadow-sm">
+      <div className="container mx-auto max-w-7xl px-4 flex h-16 items-center justify-between">
+        {/* Logo and Desktop Navigation */}
+        <div className="flex items-center gap-8 flex-1">
+          <Link href="/" className="flex items-center space-x-2 flex-shrink-0">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-600">
+              <span className="text-sm font-bold text-white">H</span>
+            </div>
+            <span className="hidden sm:inline text-lg font-bold text-gray-900 dark:text-white">{t("site.name")}</span>
           </Link>
-          <nav className="hidden md:flex gap-6">
+
+          {/* Desktop Navigation Menu */}
+          <nav className="hidden lg:flex gap-1 items-center">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center gap-1">
-                  {t("nav.about")} <ChevronDown className="h-4 w-4" />
+                <Button
+                  variant="ghost"
+                  className="h-auto py-2 px-3 text-sm font-medium hover:bg-gray-100 dark:hover:bg-slate-800"
+                >
+                  {t("nav.about")} <ChevronDown className="ml-1 h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start">
+              <DropdownMenuContent align="start" className="w-48">
                 <DropdownMenuItem asChild>
                   <Link href="/about/history">History</Link>
                 </DropdownMenuItem>
@@ -88,11 +97,14 @@ export function SiteHeader() {
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center gap-1">
-                  {t("nav.focus")} <ChevronDown className="h-4 w-4" />
+                <Button
+                  variant="ghost"
+                  className="h-auto py-2 px-3 text-sm font-medium hover:bg-gray-100 dark:hover:bg-slate-800"
+                >
+                  {t("nav.focus")} <ChevronDown className="ml-1 h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start">
+              <DropdownMenuContent align="start" className="w-48">
                 <DropdownMenuItem asChild>
                   <Link href="/focus">Overview</Link>
                 </DropdownMenuItem>
@@ -113,11 +125,14 @@ export function SiteHeader() {
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center gap-1">
-                  {t("nav.conference")} <ChevronDown className="h-4 w-4" />
+                <Button
+                  variant="ghost"
+                  className="h-auto py-2 px-3 text-sm font-medium hover:bg-gray-100 dark:hover:bg-slate-800"
+                >
+                  {t("nav.conference")} <ChevronDown className="ml-1 h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start">
+              <DropdownMenuContent align="start" className="w-48">
                 <DropdownMenuItem asChild>
                   <Link href="/conference/islam-in-nigeria">Islam in Nigeria</Link>
                 </DropdownMenuItem>
@@ -135,11 +150,14 @@ export function SiteHeader() {
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center gap-1">
-                  {t("nav.membership")} <ChevronDown className="h-4 w-4" />
+                <Button
+                  variant="ghost"
+                  className="h-auto py-2 px-3 text-sm font-medium hover:bg-gray-100 dark:hover:bg-slate-800"
+                >
+                  {t("nav.membership")} <ChevronDown className="ml-1 h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start">
+              <DropdownMenuContent align="start" className="w-48">
                 <DropdownMenuItem asChild>
                   <Link href="/membership/who-can-join">Who Can Join</Link>
                 </DropdownMenuItem>
@@ -160,11 +178,14 @@ export function SiteHeader() {
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center gap-1">
-                  {t("nav.media")} <ChevronDown className="h-4 w-4" />
+                <Button
+                  variant="ghost"
+                  className="h-auto py-2 px-3 text-sm font-medium hover:bg-gray-100 dark:hover:bg-slate-800"
+                >
+                  {t("nav.media")} <ChevronDown className="ml-1 h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="start">
+              <DropdownMenuContent align="start" className="w-48">
                 <DropdownMenuItem asChild>
                   <Link href="/media">Overview</Link>
                 </DropdownMenuItem>
@@ -187,20 +208,37 @@ export function SiteHeader() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Link href="/events" className="text-sm font-medium transition-colors hover:text-primary">
-              {t("nav.events")}
+            <Link href="/events">
+              <Button
+                variant="ghost"
+                className="h-auto py-2 px-3 text-sm font-medium hover:bg-gray-100 dark:hover:bg-slate-800"
+              >
+                {t("nav.events")}
+              </Button>
             </Link>
-            <Link href="/donate" className="text-sm font-medium transition-colors hover:text-primary">
-              {t("nav.donate")}
+            <Link href="/donate">
+              <Button
+                variant="ghost"
+                className="h-auto py-2 px-3 text-sm font-medium hover:bg-gray-100 dark:hover:bg-slate-800"
+              >
+                {t("nav.donate")}
+              </Button>
             </Link>
-            <Link href="/contact-us" className="text-sm font-medium transition-colors hover:text-primary">
-              {t("nav.contact")}
+            <Link href="/contact-us">
+              <Button
+                variant="ghost"
+                className="h-auto py-2 px-3 text-sm font-medium hover:bg-gray-100 dark:hover:bg-slate-800"
+              >
+                {t("nav.contact")}
+              </Button>
             </Link>
           </nav>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="hidden md:flex items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={openSearch} className="h-8 w-8">
+
+        {/* Right Side: Actions and Auth */}
+        <div className="flex items-center gap-3 justify-end">
+          <div className="hidden lg:flex items-center gap-2">
+            <Button variant="ghost" size="icon" onClick={openSearch} className="h-9 w-9">
               <Search className="h-4 w-4" />
               <span className="sr-only">Search</span>
             </Button>
@@ -208,14 +246,14 @@ export function SiteHeader() {
             <ModeToggle />
 
             {isLoading ? (
-              <div className="h-8 w-8 animate-pulse rounded-full bg-muted" />
+              <div className="h-9 w-9 animate-pulse rounded-full bg-muted" />
             ) : isAuthenticated ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                    <Avatar className="h-8 w-8">
+                  <Button variant="ghost" className="relative h-9 w-9 rounded-full p-0">
+                    <Avatar className="h-9 w-9">
                       <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.first_name || "User"} />
-                      <AvatarFallback className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300">
+                      <AvatarFallback className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300 text-xs font-semibold">
                         {getInitials()}
                       </AvatarFallback>
                     </Avatar>
@@ -223,32 +261,36 @@ export function SiteHeader() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
                   <div className="flex items-center justify-start gap-2 p-2">
+                    <Avatar className="h-9 w-9">
+                      <AvatarImage src={profile?.avatar_url || undefined} />
+                      <AvatarFallback>{getInitials()}</AvatarFallback>
+                    </Avatar>
                     <div className="flex flex-col space-y-1 leading-none">
                       {profile?.first_name && (
-                        <p className="font-medium">
+                        <p className="font-medium text-sm">
                           {profile.first_name} {profile.last_name}
                         </p>
                       )}
-                      <p className="w-[200px] truncate text-sm text-muted-foreground">{user?.email}</p>
+                      <p className="w-[180px] truncate text-xs text-muted-foreground">{user?.email}</p>
                     </div>
                   </div>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
                     <Link href="/dashboard" className="cursor-pointer">
                       <LayoutDashboard className="mr-2 h-4 w-4" />
-                      Dashboard
+                      <span>Dashboard</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link href="/dashboard/profile" className="cursor-pointer">
                       <User className="mr-2 h-4 w-4" />
-                      Profile
+                      <span>Profile</span>
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link href="/dashboard/settings" className="cursor-pointer">
                       <Settings className="mr-2 h-4 w-4" />
-                      Settings
+                      <span>Settings</span>
                     </Link>
                   </DropdownMenuItem>
                   {isAdmin && (
@@ -257,7 +299,7 @@ export function SiteHeader() {
                       <DropdownMenuItem asChild>
                         <Link href="/admin" className="cursor-pointer">
                           <LayoutDashboard className="mr-2 h-4 w-4" />
-                          Admin Panel
+                          <span>Admin Panel</span>
                         </Link>
                       </DropdownMenuItem>
                     </>
@@ -265,31 +307,34 @@ export function SiteHeader() {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-red-600 dark:text-red-400">
                     <LogOut className="mr-2 h-4 w-4" />
-                    Sign out
+                    <span>Sign out</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <>
+              <div className="flex items-center gap-2">
                 <Link href="/auth/login">
-                  <Button variant="ghost" size="sm">
+                  <Button variant="outline" size="sm" className="text-xs bg-transparent">
                     {t("nav.login")}
                   </Button>
                 </Link>
                 <Link href="/auth/register">
-                  <Button size="sm">{t("nav.register")}</Button>
+                  <Button size="sm" className="text-xs">
+                    {t("nav.register")}
+                  </Button>
                 </Link>
-              </>
+              </div>
             )}
           </div>
-          <div className="flex md:hidden items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={openSearch} className="h-8 w-8">
+
+          {/* Mobile Menu Button */}
+          <div className="flex lg:hidden items-center gap-1">
+            <Button variant="ghost" size="icon" onClick={openSearch} className="h-9 w-9">
               <Search className="h-4 w-4" />
               <span className="sr-only">Search</span>
             </Button>
-            <LanguageSwitcher />
-            <Button variant="ghost" size="icon" onClick={toggleMenu} aria-label="Toggle Menu">
-              {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            <Button variant="ghost" size="icon" onClick={toggleMenu} aria-label="Toggle Menu" className="h-9 w-9">
+              {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
           </div>
         </div>
@@ -297,7 +342,7 @@ export function SiteHeader() {
 
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="md:hidden fixed inset-0 top-16 z-50 bg-background p-4 overflow-y-auto">
+        <div className="lg:hidden fixed inset-0 top-16 z-50 bg-background p-4 overflow-y-auto">
           <nav className="flex flex-col gap-4">
             <div className="border-b pb-2">
               <div className="font-medium mb-1">{t("nav.about")}</div>
@@ -461,12 +506,14 @@ export function SiteHeader() {
               ) : (
                 <>
                   <Link href="/auth/login" onClick={toggleMenu}>
-                    <Button variant="outline" className="w-full bg-transparent">
+                    <Button variant="outline" size="sm" className="w-full bg-transparent text-xs">
                       {t("nav.login")}
                     </Button>
                   </Link>
                   <Link href="/auth/register" onClick={toggleMenu}>
-                    <Button className="w-full">{t("nav.register")}</Button>
+                    <Button size="sm" className="w-full text-xs">
+                      {t("nav.register")}
+                    </Button>
                   </Link>
                 </>
               )}
