@@ -2,7 +2,7 @@
 
 import { useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { createClient } from "@/lib/supabase/client"
+import { supabase } from "@/lib/supabase/client"
 import { Loader2 } from "lucide-react"
 
 export default function AuthCallbackPage() {
@@ -10,16 +10,24 @@ export default function AuthCallbackPage() {
 
   useEffect(() => {
     const handleCallback = async () => {
-      const supabase = createClient()
+      try {
+        // Get current session from Supabase
+        const {
+          data: { session },
+          error,
+        } = await supabase.auth.getSession()
 
-      // Handle the OAuth callback or email confirmation
-      const { error } = await supabase.auth.exchangeCodeForSession(window.location.href)
+        if (error || !session) {
+          console.error("No active session found:", error)
+          router.push("/auth/login?error=callback_error")
+          return
+        }
 
-      if (error) {
-        console.error("Auth callback error:", error)
-        router.push("/auth/login?error=callback_error")
-      } else {
+        // Session exists, redirect to dashboard
         router.push("/dashboard")
+      } catch (err) {
+        console.error("Auth callback error:", err)
+        router.push("/auth/login?error=callback_error")
       }
     }
 
