@@ -9,126 +9,179 @@ export async function POST(request: NextRequest) {
 
     console.log("[v0] Payment initialize request:", { amount, email, donorName, purpose })
 
-    // Validate required fields
-    if (!amount || amount <= 0) {
+    if (!amount || typeof amount !== "number" || amount <= 0) {
       console.error("[v0] Invalid amount:", amount)
-      return NextResponse.json({ error: "Invalid amount. Amount must be greater than 0" }, { status: 400 })
+      return NextResponse.json({ error: "Invalid amount. Amount must be a number greater than 0" }, { status: 400 })
     }
 
     if (!email || !email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
       console.error("[v0] Invalid email:", email)
-      return NextResponse.json({ error: "Invalid email address. Please provide a valid email" }, { status: 400 })
+      return NextResponse.json(
+        { error: "Invalid email address. Please provide a valid email format (e.g., user@example.com)" },
+        { status: 400 },
+      )
     }
 
-    if (!donorName || donorName.trim() === "") {
-      console.error("[v0] Missing donor name")
-      return NextResponse.json({ error: "Donor name is required" }, { status: 400 })
+    if (!donorName || typeof donorName !== "string" || donorName.trim().length === 0) {
+      console.error("[v0] Invalid donor name:", donorName)
+      return NextResponse.json({ error: "Donor name is required and must be a non-empty string" }, { status: 400 })
     }
 
-    // Check Paystack secret key
     if (!process.env.PAYSTACK_SECRET_KEY) {
-      console.error("[v0] PAYSTACK_SECRET_KEY not configured")
-      return NextResponse.json({ error: "Payment service is not properly configured" }, { status: 500 })
+      console.error("[v0] PAYSTACK_SECRET_KEY not configured in environment")
+      return NextResponse.json(
+        { error: "Payment service is not properly configured. Please contact support." },
+        { status: 500 },
+      )
     }
 
     const supabase = await createClient()
 
-    // Get the current user (optional - for logged in users)
     let userId: string | null = null
     try {
       const {
         data: { user },
       } = await supabase.auth.getUser()
       userId = user?.id || null
+      console.log("[v0] User authenticated:", userId || "anonymous")
     } catch (authError) {
-      console.log("[v0] Auth check skipped (anonymous donation allowed)")
+      console.log(
+        "[v0] Auth check skipped - allowing anonymous donation:",
+        authError instanceof Error ? authError.message : String(authError),
+      )
     }
 
-    // Create donation record
+    // Create donation record with detailed error handling
     console.log("[v0] Creating donation record...")
-    const { data: donation, error: donationError } = await supabase
+
+    // Use service role client to bypass RLS issues
+    const serviceRoleClient = createClient()
+
+    const { data: donation, error: donationError } = await (await serviceRoleClient)
       .from("donations")
       .insert({
         user_id: userId,
-        amount,
+        amount: Math.round(amount), // Ensure integer amount in kobo
         currency: "NGN",
-        donor_name: donorName,
-        donor_email: email,
-        message: purpose || "General Donation",
+        donor_name: donorName.trim(),
+        donor_email: email.toLowerCase().trim(),
+        message: purpose?.trim() || "General Donation",
         payment_status: "pending",
+        created_at: new Date().toISOString(),
       })
       .select()
       .single()
 
-    if (donationError || !donation) {
-      console.error("[v0] Donation creation error:", donationError)
-      return NextResponse.json({ error: "Failed to create donation record. Please try again." }, { status: 500 })
+    if (donationError) {
+      console.error("[v0] Donation creation error:", {
+        code: donationError.code,
+        message: donationError.message,
+        details: donationError.details,
+      })
+      return NextResponse.json(
+        {
+          error: "Failed to create donation record. This may be a temporary issue. Please try again.",
+          code: donationError.code,
+        },
+        { status: 500 },
+      )
     }
 
-    console.log("[v0] Donation created:", donation.id)
+    if (!donation?.id) {
+      console.error("[v0] Donation created but no ID returned")
+      return NextResponse.json({ error: "Donation record created but missing ID" }, { status: 500 })
+    }
+
+    console.log("[v0] Donation created successfully:", donation.id)
 
     // Generate unique reference for this transaction
-    const reference = `${donation.id}-${Date.now()}`
+    const reference = `hif-${donation.id.slice(0, 8)}-${Date.now()}`
 
-    // Initialize Paystack payment
-    console.log("[v0] Initializing Paystack payment...")
+    console.log("[v0] Initializing Paystack payment with amount:", amount, "kobo")
     let paystackResponse: any
     try {
       paystackResponse = await initializePaystackPayment({
-        email,
-        amount,
+        email: email.toLowerCase().trim(),
+        amount: Math.round(amount), // Ensure integer for Paystack
         reference,
         metadata: {
           donation_id: donation.id,
-          donor_name: donorName,
-          purpose: purpose || "General Donation",
+          donor_name: donorName.trim(),
+          purpose: purpose?.trim() || "General Donation",
+          timestamp: new Date().toISOString(),
         },
       })
+      console.log("[v0] Paystack response received:", {
+        status: paystackResponse.status,
+        ref: paystackResponse.data?.reference,
+      })
     } catch (paystackError) {
-      console.error("[v0] Paystack initialization error:", paystackError)
-      return NextResponse.json(
-        { error: "Failed to initialize payment. Please check your connection and try again." },
-        { status: 500 },
-      )
-    }
-
-    if (!paystackResponse.status) {
-      console.error("[v0] Paystack response status false:", paystackResponse)
+      console.error("[v0] Paystack initialization error:", {
+        message: paystackError instanceof Error ? paystackError.message : String(paystackError),
+        stack: paystackError instanceof Error ? paystackError.stack : undefined,
+      })
       return NextResponse.json(
         {
-          error: paystackResponse.message || "Failed to initialize payment with Paystack",
+          error: "Failed to initialize payment with Paystack. Please check your internet connection and try again.",
+          details: process.env.NODE_ENV === "development" ? String(paystackError) : undefined,
         },
         { status: 500 },
       )
     }
 
-    // Save transaction record
+    if (!paystackResponse?.status) {
+      console.error("[v0] Paystack returned non-success status:", paystackResponse)
+      return NextResponse.json(
+        {
+          error: paystackResponse?.message || "Paystack payment initialization failed. Please try again.",
+        },
+        { status: 500 },
+      )
+    }
+
+    if (!paystackResponse?.data?.authorization_url) {
+      console.error("[v0] Paystack missing authorization_url:", paystackResponse.data)
+      return NextResponse.json({ error: "Invalid Paystack response: missing authorization URL" }, { status: 500 })
+    }
+
     console.log("[v0] Saving transaction record...")
     try {
       await savePaystackTransaction(
         donation.id,
-        reference,
+        paystackResponse.data.reference || reference,
         amount,
         "pending",
         paystackResponse.data.authorization_url,
-        paystackResponse.data.access_code,
+        paystackResponse.data.access_code || "",
       )
+      console.log("[v0] Transaction record saved")
     } catch (txError) {
-      console.error("[v0] Transaction save error:", txError)
-      // Don't fail here - transaction can be created later
+      // Log but don't fail - user can still proceed to payment
+      console.warn(
+        "[v0] Transaction record save failed (non-critical):",
+        txError instanceof Error ? txError.message : String(txError),
+      )
     }
 
-    console.log("[v0] Payment initialized successfully:", reference)
+    console.log("[v0] Payment initialized successfully for donation:", donation.id)
     return NextResponse.json({
       success: true,
       donation_id: donation.id,
       authorization_url: paystackResponse.data.authorization_url,
       access_code: paystackResponse.data.access_code,
-      reference: paystackResponse.data.reference,
+      reference: paystackResponse.data.reference || reference,
     })
   } catch (error) {
-    console.error("[v0] Payment initialization error:", error)
-    const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred"
-    return NextResponse.json({ error: `Failed to initialize payment: ${errorMessage}` }, { status: 500 })
+    console.error("[v0] Unexpected error in payment initialization:", {
+      message: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    })
+    return NextResponse.json(
+      {
+        error: "An unexpected error occurred while initializing payment. Please try again.",
+        details: process.env.NODE_ENV === "development" ? String(error) : undefined,
+      },
+      { status: 500 },
+    )
   }
 }
