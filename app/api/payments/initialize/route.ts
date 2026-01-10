@@ -54,10 +54,7 @@ export async function POST(request: NextRequest) {
     // Create donation record with detailed error handling
     console.log("[v0] Creating donation record...")
 
-    // Use service role client to bypass RLS issues
-    const serviceRoleClient = createClient()
-
-    const { data: donation, error: donationError } = await (await serviceRoleClient)
+    const { data: donation, error: donationError } = await supabase
       .from("donations")
       .insert({
         user_id: userId,
@@ -94,7 +91,6 @@ export async function POST(request: NextRequest) {
 
     console.log("[v0] Donation created successfully:", donation.id)
 
-    // Generate unique reference for this transaction
     const reference = `hif-${donation.id.slice(0, 8)}-${Date.now()}`
 
     console.log("[v0] Initializing Paystack payment with amount:", amount, "kobo")
