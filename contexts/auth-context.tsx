@@ -105,12 +105,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe()
   }, [])
 
+  // ✅ FIXED signIn
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     })
-    return { error: error ? new Error(error.message) : null }
+
+    if (error) return { error: new Error(error.message) }
+
+    // Immediately update state after successful login
+    setSession(data.session ?? null)
+    setUser(data.user ?? null)
+
+    if (data.user) {
+      await fetchProfile(data.user.id)
+    }
+
+    return { error: null }
   }
 
   const signUp = async (
@@ -123,7 +135,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       email,
       password,
       options: {
-        // DO NOT put profile fields into auth user metadata if your trigger/DB does not expect them
         emailRedirectTo:
           process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ??
           `${window.location.origin}/auth/callback`,
@@ -147,7 +158,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         first_name: metadata?.first_name ?? null,
         last_name: metadata?.last_name ?? null,
         phone: metadata?.phone ?? null,
-        // keep defaults in DB, but provide them here for clarity
         role: "user",
         is_active: true,
       },
