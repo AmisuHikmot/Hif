@@ -1,3 +1,4 @@
+// ... existing imports ...
 "use client"
 
 import type React from "react"
@@ -12,7 +13,7 @@ import { Separator } from "@/components/ui/separator"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useToast } from "@/components/ui/use-toast"
 import { useAuth } from "@/contexts/auth-context"
-import { Loader2, CheckCircle } from "lucide-react"
+import { Loader2, CheckCircle, AlertTriangle } from "lucide-react"
 
 export default function DonationForm() {
   const { user, profile } = useAuth()
@@ -25,6 +26,7 @@ export default function DonationForm() {
   const [isSuccess, setIsSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [paystackLoaded, setPaystackLoaded] = useState(false)
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
 
   const [formData, setFormData] = useState({
     donorName: profile ? `${profile.first_name} ${profile.last_name}` : "",
@@ -41,36 +43,76 @@ export default function DonationForm() {
     document.body.appendChild(script)
   }, [])
 
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {}
+    const finalAmount = amount === "custom" ? Number.parseFloat(customAmount) : Number.parseFloat(amount)
+
+    if (!amount || amount === "") {
+      errors.amount = "Please select a donation amount"
+    } else if (finalAmount <= 0) {
+      errors.amount = "Donation amount must be greater than 0"
+    }
+
+    if (!formData.donorEmail || !formData.donorEmail.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+      errors.email = "Please enter a valid email address"
+    }
+
+    if (!formData.isAnonymous) {
+      if (!formData.donorName || formData.donorName.trim() === "") {
+        errors.donorName = "Please enter your full name"
+      }
+    }
+
+    setValidationErrors(errors)
+    return Object.keys(errors).length === 0
+  }
+
   const handleAmountSelect = (value: string) => {
     setAmount(value)
     setCustomAmount("")
+    setValidationErrors((prev) => ({ ...prev, amount: "" }))
   }
 
   const handleCustomAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setCustomAmount(e.target.value)
     setAmount("custom")
+    setValidationErrors((prev) => ({ ...prev, amount: "" }))
+  }
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, donorEmail: e.target.value })
+    setValidationErrors((prev) => ({ ...prev, email: "" }))
+  }
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, donorName: e.target.value })
+    setValidationErrors((prev) => ({ ...prev, donorName: "" }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsProcessing(true)
     setError(null)
+
+    if (!validateForm()) {
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields correctly",
+        variant: "destructive",
+      })
+      return
+    }
+
+    setIsProcessing(true)
 
     const finalAmount = amount === "custom" ? Number.parseFloat(customAmount) : Number.parseFloat(amount)
 
-    if (!finalAmount || finalAmount <= 0) {
-      setError("Please select or enter a valid donation amount")
-      setIsProcessing(false)
-      return
-    }
-
-    if (!formData.donorEmail) {
-      setError("Email address is required")
-      setIsProcessing(false)
-      return
-    }
-
     try {
+      console.log("[v0] Donation form submitted:", {
+        amount: finalAmount,
+        email: formData.donorEmail,
+        name: formData.donorName,
+      })
+
       const initResponse = await fetch("/api/payments/initialize", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -78,15 +120,22 @@ export default function DonationForm() {
           amount: finalAmount,
           email: formData.donorEmail,
           donorName: formData.isAnonymous ? "Anonymous" : formData.donorName,
-          purpose: formData.purpose,
+          purpose: formData.purpose || "General Donation",
         }),
       })
 
       if (!initResponse.ok) {
-        throw new Error("Failed to initialize payment")
+        const errorData = await initResponse.json().catch(() => ({}))
+        console.error("[v0] Payment initialization failed:", errorData)
+        throw new Error(errorData.error || "Failed to initialize payment")
       }
 
       const initData = await initResponse.json()
+
+      if (!initData.authorization_url || !initData.reference) {
+        console.error("[v0] Missing payment data:", initData)
+        throw new Error("Invalid payment response from server")
+      }
 
       const handler = (window as any).PaystackPop.setup({
         key: (window as any).NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
@@ -128,11 +177,12 @@ export default function DonationForm() {
 
       handler.openIframe()
     } catch (err) {
-      setError("Failed to process donation. Please try again.")
-      console.error("Donation error:", err)
+      const errorMessage = err instanceof Error ? err.message : "Failed to process donation. Please try again."
+      setError(errorMessage)
+      console.error("[v0] Donation error:", err)
       toast({
         title: "Error",
-        description: "Failed to process donation. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       })
       setIsProcessing(false)
@@ -165,6 +215,7 @@ export default function DonationForm() {
           <CardContent className="space-y-4">
             {error && (
               <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
@@ -212,13 +263,14 @@ export default function DonationForm() {
                   <Input
                     id="custom-amount"
                     type="number"
-                    placeholder="Enter custom amount"
+                    placeholder="Enter custom amount (NGN)"
                     value={customAmount}
                     onChange={handleCustomAmountChange}
                     min="100"
                   />
                 </div>
               )}
+              {validationErrors.amount && <p className="text-sm text-red-500">{validationErrors.amount}</p>}
             </div>
 
             <div className="space-y-2">
@@ -267,21 +319,25 @@ export default function DonationForm() {
                 id="donor-name"
                 placeholder="Your full name"
                 value={formData.donorName}
-                onChange={(e) => setFormData({ ...formData, donorName: e.target.value })}
+                onChange={handleNameChange}
                 required={!formData.isAnonymous}
                 disabled={formData.isAnonymous}
+                className={validationErrors.donorName ? "border-red-500" : ""}
               />
+              {validationErrors.donorName && <p className="text-sm text-red-500">{validationErrors.donorName}</p>}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">Email Address</Label>
+              <Label htmlFor="email">Email Address *</Label>
               <Input
                 id="email"
                 type="email"
                 placeholder="Your email address"
                 value={formData.donorEmail}
-                onChange={(e) => setFormData({ ...formData, donorEmail: e.target.value })}
+                onChange={handleEmailChange}
                 required
+                className={validationErrors.email ? "border-red-500" : ""}
               />
+              {validationErrors.email && <p className="text-sm text-red-500">{validationErrors.email}</p>}
               <p className="text-xs text-muted-foreground">We'll send your donation receipt to this email</p>
             </div>
             <div className="space-y-2">
