@@ -2,12 +2,13 @@
 
 import Image from "next/image"
 import Link from "next/link"
+import { useEffect, useState } from "react"
 import {
   ArrowRight,
   Calendar,
   Users,
   BookOpen,
-  ChurchIcon as Mosque,
+  MSquare as Mosque,
   GraduationCap,
   Book,
   Presentation,
@@ -21,9 +22,35 @@ import EventCard from "@/components/event-card"
 import NewsletterSignup from "@/components/newsletter-signup"
 import FeaturedPrograms from "@/components/featured-programs"
 import { useLanguage } from "@/contexts/language-context"
+import { createClient } from "@/lib/supabase/client"
 
 export default function Home() {
   const { t } = useLanguage()
+  const [events, setEvents] = useState<any[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const supabase = createClient()
+        const today = new Date().toISOString().split("T")[0]
+
+        const { data, error } = await supabase.from("events").select("*").order("event_date")
+
+        if (error) throw error
+        setEvents(data || [])
+      } catch (error) {
+        console.error("Error fetching events:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchEvents()
+  }, [])
+
+  const upcomingEvents = events.filter((e) => e.event_date >= new Date().toISOString().split("T")[0])
+  const pastEvents = events.filter((e) => e.event_date < new Date().toISOString().split("T")[0])
 
   return (
     <main className="flex-1">
@@ -51,7 +78,12 @@ export default function Home() {
                   {t("home.hero.learnAboutUs")} <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
-              <Button asChild size="lg" variant="outline" className="border-white text-white hover:bg-white/10">
+              <Button
+                asChild
+                size="lg"
+                variant="outline"
+                className="border-white text-white hover:bg-white/10 bg-transparent"
+              >
                 <Link href="/events">{t("home.hero.upcomingEvents")}</Link>
               </Button>
             </div>
@@ -125,56 +157,46 @@ export default function Home() {
 
               <TabsContent value="upcoming">
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  <EventCard
-                    title="RAMADAN LECTURE AND QUIZ COMPETITION"
-                    description="Event is in memory of Alhaja H.A Raji"
-                    date="23rd of March 2025; 23rd of Ramadan 1446A.H"
-                    location="No. 1 Amusugbo Area, Gomajayi, Lagos State"
-                    imageSrc="/placeholder.svg?height=200&width=400"
-                  />
-                  <EventCard
-                    title="Islamic Leadership Conference"
-                    description="Annual conference on Islamic leadership principles"
-                    date="15th of June 2025"
-                    location="Hamduk Islamic Center, Lagos"
-                    imageSrc="/placeholder.svg?height=200&width=400"
-                  />
-                  <EventCard
-                    title="Youth Development Workshop"
-                    description="Building the next generation of Muslim leaders"
-                    date="10th of August 2025"
-                    location="Various locations across Lagos State"
-                    imageSrc="/placeholder.svg?height=200&width=400"
-                  />
+                  {isLoading ? (
+                    <p className="text-center col-span-full">Loading events...</p>
+                  ) : upcomingEvents.length > 0 ? (
+                    upcomingEvents
+                      .slice(0, 3)
+                      .map((event) => (
+                        <EventCard
+                          key={event.id}
+                          title={event.title}
+                          description={event.description}
+                          date={new Date(event.event_date).toLocaleDateString()}
+                          location={event.location}
+                          imageSrc={event.image_url || "/placeholder.svg?height=200&width=400"}
+                        />
+                      ))
+                  ) : (
+                    <p className="text-center col-span-full text-gray-500">No upcoming events</p>
+                  )}
                 </div>
               </TabsContent>
 
               <TabsContent value="past">
                 <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                  <EventCard
-                    title="Annual Islamic Conference 2024"
-                    description="Exploring contemporary challenges facing Muslims"
-                    date="12th of January 2024"
-                    location="Hamduk Conference Center, Lagos"
-                    imageSrc="/placeholder.svg?height=200&width=400"
-                    isPast={true}
-                  />
-                  <EventCard
-                    title="Ramadan Tafsir Series"
-                    description="Daily Quranic interpretation during Ramadan"
-                    date="March-April 2024"
-                    location="Central Mosque, Lagos"
-                    imageSrc="/placeholder.svg?height=200&width=400"
-                    isPast={true}
-                  />
-                  <EventCard
-                    title="Islamic Education Symposium"
-                    description="Strategies for modern Islamic education"
-                    date="5th of February 2024"
-                    location="University of Lagos"
-                    imageSrc="/placeholder.svg?height=200&width=400"
-                    isPast={true}
-                  />
+                  {pastEvents.length > 0 ? (
+                    pastEvents
+                      .slice(0, 3)
+                      .map((event) => (
+                        <EventCard
+                          key={event.id}
+                          title={event.title}
+                          description={event.description}
+                          date={new Date(event.event_date).toLocaleDateString()}
+                          location={event.location}
+                          imageSrc={event.image_url || "/placeholder.svg?height=200&width=400"}
+                          isPast={true}
+                        />
+                      ))
+                  ) : (
+                    <p className="text-center col-span-full text-gray-500">No past events</p>
+                  )}
                 </div>
               </TabsContent>
             </Tabs>

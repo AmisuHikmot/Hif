@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { LanguageProvider } from "@/contexts/language-context"
 import { AuthProvider } from "@/contexts/auth-context"
 import { Toaster } from "@/components/ui/toaster"
+import { CookieBanner } from "@/components/cookie-banner"
 import "./globals.css"
 
 export const metadata = {
@@ -28,6 +29,7 @@ export default function RootLayout({
                 <SiteHeader />
                 <div className="flex-1">{children}</div>
                 <SiteFooter />
+                <CookieBanner />
               </div>
               <Toaster />
             </LanguageProvider>
