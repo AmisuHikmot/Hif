@@ -40,11 +40,18 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // Admin routes - check if user has admin role
   if (request.nextUrl.pathname.startsWith("/admin") && user) {
-    const { data: userData } = await supabase.from("users").select("role").eq("id", user.id).single()
+    try {
+      const { data: profileData } = await supabase.from("profiles").select("role").eq("id", user.id).single()
 
-    if (userData?.role !== "admin") {
+      if (profileData?.role !== "admin") {
+        const url = request.nextUrl.clone()
+        url.pathname = "/dashboard"
+        return NextResponse.redirect(url)
+      }
+    } catch (error) {
+      // If profile lookup fails, redirect to dashboard (user exists but profile may not be fully created yet)
+      console.error("[v0] Error checking admin role:", error)
       const url = request.nextUrl.clone()
       url.pathname = "/dashboard"
       return NextResponse.redirect(url)
