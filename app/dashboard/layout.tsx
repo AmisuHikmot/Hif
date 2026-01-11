@@ -1,8 +1,7 @@
 "use client"
 
 import type React from "react"
-
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { useEffect } from "react"
 import { Toaster } from "@/components/ui/toaster"
 import { useAuth } from "@/contexts/auth-context"
@@ -13,14 +12,18 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   const router = useRouter()
+  const pathname = usePathname()
   const { isAuthenticated, isLoading } = useAuth()
 
   useEffect(() => {
+    // Only redirect if we're done loading and user is not authenticated
     if (!isLoading && !isAuthenticated) {
-      router.push("/auth/login")
+      console.log("[v0] User not authenticated, redirecting to login")
+      router.push("/auth/login?redirect=" + encodeURIComponent(pathname))
     }
-  }, [isAuthenticated, isLoading, router])
+  }, [isAuthenticated, isLoading, router, pathname])
 
+  // Show loading state while checking authentication
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -32,6 +35,7 @@ export default function DashboardLayout({
     )
   }
 
+  // Don't render anything while checking auth, this prevents flash
   if (!isAuthenticated) {
     return null
   }
