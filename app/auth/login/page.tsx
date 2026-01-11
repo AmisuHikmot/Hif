@@ -1,10 +1,9 @@
-// ... existing imports ...
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Eye, EyeOff, Mail, Lock, Chrome, Apple } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -18,7 +17,8 @@ import { signInWithOAuth } from "@/lib/auth/oauth"
 
 export default function LoginPage() {
   const router = useRouter()
-  const { signIn } = useAuth()
+  const searchParams = useSearchParams()
+  const { signIn, isAuthenticated, isLoading: authLoading } = useAuth()
 
   const [showPassword, setShowPassword] = useState(false)
   const [isSigningIn, setIsSigningIn] = useState(false)
@@ -26,6 +26,15 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+
+  const redirectPath = searchParams.get("redirect") || "/dashboard"
+
+  useEffect(() => {
+    if (isAuthenticated && !authLoading) {
+      console.log("[v0] User already authenticated, redirecting to:", redirectPath)
+      router.push(redirectPath)
+    }
+  }, [isAuthenticated, authLoading, router, redirectPath])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -41,9 +50,8 @@ export default function LoginPage() {
         setError(signInError.message)
         setIsSigningIn(false)
       } else {
-        console.log("[v0] Login successful, redirecting to dashboard...")
-        await new Promise((resolve) => setTimeout(resolve, 500)) // Brief delay to ensure state updates
-        router.push("/dashboard")
+        console.log("[v0] Login successful, context will trigger redirect via useEffect")
+        // The useEffect above will handle the redirect when isAuthenticated updates
       }
     } catch (err) {
       console.error("[v0] Unexpected login error:", err)
@@ -64,11 +72,8 @@ export default function LoginPage() {
         console.error("[v0] OAuth error:", oAuthError.message)
         setError(oAuthError.message)
         setIsOAuthLoading(null)
-      } else {
-        console.log("[v0] OAuth successful, redirecting to dashboard...")
-        await new Promise((resolve) => setTimeout(resolve, 500))
-        router.push("/dashboard")
       }
+      // OAuth redirects automatically via callback page
     } catch (err) {
       console.error("[v0] Unexpected OAuth error:", err)
       setError("An unexpected error occurred. Please try again.")

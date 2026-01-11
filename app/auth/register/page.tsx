@@ -57,9 +57,11 @@ export default function RegisterPage() {
       if (error) {
         setError(error.message)
       } else {
+        console.log("[v0] Signup successful, redirecting to verify email...")
         router.push("/auth/verify-email?email=" + encodeURIComponent(email))
       }
     } catch (err) {
+      console.error("[v0] Unexpected signup error:", err)
       setError("An unexpected error occurred. Please try again.")
     } finally {
       setIsLoading(false)
@@ -78,11 +80,8 @@ export default function RegisterPage() {
         console.error("[v0] OAuth error:", oAuthError.message)
         setError(oAuthError.message)
         setIsOAuthLoading(null)
-      } else {
-        console.log("[v0] OAuth signup successful, redirecting to dashboard...")
-        await new Promise((resolve) => setTimeout(resolve, 500))
-        router.push("/dashboard")
       }
+      // OAuth redirects automatically, no need to redirect manually
     } catch (err) {
       console.error("[v0] Unexpected OAuth error:", err)
       setError("An unexpected error occurred. Please try again.")

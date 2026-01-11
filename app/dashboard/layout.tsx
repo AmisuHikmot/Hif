@@ -2,7 +2,7 @@
 
 import type React from "react"
 import { useRouter, usePathname } from "next/navigation"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { Toaster } from "@/components/ui/toaster"
 import { useAuth } from "@/contexts/auth-context"
 
@@ -14,17 +14,26 @@ export default function DashboardLayout({
   const router = useRouter()
   const pathname = usePathname()
   const { isAuthenticated, isLoading } = useAuth()
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    // Only redirect if we're done loading and user is not authenticated
-    if (!isLoading && !isAuthenticated) {
-      console.log("[v0] User not authenticated, redirecting to login")
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!mounted || isLoading) {
+      return
+    }
+
+    // If not authenticated and loading is done, redirect to login
+    if (!isAuthenticated) {
+      console.log("[v0] User not authenticated, redirecting to login from:", pathname)
       router.push("/auth/login?redirect=" + encodeURIComponent(pathname))
     }
-  }, [isAuthenticated, isLoading, router, pathname])
+  }, [isAuthenticated, isLoading, mounted, router, pathname])
 
   // Show loading state while checking authentication
-  if (isLoading) {
+  if (!mounted || isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
@@ -35,7 +44,7 @@ export default function DashboardLayout({
     )
   }
 
-  // Don't render anything while checking auth, this prevents flash
+  // Don't render anything while not authenticated, this prevents flash
   if (!isAuthenticated) {
     return null
   }
