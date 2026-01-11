@@ -40,7 +40,7 @@ export default function LoginPage() {
 
     try {
       console.log("[v0] Attempting login with email:", email)
-      const { error } = await signIn(email, password, "/dashboard")
+      const { error } = await signIn(email, password)
       if (error) {
         console.error("[v0] Login error:", error.message)
         setError(error.message)
