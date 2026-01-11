@@ -15,6 +15,11 @@ export default function DashboardLayout({
   const router = useRouter()
   const { isAuthenticated, isLoading } = useAuth()
 
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.push("/auth/login")
+    }
+  }, [isAuthenticated, isLoading, router])
 
   if (isLoading) {
     return (
