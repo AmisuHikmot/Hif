@@ -39,8 +39,11 @@ export default function DonationProjects() {
   const [isLoading, setIsLoading] = useState(true)
   const [selectedProject, setSelectedProject] = useState<DonationProject | null>(null)
   const [donationAmount, setDonationAmount] = useState("")
+  const [donorEmail, setDonorEmail] = useState("")
+  const [donorName, setDonorName] = useState("")
   const [isProcessing, setIsProcessing] = useState(false)
   const [paystackLoaded, setPaystackLoaded] = useState(false)
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
 
   useEffect(() => {
     const script = document.createElement("script")
@@ -71,10 +74,25 @@ export default function DonationProjects() {
   }
 
   const handleDonate = async () => {
+    const errors: Record<string, string> = {}
+
     if (!donationAmount || isNaN(Number(donationAmount)) || Number(donationAmount) <= 0) {
+      errors.amount = "Please enter a valid donation amount"
+    }
+
+    if (!donorEmail || !donorEmail.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) {
+      errors.email = "Please enter a valid email address"
+    }
+
+    if (!donorName || donorName.trim() === "") {
+      errors.name = "Please enter your full name"
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors)
       toast({
-        title: "Invalid Amount",
-        description: "Please enter a valid donation amount.",
+        title: "Validation Error",
+        description: "Please fill in all required fields",
         variant: "destructive",
       })
       return
@@ -97,22 +115,28 @@ export default function DonationProjects() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           amount: Number(donationAmount),
-          email: user?.email || profile?.email || "",
-          donorName: profile ? `${profile.first_name} ${profile.last_name}` : "Anonymous",
+          email: donorEmail,
+          donorName: donorName,
           purpose: `Donation to project: ${selectedProject.title}`,
           projectId: selectedProject.id,
         }),
       })
 
       if (!initResponse.ok) {
-        throw new Error("Failed to initialize payment")
+        const errorData = await initResponse.json().catch(() => ({}))
+        console.error("[v0] Payment initialization failed:", errorData)
+        throw new Error(errorData.error || "Failed to initialize payment")
       }
 
       const initData = await initResponse.json()
 
+      if (!initData.authorization_url || !initData.reference) {
+        throw new Error("Invalid payment response from server")
+      }
+
       const handler = (window as any).PaystackPop.setup({
         key: (window as any).NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
-        email: user?.email || profile?.email || "",
+        email: donorEmail,
         amount: Number(donationAmount) * 100,
         ref: initData.reference,
         onClose: () => {
@@ -134,7 +158,10 @@ export default function DonationProjects() {
                 description: `Thank you for your donation of ₦${Number(donationAmount).toLocaleString()} to ${selectedProject?.title}.`,
               })
               setDonationAmount("")
+              setDonorEmail("")
+              setDonorName("")
               setSelectedProject(null)
+              setValidationErrors({})
               fetchProjects()
             } else {
               toast({
@@ -151,10 +178,11 @@ export default function DonationProjects() {
 
       handler.openIframe()
     } catch (error) {
-      console.error("Donation error:", error)
+      const errorMessage = error instanceof Error ? error.message : "Failed to process donation"
+      console.error("[v0] Donation error:", error)
       toast({
         title: "Error",
-        description: "Failed to process donation",
+        description: errorMessage,
         variant: "destructive",
       })
       setIsProcessing(false)
@@ -211,7 +239,18 @@ export default function DonationProjects() {
                 <CardFooter className="p-4 pt-0">
                   <Dialog>
                     <DialogTrigger asChild>
-                      <Button className="w-full" onClick={() => setSelectedProject(project)}>
+                      <Button
+                        className="w-full"
+                        onClick={() => {
+                          setSelectedProject(project)
+                          if (user?.email) {
+                            setDonorEmail(user.email)
+                          }
+                          if (profile?.first_name) {
+                            setDonorName(`${profile.first_name} ${profile.last_name || ""}`.trim())
+                          }
+                        }}
+                      >
                         Donate to this Project
                       </Button>
                     </DialogTrigger>
@@ -225,14 +264,50 @@ export default function DonationProjects() {
                         </DialogHeader>
                         <div className="space-y-4 py-4">
                           <div className="space-y-2">
-                            <Label htmlFor="donation-amount">Donation Amount (₦)</Label>
+                            <Label htmlFor="donor-name">Full Name *</Label>
+                            <input
+                              id="donor-name"
+                              type="text"
+                              placeholder="Your full name"
+                              value={donorName}
+                              onChange={(e) => {
+                                setDonorName(e.target.value)
+                                setValidationErrors((prev) => ({ ...prev, name: "" }))
+                              }}
+                              className={`w-full px-3 py-2 border rounded-md ${validationErrors.name ? "border-red-500" : "border-gray-300"}`}
+                            />
+                            {validationErrors.name && <p className="text-sm text-red-500">{validationErrors.name}</p>}
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="donor-email">Email Address *</Label>
+                            <input
+                              id="donor-email"
+                              type="email"
+                              placeholder="your@email.com"
+                              value={donorEmail}
+                              onChange={(e) => {
+                                setDonorEmail(e.target.value)
+                                setValidationErrors((prev) => ({ ...prev, email: "" }))
+                              }}
+                              className={`w-full px-3 py-2 border rounded-md ${validationErrors.email ? "border-red-500" : "border-gray-300"}`}
+                            />
+                            {validationErrors.email && <p className="text-sm text-red-500">{validationErrors.email}</p>}
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="donation-amount">Donation Amount (₦) *</Label>
                             <Input
                               id="donation-amount"
                               type="number"
                               placeholder="Enter amount"
                               value={donationAmount}
-                              onChange={(e) => setDonationAmount(e.target.value)}
+                              onChange={(e) => {
+                                setDonationAmount(e.target.value)
+                                setValidationErrors((prev) => ({ ...prev, amount: "" }))
+                              }}
                             />
+                            {validationErrors.amount && (
+                              <p className="text-sm text-red-500">{validationErrors.amount}</p>
+                            )}
                           </div>
                           <div className="flex flex-wrap gap-2">
                             {[5000, 10000, 20000, 50000].map((amount) => (

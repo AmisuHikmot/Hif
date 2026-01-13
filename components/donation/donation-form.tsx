@@ -57,10 +57,8 @@ export default function DonationForm() {
       errors.email = "Please enter a valid email address"
     }
 
-    if (!formData.isAnonymous) {
-      if (!formData.donorName || formData.donorName.trim() === "") {
-        errors.donorName = "Please enter your full name"
-      }
+    if (!formData.donorName || formData.donorName.trim() === "") {
+      errors.donorName = "Please enter your full name"
     }
 
     setValidationErrors(errors)
