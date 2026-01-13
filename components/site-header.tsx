@@ -340,9 +340,19 @@ export function SiteHeader() {
         </div>
       </div>
 
-      {/* Mobile Menu */}
-      {isMenuOpen && (
-        <div className="lg:hidden fixed inset-0 top-16 z-[1100] bg-white dark:bg-slate-950 border-t overflow-y-auto">
+      {/* Mobile Menu - Sliding Sidebar */}
+      <div
+        className={`fixed inset-0 top-16 z-[1100] transition-opacity duration-300 ${isMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"}`}
+      >
+        {/* Background Overlay */}
+        <div className="fixed inset-0 top-16 bg-black/40 dark:bg-black/60" onClick={toggleMenu} />
+
+        {/* Sliding Sidebar */}
+        <div
+          className={`fixed left-0 top-16 h-[calc(100vh-4rem)] w-80 bg-white dark:bg-slate-950 shadow-lg overflow-y-auto transition-transform duration-300 ease-out ${
+            isMenuOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+        >
           <nav className="flex flex-col gap-1 p-4 pb-20">
             <div className="border-b pb-3 mb-3">
               <button className="font-medium text-sm w-full text-left mb-2">{t("nav.about")}</button>
@@ -621,7 +631,7 @@ export function SiteHeader() {
             </div>
           </nav>
         </div>
-      )}
+      </div>
 
       {/* Search Dialog */}
       <SearchDialog open={isSearchOpen} onOpenChange={setIsSearchOpen} />
