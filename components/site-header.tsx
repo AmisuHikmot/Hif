@@ -342,184 +342,282 @@ export function SiteHeader() {
 
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="lg:hidden fixed inset-0 top-16 z-50 bg-background p-4 overflow-y-auto">
-          <nav className="flex flex-col gap-4">
-            <div className="border-b pb-2">
-              <div className="font-medium mb-1">{t("nav.about")}</div>
+        <div className="lg:hidden fixed inset-0 top-16 z-40 bg-white dark:bg-slate-950 border-t overflow-y-auto max-h-[calc(100vh-64px)]">
+          <nav className="flex flex-col gap-1 p-4">
+            <div className="border-b pb-3 mb-3">
+              <button className="font-medium text-sm w-full text-left mb-2">{t("nav.about")}</button>
               <div className="pl-4 flex flex-col gap-2">
-                <Link href="/about/history" className="text-sm" onClick={toggleMenu}>
+                <Link
+                  href="/about/history"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                  onClick={toggleMenu}
+                >
                   History
                 </Link>
-                <Link href="/about/vision" className="text-sm" onClick={toggleMenu}>
+                <Link
+                  href="/about/vision"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                  onClick={toggleMenu}
+                >
                   Vision & Mission
                 </Link>
-                <Link href="/about/founders" className="text-sm" onClick={toggleMenu}>
+                <Link
+                  href="/about/founders"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                  onClick={toggleMenu}
+                >
                   Founders
                 </Link>
-                <Link href="/about/executives" className="text-sm" onClick={toggleMenu}>
+                <Link
+                  href="/about/executives"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                  onClick={toggleMenu}
+                >
                   Executives
                 </Link>
-                <Link href="/about/past-leaders" className="text-sm" onClick={toggleMenu}>
+                <Link
+                  href="/about/past-leaders"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                  onClick={toggleMenu}
+                >
                   Past Leaders
                 </Link>
-                <Link href="/about/branches" className="text-sm" onClick={toggleMenu}>
+                <Link
+                  href="/about/branches"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                  onClick={toggleMenu}
+                >
                   Branches
                 </Link>
               </div>
             </div>
 
-            <div className="border-b pb-2">
-              <div className="font-medium mb-1">{t("nav.focus")}</div>
+            <div className="border-b pb-3 mb-3">
+              <button className="font-medium text-sm w-full text-left mb-2">{t("nav.focus")}</button>
               <div className="pl-4 flex flex-col gap-2">
-                <Link href="/focus" className="text-sm" onClick={toggleMenu}>
+                <Link
+                  href="/focus"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                  onClick={toggleMenu}
+                >
                   Overview
                 </Link>
-                <Link href="/focus/ramadan-tafsir" className="text-sm" onClick={toggleMenu}>
+                <Link
+                  href="/focus/ramadan-tafsir"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                  onClick={toggleMenu}
+                >
                   Ramadan Tafsir
                 </Link>
-                <Link href="/focus/lectures" className="text-sm" onClick={toggleMenu}>
+                <Link
+                  href="/focus/lectures"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                  onClick={toggleMenu}
+                >
                   Lectures
                 </Link>
-                <Link href="/focus/training" className="text-sm" onClick={toggleMenu}>
+                <Link
+                  href="/focus/training"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                  onClick={toggleMenu}
+                >
                   Training
                 </Link>
-                <Link href="/focus/advocacy" className="text-sm" onClick={toggleMenu}>
+                <Link
+                  href="/focus/advocacy"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                  onClick={toggleMenu}
+                >
                   Advocacy
                 </Link>
               </div>
             </div>
 
-            <div className="border-b pb-2">
-              <div className="font-medium mb-1">{t("nav.conference")}</div>
+            <div className="border-b pb-3 mb-3">
+              <button className="font-medium text-sm w-full text-left mb-2">{t("nav.conference")}</button>
               <div className="pl-4 flex flex-col gap-2">
-                <Link href="/conference/islam-in-nigeria" className="text-sm" onClick={toggleMenu}>
+                <Link
+                  href="/conference/islam-in-nigeria"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                  onClick={toggleMenu}
+                >
                   Islam in Nigeria
                 </Link>
-                <Link href="/conference/islam-and-education" className="text-sm" onClick={toggleMenu}>
+                <Link
+                  href="/conference/islam-and-education"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                  onClick={toggleMenu}
+                >
                   Islam & Education
                 </Link>
-                <Link href="/conference/islam-and-politics" className="text-sm" onClick={toggleMenu}>
+                <Link
+                  href="/conference/islam-and-politics"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                  onClick={toggleMenu}
+                >
                   Islam & Politics
                 </Link>
-                <Link href="/conference/islam-and-economy" className="text-sm" onClick={toggleMenu}>
+                <Link
+                  href="/conference/islam-and-economy"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                  onClick={toggleMenu}
+                >
                   Islam & Economy
                 </Link>
               </div>
             </div>
 
-            <div className="border-b pb-2">
-              <div className="font-medium mb-1">{t("nav.membership")}</div>
+            <div className="border-b pb-3 mb-3">
+              <button className="font-medium text-sm w-full text-left mb-2">{t("nav.membership")}</button>
               <div className="pl-4 flex flex-col gap-2">
-                <Link href="/membership/who-can-join" className="text-sm" onClick={toggleMenu}>
+                <Link
+                  href="/membership/who-can-join"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                  onClick={toggleMenu}
+                >
                   Who Can Join
                 </Link>
-                <Link href="/membership/how-to-join" className="text-sm" onClick={toggleMenu}>
+                <Link
+                  href="/membership/how-to-join"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                  onClick={toggleMenu}
+                >
                   How to Join
                 </Link>
-                <Link href="/membership/registration" className="text-sm" onClick={toggleMenu}>
+                <Link
+                  href="/membership/registration"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                  onClick={toggleMenu}
+                >
                   Registration
                 </Link>
-                <Link href="/membership/renewal" className="text-sm" onClick={toggleMenu}>
+                <Link
+                  href="/membership/renewal"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                  onClick={toggleMenu}
+                >
                   Membership Renewal
                 </Link>
-                <Link href="/members" className="text-sm" onClick={toggleMenu}>
+                <Link
+                  href="/members"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                  onClick={toggleMenu}
+                >
                   Members Directory
                 </Link>
               </div>
             </div>
 
-            <div className="border-b pb-2">
-              <div className="font-medium mb-1">{t("nav.media")}</div>
+            <div className="border-b pb-3 mb-3">
+              <button className="font-medium text-sm w-full text-left mb-2">{t("nav.media")}</button>
               <div className="pl-4 flex flex-col gap-2">
-                <Link href="/media" className="text-sm" onClick={toggleMenu}>
+                <Link
+                  href="/media"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                  onClick={toggleMenu}
+                >
                   Overview
                 </Link>
-                <Link href="/media/videos" className="text-sm" onClick={toggleMenu}>
+                <Link
+                  href="/media/videos"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                  onClick={toggleMenu}
+                >
                   Videos
                 </Link>
-                <Link href="/media/gallery" className="text-sm" onClick={toggleMenu}>
+                <Link
+                  href="/media/gallery"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                  onClick={toggleMenu}
+                >
                   Gallery
                 </Link>
-                <Link href="/media/downloads" className="text-sm" onClick={toggleMenu}>
+                <Link
+                  href="/media/downloads"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                  onClick={toggleMenu}
+                >
                   Downloads
                 </Link>
-                <Link href="/publications/papers" className="text-sm" onClick={toggleMenu}>
+                <Link
+                  href="/publications/papers"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                  onClick={toggleMenu}
+                >
                   Research Papers
                 </Link>
-                <Link href="/publications/journals" className="text-sm" onClick={toggleMenu}>
+                <Link
+                  href="/publications/journals"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                  onClick={toggleMenu}
+                >
                   Journals
                 </Link>
               </div>
             </div>
 
-            <Link href="/events" className="border-b pb-2" onClick={toggleMenu}>
+            <Link href="/events" className="border-b pb-3 mb-3 block text-sm font-medium" onClick={toggleMenu}>
               {t("nav.events")}
             </Link>
-            <Link href="/donate" className="border-b pb-2" onClick={toggleMenu}>
+            <Link href="/donate" className="border-b pb-3 mb-3 block text-sm font-medium" onClick={toggleMenu}>
               {t("nav.donate")}
             </Link>
-            <Link href="/contact-us" className="border-b pb-2" onClick={toggleMenu}>
+            <Link href="/contact-us" className="text-sm font-medium" onClick={toggleMenu}>
               {t("nav.contact")}
             </Link>
 
-            <div className="flex flex-col gap-2 mt-2">
-              {isAuthenticated ? (
-                <>
-                  <div className="flex items-center gap-3 p-2 rounded-lg bg-muted">
-                    <Avatar className="h-10 w-10">
-                      <AvatarImage src={profile?.avatar_url || undefined} />
-                      <AvatarFallback>{getInitials()}</AvatarFallback>
+            {/* Mobile Auth Section */}
+            <div className="border-t pt-4 mt-4">
+              {isLoading ? (
+                <div className="h-9 w-9 animate-pulse rounded-full bg-muted" />
+              ) : isAuthenticated ? (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 pb-3 border-b">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.first_name || "User"} />
+                      <AvatarFallback className="text-xs">{getInitials()}</AvatarFallback>
                     </Avatar>
-                    <div>
-                      <p className="font-medium">
-                        {profile?.first_name} {profile?.last_name}
-                      </p>
-                      <p className="text-sm text-muted-foreground">{user?.email}</p>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium truncate">{profile?.first_name}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user?.email}</p>
                     </div>
                   </div>
-                  <Link href="/dashboard" onClick={toggleMenu}>
-                    <Button variant="outline" className="w-full justify-start bg-transparent">
-                      <LayoutDashboard className="mr-2 h-4 w-4" />
-                      Dashboard
-                    </Button>
+                  <Link href="/dashboard" className="text-sm block py-2 hover:text-emerald-600" onClick={toggleMenu}>
+                    Dashboard
+                  </Link>
+                  <Link
+                    href="/dashboard/profile"
+                    className="text-sm block py-2 hover:text-emerald-600"
+                    onClick={toggleMenu}
+                  >
+                    Profile
                   </Link>
                   {isAdmin && (
-                    <Link href="/admin" onClick={toggleMenu}>
-                      <Button variant="outline" className="w-full justify-start bg-transparent">
-                        <Settings className="mr-2 h-4 w-4" />
-                        Admin Panel
-                      </Button>
+                    <Link href="/admin" className="text-sm block py-2 hover:text-emerald-600" onClick={toggleMenu}>
+                      Admin Panel
                     </Link>
                   )}
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start text-red-600 bg-transparent"
-                    onClick={() => {
-                      handleSignOut()
-                      toggleMenu()
-                    }}
+                  <button
+                    onClick={handleSignOut}
+                    className="text-sm w-full text-left py-2 text-red-600 dark:text-red-400 hover:underline"
                   >
-                    <LogOut className="mr-2 h-4 w-4" />
                     Sign out
-                  </Button>
-                </>
+                  </button>
+                </div>
               ) : (
-                <>
-                  <Link href="/auth/login" onClick={toggleMenu}>
-                    <Button variant="outline" size="sm" className="w-full bg-transparent text-xs">
+                <div className="flex gap-2">
+                  <Link href="/auth/login" className="flex-1" onClick={toggleMenu}>
+                    <Button variant="outline" size="sm" className="w-full text-xs bg-transparent">
                       {t("nav.login")}
                     </Button>
                   </Link>
-                  <Link href="/auth/register" onClick={toggleMenu}>
+                  <Link href="/auth/register" className="flex-1" onClick={toggleMenu}>
                     <Button size="sm" className="w-full text-xs">
                       {t("nav.register")}
                     </Button>
                   </Link>
-                </>
+                </div>
               )}
-              <div className="flex justify-center mt-2">
-                <ModeToggle />
-              </div>
             </div>
           </nav>
         </div>
