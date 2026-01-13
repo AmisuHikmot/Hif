@@ -136,7 +136,7 @@ export default function DonationForm() {
       }
 
       const handler = (window as any).PaystackPop.setup({
-        key: (window as any).NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
+        key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
         email: formData.donorEmail,
         amount: finalAmount * 100,
         ref: initData.reference,
