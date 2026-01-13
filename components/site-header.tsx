@@ -342,7 +342,7 @@ export function SiteHeader() {
 
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="lg:hidden fixed inset-0 top-16 z-40 bg-white dark:bg-slate-950 border-t overflow-y-auto">
+        <div className="lg:hidden fixed inset-0 top-16 z-[1100] bg-white dark:bg-slate-950 border-t overflow-y-auto">
           <nav className="flex flex-col gap-1 p-4 pb-20">
             <div className="border-b pb-3 mb-3">
               <button className="font-medium text-sm w-full text-left mb-2">{t("nav.about")}</button>
