@@ -13,10 +13,15 @@ import "./globals.css"
 const geistSans = Geist({ subsets: ["latin"], variable: "--font-sans" })
 const geistMono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" })
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+}
+
 export const metadata = {
   title: "Hamduk Islamic Foundation",
   description: "Hamduk Islamic Foundation is a body founded in 1996 with the main aim of building islam worldwide.",
-  generator: "v0.app",
+  generator: "HIF",
 }
 
 export default function RootLayout({
