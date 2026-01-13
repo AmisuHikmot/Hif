@@ -30,7 +30,19 @@ export async function initializePaystackPayment(params: {
   })
 
   if (!response.ok) {
-    throw new Error("Failed to initialize Paystack payment")
+    let errorDetails = "Unknown error"
+    try {
+      const errorData = await response.json()
+      errorDetails = errorData.message || errorData.error || JSON.stringify(errorData)
+    } catch {
+      errorDetails = `HTTP ${response.status}: ${response.statusText}`
+    }
+    console.error("[v0] Paystack API error:", {
+      status: response.status,
+      statusText: response.statusText,
+      details: errorDetails,
+    })
+    throw new Error(`Paystack API error: ${errorDetails}`)
   }
 
   return response.json()
@@ -45,7 +57,19 @@ export async function verifyPaystackPayment(reference: string) {
   })
 
   if (!response.ok) {
-    throw new Error("Failed to verify Paystack payment")
+    let errorDetails = "Unknown error"
+    try {
+      const errorData = await response.json()
+      errorDetails = errorData.message || errorData.error || JSON.stringify(errorData)
+    } catch {
+      errorDetails = `HTTP ${response.status}: ${response.statusText}`
+    }
+    console.error("[v0] Paystack verification error:", {
+      status: response.status,
+      statusText: response.statusText,
+      details: errorDetails,
+    })
+    throw new Error(`Paystack verification error: ${errorDetails}`)
   }
 
   return response.json()
