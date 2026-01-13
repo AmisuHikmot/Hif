@@ -32,7 +32,7 @@ export default function RootLayout({
             <LanguageProvider>
               <div className="relative flex min-h-screen flex-col">
                 <SiteHeader />
-                <div className="flex-1">{children}</div>
+                <div className="flex-1 pt-16">{children}</div>
                 <SiteFooter />
                 <CookieBanner />
               </div>

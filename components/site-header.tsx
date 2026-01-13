@@ -51,7 +51,7 @@ export function SiteHeader() {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-white/95 dark:bg-slate-950/95 backdrop-blur supports-[backdrop-filter]:bg-white/75 dark:supports-[backdrop-filter]:bg-slate-950/75 shadow-sm">
+    <header className="fixed top-0 left-0 right-0 z-[1000] w-full border-b bg-white/95 dark:bg-slate-950/95 backdrop-blur supports-[backdrop-filter]:bg-white/75 dark:supports-[backdrop-filter]:bg-slate-950/75 shadow-sm">
       <div className="container mx-auto max-w-7xl px-4 flex h-16 items-center justify-between">
         {/* Logo and Desktop Navigation */}
         <div className="flex items-center gap-8 flex-1">
