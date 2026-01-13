@@ -143,7 +143,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="grid gap-8 md:grid-cols-[240px_1fr]">
+      <div className="grid gap-8">
         <DashboardNav />
 
         <main>
