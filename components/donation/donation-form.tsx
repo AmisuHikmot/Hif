@@ -36,13 +36,6 @@ export default function DonationForm() {
     isAnonymous: false,
   })
 
-  useEffect(() => {
-    const script = document.createElement("script")
-    script.src = "https://js.paystack.co/v1/inline.js"
-    script.onload = () => setPaystackLoaded(true)
-    document.body.appendChild(script)
-  }, [])
-
   const validateForm = (): boolean => {
     const errors: Record<string, string> = {}
     const finalAmount = amount === "custom" ? Number.parseFloat(customAmount) : Number.parseFloat(amount)
@@ -135,45 +128,9 @@ export default function DonationForm() {
         throw new Error("Invalid payment response from server")
       }
 
-      const handler = (window as any).PaystackPop.setup({
-        key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
-        email: formData.donorEmail,
-        amount: finalAmount * 100,
-        ref: initData.reference,
-        onClose: () => {
-          toast({
-            title: "Payment Cancelled",
-            description: "You have cancelled the payment",
-          })
-          setIsProcessing(false)
-        },
-        onSuccess: async (message: any) => {
-          const verifyResponse = await fetch(`/api/payments/verify?reference=${initData.reference}`)
 
-          if (verifyResponse.ok) {
-            const verifyData = await verifyResponse.json()
+      window.location.href = initData.authorization_url
 
-            if (verifyData.success) {
-              setIsSuccess(true)
-              toast({
-                title: "Donation Successful!",
-                description: "Thank you for your generous donation.",
-              })
-            } else {
-              setError("Payment verification failed. Please contact support.")
-              toast({
-                title: "Verification Failed",
-                description: "Could not verify your payment",
-                variant: "destructive",
-              })
-            }
-          }
-
-          setIsProcessing(false)
-        },
-      })
-
-      handler.openIframe()
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to process donation. Please try again."
       setError(errorMessage)
@@ -350,7 +307,7 @@ export default function DonationForm() {
             </div>
           </CardContent>
           <CardFooter>
-            <Button type="submit" className="w-full" disabled={isProcessing || !paystackLoaded}>
+            <Button type="submit" className="w-full" disabled={isProcessing}>
               {isProcessing ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
