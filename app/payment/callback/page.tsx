@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { CheckCircle, XCircle, Loader2 } from "lucide-react"
 import Link from "next/link"
-import { createClient } from "@/lib/supabase/client"
 
 export default function PaymentCallbackPage() {
   const searchParams = useSearchParams()
@@ -18,47 +17,37 @@ export default function PaymentCallbackPage() {
   useEffect(() => {
     const verifyPayment = async () => {
       const reference = searchParams.get("reference")
-      const access_code = searchParams.get("access_code")
 
       if (!reference) {
         setStatus("failed")
-        setMessage("No payment reference found")
+        setMessage("No payment reference found. Please try again.")
         return
       }
+
+      console.log("[v0] Callback received with reference:", reference)
 
       try {
         const response = await fetch("/api/payments/verify", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ reference, access_code }),
+          body: JSON.stringify({ reference }),
         })
 
         const data = await response.json()
+        console.log("[v0] Verification response:", { success: data.success, status: data.status })
 
-        if (data.success) {
+        if (data.success && data.status === "success") {
           setStatus("success")
-          setMessage("Payment verified successfully! Your donation has been received.")
+          setMessage(data.message || "Payment verified successfully! Your donation has been received.")
           setDonationId(data.donationId)
-
-          // Log the activity
-          const supabase = createClient()
-          await supabase.from("activity_log").insert({
-            user_id: data.userId || null,
-            action_type: "donation_payment_verified",
-            description: `Payment verified for donation: ${data.donationId}`,
-            metadata: {
-              reference,
-              amount: data.amount,
-            },
-          })
         } else {
           setStatus("failed")
-          setMessage(data.message || "Payment verification failed")
+          setMessage(data.message || "Payment verification failed. Please check your payment status and try again.")
         }
       } catch (error) {
+        console.error("[v0] Callback verification error:", error)
         setStatus("failed")
         setMessage("An error occurred while verifying payment. Please contact support.")
-        console.error(error)
       }
     }
 
@@ -112,7 +101,7 @@ export default function PaymentCallbackPage() {
                 </div>
                 <div className="space-y-2 w-full">
                   <Button asChild className="w-full bg-emerald-600 hover:bg-emerald-700">
-                    <Link href="/donate">Try Again</Link>
+                    <Link href="/donate">Try Another Donation</Link>
                   </Button>
                   <Button asChild variant="outline" className="w-full bg-transparent">
                     <Link href="/contact-us">Contact Support</Link>
