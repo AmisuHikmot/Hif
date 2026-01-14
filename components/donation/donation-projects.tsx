@@ -42,15 +42,9 @@ export default function DonationProjects() {
   const [donorEmail, setDonorEmail] = useState("")
   const [donorName, setDonorName] = useState("")
   const [isProcessing, setIsProcessing] = useState(false)
-  const [paystackLoaded, setPaystackLoaded] = useState(false)
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
 
   useEffect(() => {
-    const script = document.createElement("script")
-    script.src = "https://js.paystack.co/v1/inline.js"
-    script.onload = () => setPaystackLoaded(true)
-    document.body.appendChild(script)
-
     fetchProjects()
   }, [])
 
@@ -134,49 +128,7 @@ export default function DonationProjects() {
         throw new Error("Invalid payment response from server")
       }
 
-      const handler = (window as any).PaystackPop.setup({
-        key: process.env.NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY,
-        email: donorEmail,
-        amount: Number(donationAmount) * 100,
-        ref: initData.reference,
-        onClose: () => {
-          toast({
-            title: "Payment Cancelled",
-            description: "You have cancelled the payment",
-          })
-          setIsProcessing(false)
-        },
-        onSuccess: async (message: any) => {
-          const verifyResponse = await fetch(`/api/payments/verify?reference=${initData.reference}`)
-
-          if (verifyResponse.ok) {
-            const verifyData = await verifyResponse.json()
-
-            if (verifyData.success) {
-              toast({
-                title: "Donation Successful!",
-                description: `Thank you for your donation of ₦${Number(donationAmount).toLocaleString()} to ${selectedProject?.title}.`,
-              })
-              setDonationAmount("")
-              setDonorEmail("")
-              setDonorName("")
-              setSelectedProject(null)
-              setValidationErrors({})
-              fetchProjects()
-            } else {
-              toast({
-                title: "Verification Failed",
-                description: "Could not verify your payment",
-                variant: "destructive",
-              })
-            }
-          }
-
-          setIsProcessing(false)
-        },
-      })
-
-      handler.openIframe()
+      window.location.href = initData.authorization_url
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Failed to process donation"
       console.error("[v0] Donation error:", error)
@@ -265,7 +217,7 @@ export default function DonationProjects() {
                         <div className="space-y-4 py-4">
                           <div className="space-y-2">
                             <Label htmlFor="donor-name">Full Name *</Label>
-                            <input
+                            <Input
                               id="donor-name"
                               type="text"
                               placeholder="Your full name"
@@ -274,13 +226,13 @@ export default function DonationProjects() {
                                 setDonorName(e.target.value)
                                 setValidationErrors((prev) => ({ ...prev, name: "" }))
                               }}
-                              className={`w-full px-3 py-2 border rounded-md ${validationErrors.name ? "border-red-500" : "border-gray-300"}`}
+                              className={validationErrors.name ? "border-red-500" : ""}
                             />
                             {validationErrors.name && <p className="text-sm text-red-500">{validationErrors.name}</p>}
                           </div>
                           <div className="space-y-2">
                             <Label htmlFor="donor-email">Email Address *</Label>
-                            <input
+                            <Input
                               id="donor-email"
                               type="email"
                               placeholder="your@email.com"
@@ -289,7 +241,7 @@ export default function DonationProjects() {
                                 setDonorEmail(e.target.value)
                                 setValidationErrors((prev) => ({ ...prev, email: "" }))
                               }}
-                              className={`w-full px-3 py-2 border rounded-md ${validationErrors.email ? "border-red-500" : "border-gray-300"}`}
+                              className={validationErrors.email ? "border-red-500" : ""}
                             />
                             {validationErrors.email && <p className="text-sm text-red-500">{validationErrors.email}</p>}
                           </div>
@@ -324,14 +276,12 @@ export default function DonationProjects() {
                           </div>
                         </div>
                         <DialogFooter>
-                          <Button onClick={handleDonate} disabled={isProcessing || !paystackLoaded}>
+                          <Button onClick={handleDonate} disabled={isProcessing}>
                             {isProcessing ? (
                               <>
                                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                 Processing...
                               </>
-                            ) : !paystackLoaded ? (
-                              "Loading Payment Gateway..."
                             ) : (
                               "Donate with Paystack"
                             )}
