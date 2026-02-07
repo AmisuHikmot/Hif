@@ -2,31 +2,43 @@
 -- Error: ERROR: column "user_id" of relation "profiles" does not exist (SQLSTATE 42703)
 -- This migration adds the user_id column and fixes related constraints
 
--- 1. Add user_id column to profiles table as foreign key to auth.users(id)
-ALTER TABLE public.profiles
-ADD COLUMN IF NOT EXISTS user_id UUID;
+-- 1. Add user_id column to profiles table (nullable initially)
+DO $$
+BEGIN
+  ALTER TABLE public.profiles
+  ADD COLUMN IF NOT EXISTS user_id UUID;
+EXCEPTION WHEN duplicate_column THEN
+  -- Column already exists, continue
+  NULL;
+END $$;
 
--- 2. Create a constraint to ensure id and user_id stay in sync
-ALTER TABLE public.profiles
-ADD CONSTRAINT fk_profiles_user_id 
-FOREIGN KEY (user_id) 
-REFERENCES auth.users(id) 
-ON DELETE CASCADE
-ON UPDATE CASCADE
-DEFERRABLE INITIALLY DEFERRED;
-
--- 3. Populate user_id from id (assuming profiles.id = auth.users.id)
+-- 2. Populate user_id from id (assuming profiles.id = auth.users.id)
 UPDATE public.profiles
 SET user_id = id
 WHERE user_id IS NULL;
 
--- 4. Make user_id non-null after populating
+-- 3. Make user_id non-null after populating
 ALTER TABLE public.profiles
 ALTER COLUMN user_id SET NOT NULL;
 
--- 5. Create unique index on user_id for faster lookups
+-- 4. Create unique index on user_id for faster lookups
 CREATE UNIQUE INDEX IF NOT EXISTS idx_profiles_user_id 
 ON public.profiles(user_id);
+
+-- 5. Add foreign key constraint (using DEFERRABLE to handle pending events)
+DO $$
+BEGIN
+  ALTER TABLE public.profiles
+  ADD CONSTRAINT fk_profiles_user_id 
+  FOREIGN KEY (user_id) 
+  REFERENCES auth.users(id) 
+  ON DELETE CASCADE
+  ON UPDATE CASCADE
+  DEFERRABLE INITIALLY DEFERRED;
+EXCEPTION WHEN duplicate_object THEN
+  -- Constraint already exists, continue
+  NULL;
+END $$;
 
 -- 6. Update the handle_oauth_user_signup function to include user_id
 CREATE OR REPLACE FUNCTION public.handle_oauth_user_signup()
