@@ -30,45 +30,57 @@ export default function AuthCallbackPage() {
           if (session?.user) {
             console.log("[v0] Session found, user ID:", session.user.id)
 
-            // Check if profile exists, create if needed for OAuth users
-            const { data: existingProfile, error: profileError } = await supabase
-              .from("profiles")
-              .select("id")
-              .eq("id", session.user.id)
-              .maybeSingle()
+            // The profile should already be created by the database trigger during user creation
+            // We just verify it exists, if not the trigger may have failed silently
+            let profileReady = false
+            let profileCheckRetries = 0
+            const maxProfileChecks = 5
 
-            if (profileError && profileError.code !== "PGRST116") {
-              console.warn("[v0] Profile check error:", profileError.message)
-              // Continue anyway, profile might exist
-            }
+            // Poll for profile existence (trigger might need a moment)
+            while (!profileReady && profileCheckRetries < maxProfileChecks && mounted) {
+              const { data: existingProfile, error: profileError } = await supabase
+                .from("profiles")
+                .select("id")
+                .eq("id", session.user.id)
+                .maybeSingle()
 
-            if (!existingProfile) {
-              console.log("[v0] Creating profile for OAuth user:", session.user.id)
-
-              // Extract user metadata from OAuth provider
-              const userMetadata = session.user.user_metadata || {}
-              const fullName = userMetadata.full_name || userMetadata.name || ""
-              const [firstName, ...lastNameParts] = fullName.split(" ")
-              const lastName = lastNameParts.join(" ")
-
-              // Create profile for OAuth user
-              const { error: createProfileError } = await supabase.from("profiles").insert({
-                id: session.user.id,
-                email: session.user.email || "",
-                first_name: firstName || null,
-                last_name: lastName || null,
-                avatar_url: userMetadata.avatar_url || null,
-                role: "user",
-                is_active: true,
-              })
-
-              if (createProfileError) {
-                console.warn("[v0] Profile creation error (may already exist):", createProfileError.message)
+              if (existingProfile) {
+                console.log("[v0] Profile found for user:", session.user.id)
+                profileReady = true
+              } else if (profileCheckRetries < maxProfileChecks - 1) {
+                profileCheckRetries++
+                console.log(`[v0] Profile not yet available, checking again... (${profileCheckRetries}/${maxProfileChecks - 1})`)
+                // Wait a bit before retrying
+                await new Promise((resolve) => setTimeout(resolve, 500))
               } else {
-                console.log("[v0] Profile created successfully for OAuth user")
+                // If profile still doesn't exist after retries, create it manually
+                console.warn("[v0] Profile trigger may have failed, creating profile manually")
+
+                // Extract user metadata from OAuth provider
+                const userMetadata = session.user.user_metadata || {}
+                const fullName = userMetadata.full_name || userMetadata.name || ""
+                const [firstName, ...lastNameParts] = fullName.split(" ")
+                const lastName = lastNameParts.join(" ")
+
+                // Create profile for OAuth user
+                const { error: createProfileError } = await supabase.from("profiles").insert({
+                  id: session.user.id,
+                  email: session.user.email || "",
+                  first_name: firstName || null,
+                  last_name: lastName || null,
+                  avatar_url: userMetadata.avatar_url || null,
+                  role: "user",
+                  is_active: true,
+                })
+
+                if (createProfileError) {
+                  console.error("[v0] Profile creation error:", createProfileError.message)
+                  // Don't fail - user is still authenticated
+                } else {
+                  console.log("[v0] Profile created successfully for OAuth user")
+                  profileReady = true
+                }
               }
-            } else {
-              console.log("[v0] Profile already exists for user:", session.user.id)
             }
 
             console.log("[v0] Auth callback successful, redirecting to dashboard")
