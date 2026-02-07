@@ -3,11 +3,11 @@
 ## Problem Statement
 
 The Supabase Auth callback was failing with error:
-```
+\`\`\`
 Error: Database error saving new user
 error_code: unexpected_failure
 error_description: Database error saving new user
-```
+\`\`\`
 
 **Root Cause:** Function signature inconsistencies and RLS policy conflicts with `log_user_activity` function called during OAuth signup.
 
@@ -23,14 +23,14 @@ This migration consolidates multiple activity logging functions into a unified i
 
 Run the migration file **26-fix-activity-logging-functions.sql** in your Supabase SQL editor:
 
-```bash
+\`\`\`bash
 # Via Supabase Dashboard:
 1. Go to SQL Editor
 2. Create new query
 3. Copy contents of: scripts/26-fix-activity-logging-functions.sql
 4. Click "Run"
 5. Verify success (no errors)
-```
+\`\`\`
 
 **What this migration does:**
 - Drops conflicting function overloads
@@ -47,27 +47,27 @@ Run the migration file **26-fix-activity-logging-functions.sql** in your Supabas
 Update all existing calls to `log_user_activity` to use the new signatures:
 
 #### Before (Old Signature):
-```sql
+\`\`\`sql
 PERFORM log_user_activity(
   NEW.id,
   'registration'::VARCHAR(50),
   'New user registered',
   jsonb_build_object('email', NEW.email)
 );
-```
+\`\`\`
 
 #### After (New Signature - Option 1 - Simple):
-```sql
+\`\`\`sql
 PERFORM log_user_activity(
   NEW.id,
   'registration',
   'New user registered',
   jsonb_build_object('email', NEW.email)
 );
-```
+\`\`\`
 
 #### After (New Signature - Option 2 - With Entity Tracking):
-```sql
+\`\`\`sql
 PERFORM log_user_activity(
   NEW.id,
   'registration',
@@ -76,7 +76,7 @@ PERFORM log_user_activity(
   'New user registered',
   jsonb_build_object('email', NEW.email)
 );
-```
+\`\`\`
 
 **Updated Files in This Project:**
 - ✅ `scripts/09-activity-log-table.sql` - Trigger functions use new signature
@@ -86,7 +86,7 @@ PERFORM log_user_activity(
 
 In `scripts/09-activity-log-table.sql`, update the triggers:
 
-```sql
+\`\`\`sql
 -- OLD (broken)
 PERFORM log_user_activity(
   NEW.id,
@@ -102,7 +102,7 @@ PERFORM public.log_user_activity(
   'New user registered',
   jsonb_build_object('email', NEW.email, 'membership_type', NEW.membership_type)
 );
-```
+\`\`\`
 
 ---
 
@@ -111,7 +111,7 @@ PERFORM public.log_user_activity(
 After running the migration, verify the setup:
 
 #### Check Function Signatures
-```sql
+\`\`\`sql
 SELECT 
   proname,
   pg_get_function_arguments(oid) as signature,
@@ -120,22 +120,22 @@ FROM pg_proc
 WHERE proname = 'log_user_activity' 
   AND pronamespace = (SELECT oid FROM pg_namespace WHERE nspname = 'public')
 ORDER BY proname, pg_get_function_arguments(oid);
-```
+\`\`\`
 
 **Expected Output:**
-```
+\`\`\`
 proname           | signature                              | has_security_definer
 log_user_activity | p_user_id uuid, p_action text, p_description text, p_metadata jsonb | t
 log_user_activity | p_user_id uuid, p_action text, p_entity_type text, p_entity_id uuid, p_description text, p_metadata jsonb | t
-```
+\`\`\`
 
 #### Check user_logs Table
-```sql
+\`\`\`sql
 \d public.user_logs
-```
+\`\`\`
 
 **Expected Structure:**
-```
+\`\`\`
 Table "public.user_logs"
 Column      | Type                     | Modifiers
 id          | uuid                     | not null default gen_random_uuid()
@@ -146,10 +146,10 @@ entity_id   | uuid                     |
 description | text                     | 
 metadata    | jsonb                    | default '{}'::jsonb
 created_at  | timestamp with time zone | not null default now()
-```
+\`\`\`
 
 #### Check RLS Policies
-```sql
+\`\`\`sql
 SELECT 
   schemaname,
   tablename,
@@ -161,7 +161,7 @@ SELECT
 FROM pg_policies 
 WHERE tablename = 'user_logs'
 ORDER BY policyname;
-```
+\`\`\`
 
 **Expected Policies:**
 - `Service role can manage logs` (ALL, service_role)
@@ -185,7 +185,7 @@ ORDER BY policyname;
 
 After successful OAuth signup:
 
-```sql
+\`\`\`sql
 SELECT 
   id,
   user_id,
@@ -196,13 +196,13 @@ FROM public.user_logs
 WHERE action = 'signup'
 ORDER BY created_at DESC
 LIMIT 1;
-```
+\`\`\`
 
 **Expected Result:** One log entry with action='signup'
 
 ### Test 3: Test Direct Function Call
 
-```sql
+\`\`\`sql
 -- Test simple signature
 SELECT public.log_user_activity(
   '00000000-0000-0000-0000-000000000001'::UUID,
@@ -220,7 +220,7 @@ SELECT public.log_user_activity(
   'Test with entity',
   '{"test": true}'::JSONB
 );
-```
+\`\`\`
 
 **Expected Result:** Both return a UUID (log entry ID)
 
@@ -230,14 +230,14 @@ SELECT public.log_user_activity(
 
 ### Simple Activity Logging
 
-```sql
+\`\`\`sql
 log_user_activity(
   p_user_id UUID,
   p_action TEXT,
   p_description TEXT DEFAULT NULL,
   p_metadata JSONB DEFAULT '{}'
 ) RETURNS UUID
-```
+\`\`\`
 
 **Parameters:**
 | Parameter | Type | Required | Description |
@@ -250,20 +250,20 @@ log_user_activity(
 **Returns:** UUID of created log entry, or NULL if failed
 
 **Example:**
-```sql
+\`\`\`sql
 PERFORM public.log_user_activity(
   auth_user_id,
   'login',
   'User logged in successfully',
   jsonb_build_object('ip', client_ip, 'browser', user_agent)
 );
-```
+\`\`\`
 
 ---
 
 ### Entity-Related Logging
 
-```sql
+\`\`\`sql
 log_user_activity(
   p_user_id UUID,
   p_action TEXT,
@@ -272,7 +272,7 @@ log_user_activity(
   p_description TEXT DEFAULT NULL,
   p_metadata JSONB DEFAULT '{}'
 ) RETURNS UUID
-```
+\`\`\`
 
 **Parameters:**
 | Parameter | Type | Required | Description |
@@ -287,7 +287,7 @@ log_user_activity(
 **Returns:** UUID of created log entry, or NULL if failed
 
 **Example:**
-```sql
+\`\`\`sql
 PERFORM public.log_user_activity(
   user_id,
   'event_registration',
@@ -296,7 +296,7 @@ PERFORM public.log_user_activity(
   'Registered for event',
   jsonb_build_object('event_title', v_event_title, 'registered_at', NOW())
 );
-```
+\`\`\`
 
 ---
 
@@ -316,7 +316,7 @@ PERFORM public.log_user_activity(
 **Cause:** Missing role grants
 
 **Solution:**
-```sql
+\`\`\`sql
 -- Grant execute to all roles
 GRANT EXECUTE ON FUNCTION public.log_user_activity(UUID, TEXT, TEXT, JSONB) 
   TO postgres, anon, authenticated, service_role;
@@ -327,14 +327,14 @@ GRANT EXECUTE ON FUNCTION public.log_user_activity(UUID, TEXT, TEXT, UUID, TEXT,
 -- Grant table access
 GRANT ALL ON public.user_logs TO service_role;
 GRANT INSERT, SELECT ON public.user_logs TO authenticated;
-```
+\`\`\`
 
 ### Issue: "RLS policy violation"
 
 **Cause:** RLS policies blocking auth triggers
 
 **Solution:** Migration 26 already handles this. If still failing:
-```sql
+\`\`\`sql
 -- Verify service_role policy
 SELECT * FROM pg_policies WHERE tablename = 'user_logs' AND policyname = 'Service role can manage logs';
 
@@ -344,7 +344,7 @@ CREATE POLICY "Service role can manage logs"
   TO service_role
   USING (true)
   WITH CHECK (true);
-```
+\`\`\`
 
 ### Issue: "User auth callback still failing after migration"
 
@@ -362,7 +362,7 @@ CREATE POLICY "Service role can manage logs"
 
 If you need to revert this migration:
 
-```sql
+\`\`\`sql
 -- Drop the new functions
 DROP FUNCTION IF EXISTS public.log_user_activity(UUID, TEXT, TEXT, JSONB) CASCADE;
 DROP FUNCTION IF EXISTS public.log_user_activity(UUID, TEXT, TEXT, UUID, TEXT, JSONB) CASCADE;
@@ -378,7 +378,7 @@ ALTER TABLE public.user_logs DISABLE ROW LEVEL SECURITY;
 
 -- Restore old functions if needed (from scripts 07 or 09)
 -- Note: Old functions may have been causing the issue, so careful when restoring
-```
+\`\`\`
 
 ---
 

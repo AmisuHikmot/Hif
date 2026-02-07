@@ -13,33 +13,33 @@
 ## Migration Execution
 
 ### 1. Run the Migration (Copy & Paste)
-```sql
+\`\`\`sql
 -- Go to Supabase Dashboard → SQL Editor
 -- Copy entire contents of: scripts/26-fix-activity-logging-functions.sql
 -- Paste & Execute
 -- ✓ Should complete with no errors
-```
+\`\`\`
 
 ### 2. Verify Setup (Run Verification Queries)
 
 **Check Functions Exist:**
-```sql
+\`\`\`sql
 SELECT proname, pg_get_function_arguments(oid) 
 FROM pg_proc WHERE proname = 'log_user_activity';
 -- Should return 2 rows with different argument signatures
-```
+\`\`\`
 
 **Check Table Exists:**
-```sql
+\`\`\`sql
 \d public.user_logs
 -- Should show id, user_id, action, entity_type, entity_id, description, metadata, created_at
-```
+\`\`\`
 
 **Check RLS Policies:**
-```sql
+\`\`\`sql
 SELECT policyname FROM pg_policies WHERE tablename = 'user_logs';
 -- Should show: Service role can manage logs, System can insert logs, Users can view their own logs
-```
+\`\`\`
 
 ### 3. Test OAuth Signup
 1. Open your app
@@ -48,30 +48,30 @@ SELECT policyname FROM pg_policies WHERE tablename = 'user_logs';
 4. Verify no errors and redirect to dashboard
 
 ### 4. Verify Logging Worked
-```sql
+\`\`\`sql
 SELECT id, user_id, action, description, created_at 
 FROM public.user_logs 
 WHERE action = 'signup' 
 ORDER BY created_at DESC LIMIT 1;
 -- Should return the signup log entry
-```
+\`\`\`
 
 ---
 
 ## Function Signatures
 
 ### Simple Logging (Most Common)
-```sql
+\`\`\`sql
 PERFORM public.log_user_activity(
   user_id_uuid,           -- UUID of user
   'action_name',          -- TEXT: signup, login, donation, etc.
   'Description here',     -- TEXT: optional description
   '{"key":"value"}'::JSONB-- JSONB: optional metadata
 );
-```
+\`\`\`
 
 ### Entity-Related Logging
-```sql
+\`\`\`sql
 PERFORM public.log_user_activity(
   user_id_uuid,                -- UUID of user
   'action_name',               -- TEXT: event_registration, content_view, etc.
@@ -80,34 +80,34 @@ PERFORM public.log_user_activity(
   'Description here',          -- TEXT: optional
   '{"detail":"value"}'::JSONB  -- JSONB: optional metadata
 );
-```
+\`\`\`
 
 ---
 
 ## Trigger Integration
 
 ### Old Code (Don't Use)
-```sql
+\`\`\`sql
 PERFORM log_user_activity(
   NEW.id,
   'registration'::VARCHAR(50),
   'New user registered',
   jsonb_build_object('email', NEW.email)
 );
-```
+\`\`\`
 
 ### New Code (Use This)
-```sql
+\`\`\`sql
 PERFORM public.log_user_activity(
   NEW.id,
   'registration',
   'New user registered',
   jsonb_build_object('email', NEW.email)
 );
-```
+\`\`\`
 
 ### Extended Code (Entity Tracking)
-```sql
+\`\`\`sql
 PERFORM public.log_user_activity(
   NEW.user_id,
   'event_registration',
@@ -116,44 +116,44 @@ PERFORM public.log_user_activity(
   'Registered for event',
   jsonb_build_object('event_title', v_event_title)
 );
-```
+\`\`\`
 
 ---
 
 ## Common Queries
 
 ### User's Activity History
-```sql
+\`\`\`sql
 SELECT action, description, created_at 
 FROM public.user_logs 
 WHERE user_id = '12345678-1234-5678-1234-567812345678'::UUID
 ORDER BY created_at DESC LIMIT 20;
-```
+\`\`\`
 
 ### Activity by Type
-```sql
+\`\`\`sql
 SELECT action, COUNT(*) as count, MAX(created_at) as latest
 FROM public.user_logs
 WHERE created_at > NOW() - INTERVAL '7 days'
 GROUP BY action
 ORDER BY count DESC;
-```
+\`\`\`
 
 ### Entity Changes
-```sql
+\`\`\`sql
 SELECT user_id, action, description, created_at
 FROM public.user_logs
 WHERE entity_type = 'events' AND entity_id = 'event-uuid'::UUID
 ORDER BY created_at DESC;
-```
+\`\`\`
 
 ### Recent Activity (All Users)
-```sql
+\`\`\`sql
 SELECT user_id, action, description, created_at
 FROM public.user_logs
 WHERE created_at > NOW() - INTERVAL '1 hour'
 ORDER BY created_at DESC;
-```
+\`\`\`
 
 ---
 
@@ -167,7 +167,7 @@ ORDER BY created_at DESC;
 - [ ] Test function directly: `SELECT public.log_user_activity(...)`
 
 ### Function Not Found?
-```sql
+\`\`\`sql
 -- Re-run migration
 -- Or manually create:
 CREATE FUNCTION public.log_user_activity(...) 
@@ -176,10 +176,10 @@ CREATE FUNCTION public.log_user_activity(...)
   SECURITY DEFINER 
   SET search_path = public 
   AS $$...$$;
-```
+\`\`\`
 
 ### RLS Policy Blocking?
-```sql
+\`\`\`sql
 -- Add service_role bypass if missing
 CREATE POLICY "Service role can manage logs"
   ON public.user_logs FOR ALL
@@ -192,17 +192,17 @@ CREATE POLICY "System can insert logs"
   ON public.user_logs FOR INSERT
   TO authenticated, service_role
   WITH CHECK (true);
-```
+\`\`\`
 
 ### Permission Denied?
-```sql
+\`\`\`sql
 -- Grant execute to all roles
 GRANT EXECUTE ON FUNCTION public.log_user_activity(UUID, TEXT, TEXT, JSONB) 
   TO postgres, anon, authenticated, service_role;
 
 GRANT EXECUTE ON FUNCTION public.log_user_activity(UUID, TEXT, TEXT, UUID, TEXT, JSONB) 
   TO postgres, anon, authenticated, service_role;
-```
+\`\`\`
 
 ---
 
@@ -221,14 +221,14 @@ GRANT EXECUTE ON FUNCTION public.log_user_activity(UUID, TEXT, TEXT, UUID, TEXT,
 
 ## Timeline
 
-```
+\`\`\`
 Now         ↓ Run Migration 26
             ↓ Verify Setup (5 min)
             ↓ Test OAuth (2 min)
             ↓ Check Logs (1 min)
             ↓
 Complete!   Done - OAuth should work now
-```
+\`\`\`
 
 ---
 

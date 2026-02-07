@@ -49,24 +49,24 @@ Use these while coding:
 ### Step 2: Verify (Paste & Run Each)
 
 **Verify functions exist:**
-```sql
+\`\`\`sql
 SELECT proname, pg_get_function_arguments(oid) FROM pg_proc 
 WHERE proname = 'log_user_activity';
-```
+\`\`\`
 Expected: 2 rows
 
 **Verify table exists:**
-```sql
+\`\`\`sql
 SELECT count(*) FROM information_schema.tables 
 WHERE table_name = 'user_logs';
-```
+\`\`\`
 Expected: 1
 
 **Verify RLS policies:**
-```sql
+\`\`\`sql
 SELECT policyname FROM pg_policies 
 WHERE tablename = 'user_logs';
-```
+\`\`\`
 Expected: 3 policies
 
 ### Step 3: Test
@@ -77,11 +77,11 @@ Expected: 3 policies
 5. Verify you reach dashboard (no error)
 
 ### Step 4: Confirm
-```sql
+\`\`\`sql
 SELECT * FROM public.user_logs 
 WHERE action = 'signup' 
 ORDER BY created_at DESC LIMIT 1;
-```
+\`\`\`
 Expected: 1 signup log entry
 
 ---
@@ -112,7 +112,7 @@ Expected: 1 signup log entry
 ## 🔍 Problem & Solution Overview
 
 ### The Problem
-```
+\`\`\`
 User clicks "Login with Google"
     ↓
 OAuth provider confirms identity
@@ -131,17 +131,17 @@ Trigger fails silently
     ↓
 Auth callback returns error:
 "Database error saving new user"
-```
+\`\`\`
 
 ### The Solution
-```
+\`\`\`
 ✅ Unified log_user_activity function
 ✅ SECURITY DEFINER bypasses RLS
 ✅ Explicit search_path prevents injection
 ✅ Exception handling doesn't block auth
 ✅ Proper permissions on all roles
 ✅ Dual signatures for flexibility
-```
+\`\`\`
 
 ---
 
@@ -178,17 +178,17 @@ Auth callback returns error:
 ## 🎯 Usage Examples
 
 ### Log a User Signup
-```sql
+\`\`\`sql
 PERFORM public.log_user_activity(
   user_id,
   'signup',
   'User registered via OAuth',
   jsonb_build_object('provider', 'google')
 );
-```
+\`\`\`
 
 ### Log Event Registration
-```sql
+\`\`\`sql
 PERFORM public.log_user_activity(
   user_id,
   'event_registration',
@@ -197,10 +197,10 @@ PERFORM public.log_user_activity(
   'Registered for: ' || event_title,
   jsonb_build_object('event_title', event_title)
 );
-```
+\`\`\`
 
 ### Log Donation
-```sql
+\`\`\`sql
 PERFORM public.log_user_activity(
   user_id,
   'donation',
@@ -213,16 +213,16 @@ PERFORM public.log_user_activity(
     'project', project_name
   )
 );
-```
+\`\`\`
 
 ### Query User Activity
-```sql
+\`\`\`sql
 SELECT action, description, created_at
 FROM public.user_logs
 WHERE user_id = current_user_id
 ORDER BY created_at DESC
 LIMIT 20;
-```
+\`\`\`
 
 ---
 
@@ -274,7 +274,7 @@ See **MIGRATION_GUIDE.md → Troubleshooting** for detailed decision trees.
 
 ## 📅 Implementation Timeline
 
-```
+\`\`\`
 Time  Step                          Duration   Status
 ─────────────────────────────────────────────────────
 0:00  Read QUICK_REFERENCE.md        10 min    📖
@@ -284,7 +284,7 @@ Time  Step                          Duration   Status
 0:25  Verify Logs                     2 min    ✓
 ─────────────────────────────────────────────────────
 0:27  ✅ DONE - Ready for production
-```
+\`\`\`
 
 ---
 

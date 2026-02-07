@@ -67,7 +67,7 @@ This document provides a comprehensive analysis of the improved activity logging
 **Purpose:** Central activity audit log
 
 **Schema:**
-```sql
+\`\`\`sql
 CREATE TABLE public.user_logs (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users(id),
@@ -78,7 +78,7 @@ CREATE TABLE public.user_logs (
   metadata JSONB DEFAULT '{}',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
-```
+\`\`\`
 
 **Indexes:**
 - `idx_user_logs_user_id` - Query user's activity history
@@ -97,14 +97,14 @@ CREATE TABLE public.user_logs (
 ### 2. log_user_activity Functions
 
 #### Signature 1: Simple Activity Logging
-```sql
+\`\`\`sql
 log_user_activity(
   p_user_id UUID,
   p_action TEXT,
   p_description TEXT DEFAULT NULL,
   p_metadata JSONB DEFAULT '{}'
 ) RETURNS UUID
-```
+\`\`\`
 
 **Use Cases:**
 - User login/logout
@@ -112,19 +112,19 @@ log_user_activity(
 - Account events
 
 **Example:**
-```sql
+\`\`\`sql
 PERFORM public.log_user_activity(
   NEW.id,
   'signup',
   'User registered via email',
   '{"provider": "email"}'::JSONB
 );
-```
+\`\`\`
 
 ---
 
 #### Signature 2: Entity-Aware Logging
-```sql
+\`\`\`sql
 log_user_activity(
   p_user_id UUID,
   p_action TEXT,
@@ -133,7 +133,7 @@ log_user_activity(
   p_description TEXT DEFAULT NULL,
   p_metadata JSONB DEFAULT '{}'
 ) RETURNS UUID
-```
+\`\`\`
 
 **Use Cases:**
 - Event registration
@@ -141,7 +141,7 @@ log_user_activity(
 - Content interaction
 
 **Example:**
-```sql
+\`\`\`sql
 PERFORM public.log_user_activity(
   NEW.user_id,
   'event_registration',
@@ -150,17 +150,17 @@ PERFORM public.log_user_activity(
   'Registered for: ' || v_event_title,
   jsonb_build_object('event_title', v_event_title)
 );
-```
+\`\`\`
 
 ---
 
 ### 3. Security Implementation
 
 #### SECURITY DEFINER Rationale
-```sql
+\`\`\`sql
 SECURITY DEFINER
 SET search_path = public
-```
+\`\`\`
 
 **Benefits:**
 - Functions execute with owner's permissions (postgres)
@@ -176,7 +176,7 @@ SET search_path = public
 
 #### RLS Policies - Minimal & Permissive
 
-```sql
+\`\`\`sql
 -- Policy 1: Users can view their own logs
 CREATE POLICY "Users can view their own logs"
   ON public.user_logs FOR SELECT
@@ -195,7 +195,7 @@ CREATE POLICY "System can insert logs"
   ON public.user_logs FOR INSERT
   TO authenticated, service_role
   WITH CHECK (true);
-```
+\`\`\`
 
 **Design Philosophy:**
 - Don't block SECURITY DEFINER functions
@@ -208,20 +208,20 @@ CREATE POLICY "System can insert logs"
 ### 4. Auth Integration
 
 #### Signup Trigger
-```sql
+\`\`\`sql
 CREATE TRIGGER on_auth_user_created_logging
   AFTER INSERT ON auth.users
   FOR EACH ROW
   WHEN (NEW.email_confirmed_at IS NOT NULL OR NEW.raw_user_meta_data ? 'provider')
   EXECUTE FUNCTION public.log_auth_signup();
-```
+\`\`\`
 
 **Trigger Conditions:**
 - Only fires when email is confirmed OR OAuth provider is present
 - Prevents duplicate logs for unconfirmed emails
 
 **Function:**
-```sql
+\`\`\`sql
 CREATE OR REPLACE FUNCTION public.log_auth_signup()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -248,7 +248,7 @@ EXCEPTION WHEN OTHERS THEN
   RETURN NEW;
 END;
 $$;
-```
+\`\`\`
 
 **Error Handling:**
 - Catches all exceptions
@@ -285,7 +285,7 @@ $$;
 ## Usage Patterns
 
 ### Pattern 1: Immediate Action Logging
-```sql
+\`\`\`sql
 -- In trigger or function
 PERFORM public.log_user_activity(
   user_id,
@@ -297,10 +297,10 @@ PERFORM public.log_user_activity(
     'project', project_name
   )
 );
-```
+\`\`\`
 
 ### Pattern 2: Entity Change Tracking
-```sql
+\`\`\`sql
 PERFORM public.log_user_activity(
   auth.uid(),
   'profile_updated',
@@ -312,10 +312,10 @@ PERFORM public.log_user_activity(
     'updated_at', NOW()
   )
 );
-```
+\`\`\`
 
 ### Pattern 3: Bulk Action Logging
-```sql
+\`\`\`sql
 -- Log multiple related actions
 WITH created_registrations AS (
   INSERT INTO event_registrations (...)
@@ -330,14 +330,14 @@ SELECT
   event_id,
   'Registered for event'
 FROM created_registrations;
-```
+\`\`\`
 
 ---
 
 ## Monitoring & Analytics
 
 ### Query Recent Activity
-```sql
+\`\`\`sql
 SELECT 
   user_id,
   action,
@@ -347,10 +347,10 @@ FROM public.user_logs
 WHERE created_at > NOW() - INTERVAL '24 hours'
 ORDER BY created_at DESC
 LIMIT 100;
-```
+\`\`\`
 
 ### Track Entity Changes
-```sql
+\`\`\`sql
 SELECT 
   user_id,
   action,
@@ -360,10 +360,10 @@ FROM public.user_logs
 WHERE entity_type = 'events'
 GROUP BY user_id, action
 ORDER BY latest DESC;
-```
+\`\`\`
 
 ### Find Problem Actions
-```sql
+\`\`\`sql
 SELECT 
   action,
   COUNT(*) as total,
@@ -372,7 +372,7 @@ FROM public.user_logs
 WHERE created_at > NOW() - INTERVAL '7 days'
 GROUP BY action
 ORDER BY total DESC;
-```
+\`\`\`
 
 ---
 
@@ -386,10 +386,10 @@ ORDER BY total DESC;
 
 ### Partitioning (Future)
 For high-volume applications, consider monthly partitioning:
-```sql
+\`\`\`sql
 CREATE TABLE public.user_logs_2026_02 PARTITION OF public.user_logs
   FOR VALUES FROM ('2026-02-01') TO ('2026-03-01');
-```
+\`\`\`
 
 ### Archival Strategy
 - Archive logs older than 1 year
@@ -416,7 +416,7 @@ CREATE TABLE public.user_logs_2026_02 PARTITION OF public.user_logs
 
 ## Troubleshooting Decision Tree
 
-```
+\`\`\`
 Auth Callback Fails?
 ├─ Check error message in browser console
 ├─ Check Supabase Logs → Auth
@@ -431,7 +431,7 @@ Auth Callback Fails?
    │  └─ Check trigger function exception handling
    └─ Fails? → Issue in function or RLS
       └─ Check Supabase logs for RLS error
-```
+\`\`\`
 
 ---
 
