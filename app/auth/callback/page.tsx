@@ -11,22 +11,74 @@ export default function AuthCallbackPage() {
   useEffect(() => {
     const handleCallback = async () => {
       try {
+        console.log("[v0] Auth callback started, processing OAuth redirect...")
+
         // Get current session from Supabase
         const {
           data: { session },
           error,
         } = await supabase.auth.getSession()
 
-        if (error || !session) {
-          console.error("No active session found:", error)
-          router.push("/auth/login?error=callback_error")
+        if (error) {
+          console.error("[v0] Session retrieval error:", error.message)
+          router.push("/auth/login?error=session_error")
           return
         }
 
-        // Session exists, redirect to dashboard
+        if (!session?.user) {
+          console.error("[v0] No active session found after OAuth callback")
+          router.push("/auth/login?error=no_session")
+          return
+        }
+
+        console.log("[v0] Session found, user ID:", session.user.id)
+
+        // Check if profile exists, create if needed for OAuth users
+        const { data: existingProfile, error: profileError } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("id", session.user.id)
+          .maybeSingle()
+
+        if (profileError && profileError.code !== "PGRST116") {
+          console.error("[v0] Profile check error:", profileError)
+          // Continue anyway, profile might exist
+        }
+
+        if (!existingProfile) {
+          console.log("[v0] Creating profile for OAuth user:", session.user.id)
+
+          // Extract user metadata from OAuth provider
+          const userMetadata = session.user.user_metadata || {}
+          const fullName = userMetadata.full_name || userMetadata.name || ""
+          const [firstName, ...lastNameParts] = fullName.split(" ")
+          const lastName = lastNameParts.join(" ")
+
+          // Create profile for OAuth user
+          const { error: createProfileError } = await supabase.from("profiles").insert({
+            id: session.user.id,
+            email: session.user.email || "",
+            first_name: firstName || null,
+            last_name: lastName || null,
+            avatar_url: userMetadata.avatar_url || null,
+            role: "user",
+            is_active: true,
+          })
+
+          if (createProfileError) {
+            console.warn("[v0] Profile creation error (may already exist):", createProfileError.message)
+            // Don't fail here - profile might already exist via trigger
+          } else {
+            console.log("[v0] Profile created successfully for OAuth user")
+          }
+        } else {
+          console.log("[v0] Profile already exists for user:", session.user.id)
+        }
+
+        console.log("[v0] Auth callback successful, redirecting to dashboard")
         router.push("/dashboard")
       } catch (err) {
-        console.error("Auth callback error:", err)
+        console.error("[v0] Auth callback error:", err)
         router.push("/auth/login?error=callback_error")
       }
     }
