@@ -107,22 +107,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // ✅ FIXED signIn
   const signIn = async (email: string, password: string) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
+    try {
+      console.log("[v0] Signing in with email:", email)
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
 
-    if (error) return { error: new Error(error.message) }
+      if (error) {
+        console.error("[v0] Sign in error:", error.message)
+        return { error: new Error(error.message) }
+      }
 
-    // Immediately update state after successful login
-    setSession(data.session ?? null)
-    setUser(data.user ?? null)
+      console.log("[v0] Sign in successful, updating state")
+      // Immediately update state after successful login
+      setSession(data.session ?? null)
+      setUser(data.user ?? null)
 
-    if (data.user) {
-      await fetchProfile(data.user.id)
+      if (data.user) {
+        await fetchProfile(data.user.id)
+      }
+
+      return { error: null }
+    } catch (err) {
+      console.error("[v0] Unexpected sign in error:", err)
+      const error = err instanceof Error ? err : new Error("Sign in failed")
+      return { error }
     }
-
-    return { error: null }
   }
 
   const signUp = async (
