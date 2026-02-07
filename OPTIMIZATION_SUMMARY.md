@@ -65,10 +65,10 @@
 ## Installation & Setup
 
 ### 1. Update Dependencies
-```bash
+\`\`\`bash
 npm install
 # This will install Tailwind CSS v4
-```
+\`\`\`
 
 ### 2. Run SQL Migrations
 Run these in order in your Supabase SQL editor:
