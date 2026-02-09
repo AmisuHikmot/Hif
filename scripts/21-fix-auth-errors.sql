@@ -66,7 +66,7 @@ BEGIN
   )
   ON CONFLICT (id) DO UPDATE SET
     email = EXCLUDED.email,
-    email_verified = COALESCE(NEW.email_confirmed_at IS NOT NULL, public.users.email_verified),
+    email_verified = COALESCE(NEW.email_confirmed_at IS NOT NULL, public.profiles.email_verified),
     updated_at = NOW();
   
   RETURN NEW;
