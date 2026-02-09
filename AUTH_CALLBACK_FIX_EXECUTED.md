@@ -1,9 +1,9 @@
 # Auth Callback Error - RESOLVED ✓
 
 ## Problem
-```
+\`\`\`
 ERROR: column "user_id" of relation "profiles" does not exist (SQLSTATE 42703)
-```
+\`\`\`
 This error occurred during Supabase Auth callback when users signed up via OAuth (Google, GitHub, etc.), preventing successful user registration.
 
 ## Root Cause
@@ -56,7 +56,7 @@ After this migration, OAuth signup flow should work correctly:
 5. User successfully completes signup
 
 ## Rollback (if needed)
-```sql
+\`\`\`sql
 -- Drop user_id column
 ALTER TABLE public.profiles DROP COLUMN IF EXISTS user_id CASCADE;
 
@@ -65,7 +65,7 @@ DROP INDEX IF EXISTS idx_profiles_user_id;
 
 -- Drop the constraint (cascade handles this automatically)
 ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS fk_profiles_user_id;
-```
+\`\`\`
 
 ## Status
 ✅ **COMPLETE** - Migration applied successfully to Supabase database
