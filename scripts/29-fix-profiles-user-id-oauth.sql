@@ -90,8 +90,9 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 BEGIN
-  INSERT INTO public.users (
+  INSERT INTO public.profiles (
     id,
+    user_id,
     email,
     first_name,
     last_name,
@@ -101,6 +102,7 @@ BEGIN
     email_verified
   )
   VALUES (
+    NEW.id,
     NEW.id,
     NEW.email,
     COALESCE(NEW.raw_user_meta_data ->> 'first_name', NULL),
@@ -112,10 +114,10 @@ BEGIN
   )
   ON CONFLICT (id) DO UPDATE SET
     email = EXCLUDED.email,
-    first_name = COALESCE(EXCLUDED.first_name, public.users.first_name),
-    last_name = COALESCE(EXCLUDED.last_name, public.users.last_name),
-    phone = COALESCE(EXCLUDED.phone, public.users.phone),
-    email_verified = COALESCE(NEW.email_confirmed_at IS NOT NULL, public.users.email_verified),
+    first_name = COALESCE(EXCLUDED.first_name, public.profiles.first_name),
+    last_name = COALESCE(EXCLUDED.last_name, public.profiles.last_name),
+    phone = COALESCE(EXCLUDED.phone, public.profiles.phone),
+    email_verified = COALESCE(NEW.email_confirmed_at IS NOT NULL, public.profiles.email_verified),
     updated_at = NOW();
   
   RETURN NEW;

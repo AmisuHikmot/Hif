@@ -3,9 +3,9 @@
 ## Problem Identified
 
 During OAuth signup, users were receiving a database constraint violation:
-```
+\`\`\`
 ERROR: null value in column "user_id" of relation "profiles" violates not-null constraint
-```
+\`\`\`
 
 ### Root Cause
 

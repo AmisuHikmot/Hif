@@ -34,11 +34,11 @@ DECLARE
   result JSON;
 BEGIN
   SELECT json_build_object(
-    'total_members', (SELECT COUNT(*) FROM public.users WHERE role = 'member' AND is_active = true),
+    'total_members', (SELECT COUNT(*) FROM public.profiles WHERE role = 'member' AND is_active = true),
     'total_events', (SELECT COUNT(*) FROM public.events WHERE event_date >= CURRENT_DATE),
     'total_donations', (SELECT COALESCE(SUM(amount), 0) FROM public.donations WHERE payment_status = 'completed'),
     'total_branches', (SELECT COUNT(*) FROM public.branches WHERE is_active = true),
-    'new_members_this_month', (SELECT COUNT(*) FROM public.users WHERE created_at >= DATE_TRUNC('month', CURRENT_DATE)),
+    'new_members_this_month', (SELECT COUNT(*) FROM public.profiles WHERE created_at >= DATE_TRUNC('month', CURRENT_DATE)),
     'donations_this_month', (SELECT COALESCE(SUM(amount), 0) FROM public.donations WHERE created_at >= DATE_TRUNC('month', CURRENT_DATE) AND payment_status = 'completed')
   ) INTO result;
   

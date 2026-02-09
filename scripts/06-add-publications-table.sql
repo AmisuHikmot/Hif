@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS public.publications (
   content TEXT,
   publication_type VARCHAR(50) NOT NULL DEFAULT 'paper', -- paper, journal, newsletter, article
   author_name VARCHAR(255),
-  author_id UUID REFERENCES public.users(id),
+  author_id UUID REFERENCES public.profiles(id),
   cover_image_url TEXT,
   file_url TEXT,
   file_size BIGINT,
@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS public.contact_submissions (
   message TEXT NOT NULL,
   status VARCHAR(50) DEFAULT 'pending', -- pending, read, replied, archived
   replied_at TIMESTAMP WITH TIME ZONE,
-  replied_by UUID REFERENCES public.users(id),
+  replied_by UUID REFERENCES public.profiles(id),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -48,7 +48,7 @@ CREATE POLICY "Anyone can view published publications" ON public.publications
 CREATE POLICY "Admins can manage publications" ON public.publications
   FOR ALL USING (
     EXISTS (
-      SELECT 1 FROM public.users 
+      SELECT 1 FROM public.profiles 
       WHERE id = auth.uid() AND role = 'admin'
     )
   );
@@ -60,7 +60,7 @@ CREATE POLICY "Anyone can submit contact form" ON public.contact_submissions
 CREATE POLICY "Admins can view contact submissions" ON public.contact_submissions
   FOR SELECT USING (
     EXISTS (
-      SELECT 1 FROM public.users 
+      SELECT 1 FROM public.profiles 
       WHERE id = auth.uid() AND role = 'admin'
     )
   );
@@ -68,7 +68,7 @@ CREATE POLICY "Admins can view contact submissions" ON public.contact_submission
 CREATE POLICY "Admins can update contact submissions" ON public.contact_submissions
   FOR UPDATE USING (
     EXISTS (
-      SELECT 1 FROM public.users 
+      SELECT 1 FROM public.profiles 
       WHERE id = auth.uid() AND role = 'admin'
     )
   );
