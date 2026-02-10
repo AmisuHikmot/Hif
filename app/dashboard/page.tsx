@@ -19,6 +19,8 @@ async function getDashboardData(userId: string) {
   const supabase = await createClient()
 
   try {
+    console.log("[Dashboard] Starting data fetch for user:", userId)
+    
     // Get user profile - use maybeSingle to avoid errors if not found
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
@@ -28,10 +30,12 @@ async function getDashboardData(userId: string) {
 
     if (profileError) {
       console.error("[Dashboard] Profile fetch error:", profileError.message)
+    } else {
+      console.log("[Dashboard] Profile fetched:", profile?.email)
     }
 
     // Get membership info - use maybeSingle instead of single
-    const { data: membership } = await supabase
+    const { data: membership, error: membershipError } = await supabase
       .from("memberships")
       .select("*")
       .eq("user_id", userId)
@@ -39,52 +43,76 @@ async function getDashboardData(userId: string) {
       .limit(1)
       .maybeSingle()
 
+    if (membershipError) {
+      console.error("[Dashboard] Membership fetch error:", membershipError.message)
+    }
+
     // Get user's event registrations
-    const { data: registrations } = await supabase
+    const { data: registrations, error: registrationsError } = await supabase
       .from("event_registrations")
       .select("*, events(*)")
       .eq("user_id", userId)
       .order("registration_date", { ascending: false })
       .limit(5)
 
+    if (registrationsError) {
+      console.error("[Dashboard] Registrations fetch error:", registrationsError.message)
+    }
+
     // Get user's donations
-    const { data: donations } = await supabase
+    const { data: donations, error: donationsError } = await supabase
       .from("donations")
       .select("*")
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
       .limit(5)
 
+    if (donationsError) {
+      console.error("[Dashboard] Donations fetch error:", donationsError.message)
+    }
+
     // Get total donations this year
     const currentYear = new Date().getFullYear()
-    const { data: yearlyDonations } = await supabase
+    const { data: yearlyDonations, error: yearlyError } = await supabase
       .from("donations")
       .select("amount")
       .eq("user_id", userId)
       .gte("created_at", `${currentYear}-01-01`)
       .eq("payment_status", "completed")
 
+    if (yearlyError) {
+      console.error("[Dashboard] Yearly donations fetch error:", yearlyError.message)
+    }
+
     const totalDonationsThisYear = yearlyDonations?.reduce((sum, d) => sum + Number(d.amount), 0) || 0
 
     // Get total all-time donations
-    const { data: allDonations } = await supabase
+    const { data: allDonations, error: allDonationsError } = await supabase
       .from("donations")
       .select("amount")
       .eq("user_id", userId)
       .eq("payment_status", "completed")
 
+    if (allDonationsError) {
+      console.error("[Dashboard] All donations fetch error:", allDonationsError.message)
+    }
+
     const totalAllTimeDonations = allDonations?.reduce((sum, d) => sum + Number(d.amount), 0) || 0
 
     // Get activity logs
-    const { data: activities } = await supabase
+    const { data: activities, error: activitiesError } = await supabase
       .from("activity_logs")
       .select("*")
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
       .limit(5)
 
+    if (activitiesError) {
+      console.error("[Dashboard] Activities fetch error:", activitiesError.message)
+    }
+
     // Get notifications
-    const { data: notifications } = await supabase
+    const { data: notifications, error: notificationsError } = await supabase
       .from("notifications")
       .select("*")
       .eq("user_id", userId)
@@ -92,23 +120,37 @@ async function getDashboardData(userId: string) {
       .order("created_at", { ascending: false })
       .limit(5)
 
+    if (notificationsError) {
+      console.error("[Dashboard] Notifications fetch error:", notificationsError.message)
+    }
+
     // Get upcoming events
     const today = new Date().toISOString().split("T")[0]
-    const { data: upcomingEvents } = await supabase
+    const { data: upcomingEvents, error: eventsError } = await supabase
       .from("events")
       .select("*")
       .gte("event_date", today)
       .order("event_date", { ascending: true })
       .limit(3)
 
+    if (eventsError) {
+      console.error("[Dashboard] Events fetch error:", eventsError.message)
+    }
+
     // Get event attendance count
-    const { data: eventAttendance } = await supabase
+    const { data: eventAttendance, error: attendanceError } = await supabase
       .from("event_registrations")
       .select("id")
       .eq("user_id", userId)
       .eq("status", "confirmed")
 
+    if (attendanceError) {
+      console.error("[Dashboard] Attendance fetch error:", attendanceError.message)
+    }
+
     const attendedEventsCount = eventAttendance?.length || 0
+
+    console.log("[Dashboard] All data fetched successfully")
 
     return {
       profile: profile || null,
@@ -141,293 +183,298 @@ async function getDashboardData(userId: string) {
 }
 
 export default async function DashboardPage() {
-  const supabase = await createClient()
-  
-  const {
-    data: { user },
-    error: userError,
-  } = await supabase.auth.getUser()
+  try {
+    const supabase = await createClient()
+    
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser()
 
-  if (userError || !user) {
-    console.error("[Dashboard] Auth error:", userError?.message)
+    if (userError || !user) {
+      console.error("[Dashboard] Auth error:", userError?.message)
+      redirect("/auth/login?redirect=/dashboard")
+    }
+
+    console.log("[Dashboard] Loading dashboard for user:", user.id)
+
+    const {
+      profile,
+      membership,
+      registrations,
+      donations,
+      totalDonationsThisYear,
+      totalAllTimeDonations,
+      activities,
+      notifications,
+      upcomingEvents,
+      attendedEventsCount,
+    } = await getDashboardData(user.id)
+
+    const donationGoal = 100000
+    const donationProgress = Math.min((totalDonationsThisYear / donationGoal) * 100, 100)
+
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="grid gap-8">
+          <DashboardNav />
+
+          <main>
+            <div className="mb-8 flex flex-col gap-2">
+              <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+              <p className="text-muted-foreground">
+                Welcome back, {profile?.first_name || user.email?.split("@")[0]}! Here's an overview of your membership
+                and activities.
+              </p>
+            </div>
+
+            {notifications && notifications.length > 0 && (
+              <div className="mb-6 p-4 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
+                <div className="flex items-center gap-2 mb-2">
+                  <Bell className="h-4 w-4 text-emerald-600" />
+                  <span className="font-medium text-emerald-800 dark:text-emerald-400">
+                    You have {notifications.length} unread notification{notifications.length > 1 ? "s" : ""}
+                  </span>
+                </div>
+                <Link href="/dashboard/notifications" className="text-sm text-emerald-600 hover:underline">
+                  View all notifications
+                </Link>
+              </div>
+            )}
+
+            <div className="mb-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium">Membership Status</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between">
+                    <Badge className={membership?.status === "active" ? "bg-emerald-500" : "bg-yellow-500"}>
+                      {membership?.status || "Pending"}
+                    </Badge>
+                    <CheckCircle className="h-4 w-4 text-emerald-600" />
+                  </div>
+                  <Separator className="my-3" />
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Member ID:</span>
+                      <span className="font-medium">HIF-{user.id.substring(0, 8).toUpperCase()}</span>
+                    </div>
+                    {membership?.start_date && (
+                      <div className="flex justify-between text-xs">
+                        <span className="text-muted-foreground">Since:</span>
+                        <span className="font-medium">{new Date(membership.start_date).toLocaleDateString()}</span>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium">Donations This Year</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">₦{totalDonationsThisYear.toLocaleString()}</div>
+                  <Progress value={donationProgress} className="mt-2" />
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    {Math.round(donationProgress)}% of ₦{donationGoal.toLocaleString()} goal
+                  </p>
+                  <Button asChild size="sm" className="mt-3 w-full">
+                    <Link href="/donate">Donate</Link>
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium">All-Time Donations</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">₦{totalAllTimeDonations.toLocaleString()}</div>
+                  <Separator className="my-3" />
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Total Donations:</span>
+                      <span className="font-medium">
+                        {donations.filter((d) => d.payment_status === "completed").length}
+                      </span>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-muted-foreground">Avg per Donation:</span>
+                      <span className="font-medium">
+                        ₦
+                        {donations.length > 0
+                          ? Math.round(totalAllTimeDonations / donations.length).toLocaleString()
+                          : "0"}
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium">Event Participation</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{attendedEventsCount}</div>
+                  <p className="mt-2 text-xs text-muted-foreground">events attended</p>
+                  <Separator className="my-3" />
+                  {upcomingEvents.length > 0 ? (
+                    <Button asChild size="sm" className="w-full">
+                      <Link href="/events">View Events</Link>
+                    </Button>
+                  ) : (
+                    <p className="text-xs text-muted-foreground">No upcoming events</p>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            <Tabs defaultValue="activities" className="space-y-4">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="activities">Recent Activities</TabsTrigger>
+                <TabsTrigger value="resources">Resources</TabsTrigger>
+                <TabsTrigger value="donations">Donations</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="activities" className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Recent Activities</CardTitle>
+                    <CardDescription>Your recent interactions with Hamduk Islamic Foundation</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {activities.length > 0 ? (
+                      <div className="space-y-4">
+                        {activities.map((activity) => (
+                          <div key={activity.id}>
+                            <div className="flex items-start gap-4">
+                              <div className="rounded-full bg-emerald-100 p-2 dark:bg-emerald-900/20">
+                                <TrendingUp className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center justify-between">
+                                  <h3 className="font-medium">{activity.action}</h3>
+                                  <span className="text-xs text-muted-foreground">
+                                    {new Date(activity.created_at).toLocaleDateString()}
+                                  </span>
+                                </div>
+                                <p className="text-sm text-muted-foreground line-clamp-2">{activity.description}</p>
+                              </div>
+                            </div>
+                            <Separator className="mt-4" />
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <AlertCircle className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                        <p className="text-muted-foreground">No recent activities</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="resources" className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Member Resources</CardTitle>
+                    <CardDescription>Access exclusive resources for members</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <Card className="bg-muted/50">
+                        <CardContent className="p-4">
+                          <div className="flex items-start gap-4">
+                            <FileText className="h-8 w-8 text-emerald-600" />
+                            <div className="flex-1">
+                              <h3 className="font-medium">Publications</h3>
+                              <p className="text-xs text-muted-foreground">Research papers and journals</p>
+                              <Button variant="link" size="sm" className="h-auto p-0 mt-2" asChild>
+                                <Link href="/publications/papers">Browse</Link>
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <Card className="bg-muted/50">
+                        <CardContent className="p-4">
+                          <div className="flex items-start gap-4">
+                            <Download className="h-8 w-8 text-blue-600" />
+                            <div className="flex-1">
+                              <h3 className="font-medium">Downloads</h3>
+                              <p className="text-xs text-muted-foreground">Educational materials</p>
+                              <Button variant="link" size="sm" className="h-auto p-0 mt-2" asChild>
+                                <Link href="/media/downloads">Browse</Link>
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="donations" className="space-y-4">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Donation History</CardTitle>
+                    <CardDescription>Your recent donation records</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    {donations.length > 0 ? (
+                      <div className="space-y-4">
+                        {donations.slice(0, 5).map((donation) => (
+                          <div key={donation.id}>
+                            <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                              <div>
+                                <h3 className="font-medium">{donation.project_name || "General Donation"}</h3>
+                                <p className="text-sm text-muted-foreground">{donation.donation_type} donation</p>
+                              </div>
+                              <div className="text-right">
+                                <p className="font-bold">₦{Number(donation.amount).toLocaleString()}</p>
+                                <Badge
+                                  variant={donation.payment_status === "completed" ? "default" : "outline"}
+                                  className="mt-1"
+                                >
+                                  {donation.payment_status}
+                                </Badge>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8">
+                        <Gift className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+                        <p className="text-muted-foreground">No donations yet</p>
+                        <Button asChild className="mt-4">
+                          <Link href="/donate">Make Your First Donation</Link>
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                  {donations.length > 0 && (
+                    <CardFooter>
+                      <Button variant="outline" className="w-full bg-transparent" asChild>
+                        <Link href="/dashboard/donations">View All Donations</Link>
+                      </Button>
+                    </CardFooter>
+                  )}
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </main>
+        </div>
+      </div>
+    )
+  } catch (error) {
+    console.error("[Dashboard] Fatal error:", error)
     redirect("/auth/login?redirect=/dashboard")
   }
-
-  console.log("[Dashboard] Loading dashboard for user:", user.id)
-
-  const {
-    profile,
-    membership,
-    registrations,
-    donations,
-    totalDonationsThisYear,
-    totalAllTimeDonations,
-    activities,
-    notifications,
-    upcomingEvents,
-    attendedEventsCount,
-  } = await getDashboardData(user.id)
-
-  const donationGoal = 100000
-  const donationProgress = Math.min((totalDonationsThisYear / donationGoal) * 100, 100)
-
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="grid gap-8">
-        <DashboardNav />
-
-        <main>
-          <div className="mb-8 flex flex-col gap-2">
-            <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-            <p className="text-muted-foreground">
-              Welcome back, {profile?.first_name || user.email?.split("@")[0]}! Here's an overview of your membership
-              and activities.
-            </p>
-          </div>
-
-          {notifications && notifications.length > 0 && (
-            <div className="mb-6 p-4 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
-              <div className="flex items-center gap-2 mb-2">
-                <Bell className="h-4 w-4 text-emerald-600" />
-                <span className="font-medium text-emerald-800 dark:text-emerald-400">
-                  You have {notifications.length} unread notification{notifications.length > 1 ? "s" : ""}
-                </span>
-              </div>
-              <Link href="/dashboard/notifications" className="text-sm text-emerald-600 hover:underline">
-                View all notifications
-              </Link>
-            </div>
-          )}
-
-          <div className="mb-8 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Membership Status</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-between">
-                  <Badge className={membership?.status === "active" ? "bg-emerald-500" : "bg-yellow-500"}>
-                    {membership?.status || "Pending"}
-                  </Badge>
-                  <CheckCircle className="h-4 w-4 text-emerald-600" />
-                </div>
-                <Separator className="my-3" />
-                <div className="space-y-1">
-                  <div className="flex justify-between text-xs">
-                    <span className="text-muted-foreground">Member ID:</span>
-                    <span className="font-medium">HIF-{user.id.substring(0, 8).toUpperCase()}</span>
-                  </div>
-                  {membership?.start_date && (
-                    <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Since:</span>
-                      <span className="font-medium">{new Date(membership.start_date).toLocaleDateString()}</span>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Donations This Year</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">₦{totalDonationsThisYear.toLocaleString()}</div>
-                <Progress value={donationProgress} className="mt-2" />
-                <p className="mt-2 text-xs text-muted-foreground">
-                  {Math.round(donationProgress)}% of ₦{donationGoal.toLocaleString()} goal
-                </p>
-                <Button asChild size="sm" className="mt-3 w-full">
-                  <Link href="/donate">Donate</Link>
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">All-Time Donations</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">₦{totalAllTimeDonations.toLocaleString()}</div>
-                <Separator className="my-3" />
-                <div className="space-y-2">
-                  <div className="flex justify-between text-xs">
-                    <span className="text-muted-foreground">Total Donations:</span>
-                    <span className="font-medium">
-                      {donations.filter((d) => d.payment_status === "completed").length}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-xs">
-                    <span className="text-muted-foreground">Avg per Donation:</span>
-                    <span className="font-medium">
-                      ₦
-                      {donations.length > 0
-                        ? Math.round(totalAllTimeDonations / donations.length).toLocaleString()
-                        : "0"}
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Event Participation</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{attendedEventsCount}</div>
-                <p className="mt-2 text-xs text-muted-foreground">events attended</p>
-                <Separator className="my-3" />
-                {upcomingEvents.length > 0 ? (
-                  <Button asChild size="sm" className="w-full">
-                    <Link href="/events">View Events</Link>
-                  </Button>
-                ) : (
-                  <p className="text-xs text-muted-foreground">No upcoming events</p>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          <Tabs defaultValue="activities" className="space-y-4">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="activities">Recent Activities</TabsTrigger>
-              <TabsTrigger value="resources">Resources</TabsTrigger>
-              <TabsTrigger value="donations">Donations</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="activities" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Recent Activities</CardTitle>
-                  <CardDescription>Your recent interactions with Hamduk Islamic Foundation</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {activities.length > 0 ? (
-                    <div className="space-y-4">
-                      {activities.map((activity) => (
-                        <div key={activity.id}>
-                          <div className="flex items-start gap-4">
-                            <div className="rounded-full bg-emerald-100 p-2 dark:bg-emerald-900/20">
-                              <TrendingUp className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between">
-                                <h3 className="font-medium">{activity.action}</h3>
-                                <span className="text-xs text-muted-foreground">
-                                  {new Date(activity.created_at).toLocaleDateString()}
-                                </span>
-                              </div>
-                              <p className="text-sm text-muted-foreground line-clamp-2">{activity.description}</p>
-                            </div>
-                          </div>
-                          <Separator className="mt-4" />
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <AlertCircle className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                      <p className="text-muted-foreground">No recent activities</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="resources" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Member Resources</CardTitle>
-                  <CardDescription>Access exclusive resources for members</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <Card className="bg-muted/50">
-                      <CardContent className="p-4">
-                        <div className="flex items-start gap-4">
-                          <FileText className="h-8 w-8 text-emerald-600" />
-                          <div className="flex-1">
-                            <h3 className="font-medium">Publications</h3>
-                            <p className="text-xs text-muted-foreground">Research papers and journals</p>
-                            <Button variant="link" size="sm" className="h-auto p-0 mt-2" asChild>
-                              <Link href="/publications/papers">Browse</Link>
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card className="bg-muted/50">
-                      <CardContent className="p-4">
-                        <div className="flex items-start gap-4">
-                          <Download className="h-8 w-8 text-blue-600" />
-                          <div className="flex-1">
-                            <h3 className="font-medium">Downloads</h3>
-                            <p className="text-xs text-muted-foreground">Educational materials</p>
-                            <Button variant="link" size="sm" className="h-auto p-0 mt-2" asChild>
-                              <Link href="/media/downloads">Browse</Link>
-                            </Button>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="donations" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Donation History</CardTitle>
-                  <CardDescription>Your recent donation records</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {donations.length > 0 ? (
-                    <div className="space-y-4">
-                      {donations.slice(0, 5).map((donation) => (
-                        <div key={donation.id}>
-                          <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                            <div>
-                              <h3 className="font-medium">{donation.project_name || "General Donation"}</h3>
-                              <p className="text-sm text-muted-foreground">{donation.donation_type} donation</p>
-                            </div>
-                            <div className="text-right">
-                              <p className="font-bold">₦{Number(donation.amount).toLocaleString()}</p>
-                              <Badge
-                                variant={donation.payment_status === "completed" ? "default" : "outline"}
-                                className="mt-1"
-                              >
-                                {donation.payment_status}
-                              </Badge>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <Gift className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                      <p className="text-muted-foreground">No donations yet</p>
-                      <Button asChild className="mt-4">
-                        <Link href="/donate">Make Your First Donation</Link>
-                      </Button>
-                    </div>
-                  )}
-                </CardContent>
-                {donations.length > 0 && (
-                  <CardFooter>
-                    <Button variant="outline" className="w-full bg-transparent" asChild>
-                      <Link href="/dashboard/donations">View All Donations</Link>
-                    </Button>
-                  </CardFooter>
-                )}
-              </Card>
-            </TabsContent>
-          </Tabs>
-        </main>
-      </div>
-    </div>
-  )
 }

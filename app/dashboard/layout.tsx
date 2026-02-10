@@ -27,8 +27,10 @@ export default function DashboardLayout({
 
     // If not authenticated and loading is done, redirect to login
     if (!isAuthenticated) {
-      console.log("[v0] User not authenticated, redirecting to login from:", pathname)
+      console.log("[DashboardLayout] User not authenticated, redirecting to login from:", pathname)
       router.push("/auth/login?redirect=" + encodeURIComponent(pathname))
+    } else {
+      console.log("[DashboardLayout] User authenticated, rendering dashboard")
     }
   }, [isAuthenticated, isLoading, mounted, router, pathname])
 
