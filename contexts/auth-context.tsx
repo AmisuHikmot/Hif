@@ -42,21 +42,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
 
   const fetchProfile = async (userId: string) => {
-    const { data, error } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", userId)
-      .maybeSingle()
+    try {
+      console.log("[v0] Fetching profile for user:", userId)
+      
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .single()
 
-    if (error) {
-      console.error("fetchProfile error:", error)
-      return
-    }
+      if (error) {
+        console.error("[v0] fetchProfile error:", error.message)
+        return
+      }
 
-    if (data) {
-      setProfile(data as UserProfile)
-    } else {
-      setProfile(null)
+      if (data) {
+        console.log("[v0] Profile loaded successfully:", data.email)
+        setProfile(data as UserProfile)
+      }
+    } catch (err) {
+      console.error("[v0] Unexpected error in fetchProfile:", err)
     }
   }
 
@@ -79,7 +84,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           await fetchProfile(session.user.id)
         }
       } catch (err) {
-        console.error("getSession error:", err)
+        console.error("[v0] getSession error:", err)
       } finally {
         setIsLoading(false)
       }
@@ -90,10 +95,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      console.log("[v0] Auth state changed, event:", _event, "has session:", !!session)
       setSession(session ?? null)
       setUser(session?.user ?? null)
 
       if (session?.user) {
+        console.log("[v0] Session found, user ID:", session.user.id)
         await fetchProfile(session.user.id)
       } else {
         setProfile(null)
@@ -105,7 +112,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.unsubscribe()
   }, [])
 
-  // ✅ FIXED signIn
   const signIn = async (email: string, password: string) => {
     try {
       console.log("[v0] Signing in with email:", email)
@@ -119,8 +125,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { error: new Error(error.message) }
       }
 
-      console.log("[v0] Sign in successful, updating state")
-      // Immediately update state after successful login
+      console.log("[v0] Sign in successful")
       setSession(data.session ?? null)
       setUser(data.user ?? null)
 
@@ -141,7 +146,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     password: string,
     metadata?: { first_name?: string; last_name?: string; phone?: string },
   ) => {
-    // 1) Sign up with Supabase Auth (only email + password)
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -161,10 +165,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { error: new Error("Signup succeeded but no user returned") }
     }
 
-    // 2) Upsert profile row in profiles table (safe if trigger already created the profile)
     const { error: profileError } = await supabase.from("profiles").upsert(
       {
         id: createdUser.id,
+        user_id: createdUser.id,
         email,
         first_name: metadata?.first_name ?? null,
         last_name: metadata?.last_name ?? null,
@@ -176,11 +180,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     )
 
     if (profileError) {
-      console.error("Profile upsert error:", profileError)
+      console.error("[v0] Profile upsert error:", profileError)
       return { error: new Error(profileError.message) }
     }
 
-    // 3) Refresh local state
     await fetchProfile(createdUser.id)
 
     return { error: null }
