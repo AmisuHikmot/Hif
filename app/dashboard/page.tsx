@@ -18,112 +18,142 @@ export const metadata = {
 async function getDashboardData(userId: string) {
   const supabase = await createClient()
 
-  // Get user profile
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", userId).single()
+  try {
+    // Get user profile - use maybeSingle to avoid errors if not found
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", userId)
+      .maybeSingle()
 
-  // Get membership info
-  const { data: membership } = await supabase
-    .from("memberships")
-    .select("*")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .single()
+    if (profileError) {
+      console.error("[Dashboard] Profile fetch error:", profileError.message)
+    }
 
-  // Get user's event registrations
-  const { data: registrations } = await supabase
-    .from("event_registrations")
-    .select("*, events(*)")
-    .eq("user_id", userId)
-    .order("registration_date", { ascending: false })
-    .limit(5)
+    // Get membership info - use maybeSingle instead of single
+    const { data: membership } = await supabase
+      .from("memberships")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle()
 
-  // Get user's donations
-  const { data: donations } = await supabase
-    .from("donations")
-    .select("*")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false })
-    .limit(5)
+    // Get user's event registrations
+    const { data: registrations } = await supabase
+      .from("event_registrations")
+      .select("*, events(*)")
+      .eq("user_id", userId)
+      .order("registration_date", { ascending: false })
+      .limit(5)
 
-  // Get total donations this year
-  const currentYear = new Date().getFullYear()
-  const { data: yearlyDonations } = await supabase
-    .from("donations")
-    .select("amount")
-    .eq("user_id", userId)
-    .gte("created_at", `${currentYear}-01-01`)
-    .eq("payment_status", "completed")
+    // Get user's donations
+    const { data: donations } = await supabase
+      .from("donations")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(5)
 
-  const totalDonationsThisYear = yearlyDonations?.reduce((sum, d) => sum + Number(d.amount), 0) || 0
+    // Get total donations this year
+    const currentYear = new Date().getFullYear()
+    const { data: yearlyDonations } = await supabase
+      .from("donations")
+      .select("amount")
+      .eq("user_id", userId)
+      .gte("created_at", `${currentYear}-01-01`)
+      .eq("payment_status", "completed")
 
-  // Get total all-time donations
-  const { data: allDonations } = await supabase
-    .from("donations")
-    .select("amount")
-    .eq("user_id", userId)
-    .eq("payment_status", "completed")
+    const totalDonationsThisYear = yearlyDonations?.reduce((sum, d) => sum + Number(d.amount), 0) || 0
 
-  const totalAllTimeDonations = allDonations?.reduce((sum, d) => sum + Number(d.amount), 0) || 0
+    // Get total all-time donations
+    const { data: allDonations } = await supabase
+      .from("donations")
+      .select("amount")
+      .eq("user_id", userId)
+      .eq("payment_status", "completed")
 
-  // Get activity logs
-  const { data: activities } = await supabase
-    .from("activity_logs")
-    .select("*")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false })
-    .limit(5)
+    const totalAllTimeDonations = allDonations?.reduce((sum, d) => sum + Number(d.amount), 0) || 0
 
-  // Get notifications
-  const { data: notifications } = await supabase
-    .from("notifications")
-    .select("*")
-    .eq("user_id", userId)
-    .eq("is_read", false)
-    .order("created_at", { ascending: false })
-    .limit(5)
+    // Get activity logs
+    const { data: activities } = await supabase
+      .from("activity_logs")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(5)
 
-  // Get upcoming events
-  const today = new Date().toISOString().split("T")[0]
-  const { data: upcomingEvents } = await supabase
-    .from("events")
-    .select("*")
-    .gte("event_date", today)
-    .order("event_date", { ascending: true })
-    .limit(3)
+    // Get notifications
+    const { data: notifications } = await supabase
+      .from("notifications")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("is_read", false)
+      .order("created_at", { ascending: false })
+      .limit(5)
 
-  // Get event attendance count
-  const { data: eventAttendance } = await supabase
-    .from("event_registrations")
-    .select("id")
-    .eq("user_id", userId)
-    .eq("status", "confirmed")
+    // Get upcoming events
+    const today = new Date().toISOString().split("T")[0]
+    const { data: upcomingEvents } = await supabase
+      .from("events")
+      .select("*")
+      .gte("event_date", today)
+      .order("event_date", { ascending: true })
+      .limit(3)
 
-  const attendedEventsCount = eventAttendance?.length || 0
+    // Get event attendance count
+    const { data: eventAttendance } = await supabase
+      .from("event_registrations")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("status", "confirmed")
 
-  return {
-    profile,
-    membership,
-    registrations: registrations || [],
-    donations: donations || [],
-    totalDonationsThisYear,
-    totalAllTimeDonations,
-    activities: activities || [],
-    notifications: notifications || [],
-    upcomingEvents: upcomingEvents || [],
-    attendedEventsCount,
+    const attendedEventsCount = eventAttendance?.length || 0
+
+    return {
+      profile: profile || null,
+      membership: membership || null,
+      registrations: registrations || [],
+      donations: donations || [],
+      totalDonationsThisYear,
+      totalAllTimeDonations,
+      activities: activities || [],
+      notifications: notifications || [],
+      upcomingEvents: upcomingEvents || [],
+      attendedEventsCount,
+    }
+  } catch (error) {
+    console.error("[Dashboard] Fatal error in getDashboardData:", error)
+    // Return safe defaults instead of crashing
+    return {
+      profile: null,
+      membership: null,
+      registrations: [],
+      donations: [],
+      totalDonationsThisYear: 0,
+      totalAllTimeDonations: 0,
+      activities: [],
+      notifications: [],
+      upcomingEvents: [],
+      attendedEventsCount: 0,
+    }
   }
 }
 
 export default async function DashboardPage() {
   const supabase = await createClient()
+  
   const {
     data: { user },
+    error: userError,
   } = await supabase.auth.getUser()
 
-  if (!user) {
+  if (userError || !user) {
+    console.error("[Dashboard] Auth error:", userError?.message)
     redirect("/auth/login?redirect=/dashboard")
   }
+
+  console.log("[Dashboard] Loading dashboard for user:", user.id)
 
   const {
     profile,
@@ -155,7 +185,7 @@ export default async function DashboardPage() {
             </p>
           </div>
 
-          {notifications.length > 0 && (
+          {notifications && notifications.length > 0 && (
             <div className="mb-6 p-4 rounded-lg bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800">
               <div className="flex items-center gap-2 mb-2">
                 <Bell className="h-4 w-4 text-emerald-600" />
