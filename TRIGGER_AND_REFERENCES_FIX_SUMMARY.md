@@ -18,15 +18,15 @@ The migration scripts contained references to a non-existent table:
 
 ### 1. Fixed Trigger Functions (scripts/07-add-trigger-functions.sql)
 **Before:**
-```sql
+\`\`\`sql
 INSERT INTO public.users (id, email, first_name, ...)
-```
+\`\`\`
 
 **After:**
-```sql
+\`\`\`sql
 INSERT INTO public.profiles (id, user_id, email, first_name, ...)
 VALUES (NEW.id, NEW.id, NEW.email, ...)
-```
+\`\`\`
 
 **Key Changes:**
 - Both `id` and `user_id` are now explicitly set to `NEW.id` (they must match)
@@ -35,27 +35,27 @@ VALUES (NEW.id, NEW.id, NEW.email, ...)
 
 ### 2. Fixed Foreign Key References (scripts/06-add-publications-table.sql)
 **Before:**
-```sql
+\`\`\`sql
 author_id UUID REFERENCES public.users(id),
 replied_by UUID REFERENCES public.users(id),
-```
+\`\`\`
 
 **After:**
-```sql
+\`\`\`sql
 author_id UUID REFERENCES public.profiles(id),
 replied_by UUID REFERENCES public.profiles(id),
-```
+\`\`\`
 
 ### 3. Fixed RLS Policies (scripts/06-add-publications-table.sql)
 **Before:**
-```sql
+\`\`\`sql
 SELECT 1 FROM public.users WHERE id = auth.uid() AND role = 'admin'
-```
+\`\`\`
 
 **After:**
-```sql
+\`\`\`sql
 SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'
-```
+\`\`\`
 
 ### 4. Fixed Helper Functions (scripts/08-add-helper-functions.sql)
 Updated all statistics queries:
@@ -79,7 +79,7 @@ Created a new comprehensive migration that:
 ## Database Schema Alignment
 
 **profiles table structure:**
-```
+\`\`\`
 - id: UUID (PRIMARY KEY)
 - user_id: UUID (NOT NULL, UNIQUE)
 - email: VARCHAR
@@ -92,7 +92,7 @@ Created a new comprehensive migration that:
 - oauth_provider: VARCHAR
 - created_at: TIMESTAMP
 - updated_at: TIMESTAMP
-```
+\`\`\`
 
 **Key Constraint:**
 - `id = user_id` (both reference the same auth.users(id))
@@ -104,10 +104,10 @@ Created a new comprehensive migration that:
 2. Supabase auth.users table receives new record with UUID
 3. `on_auth_user_created` trigger fires on auth.users INSERT
 4. `handle_new_user()` function executes:
-   ```sql
+   \`\`\`sql
    INSERT INTO public.profiles (id, user_id, email, ...)
    VALUES (NEW.id, NEW.id, NEW.email, ...)
-   ```
+   \`\`\`
 5. Profile record created successfully with:
    - `id` = auth user UUID
    - `user_id` = same auth user UUID (satisfies NOT NULL constraint)

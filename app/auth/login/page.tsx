@@ -18,7 +18,7 @@ import { signInWithOAuth } from "@/lib/auth/oauth"
 export default function LoginPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { signIn, isAuthenticated, isLoading: authLoading } = useAuth()
+  const { signIn, isAuthenticated, isLoading: authLoading, profile } = useAuth()
 
   const [showPassword, setShowPassword] = useState(false)
   const [isSigningIn, setIsSigningIn] = useState(false)
@@ -26,15 +26,19 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [hasRedirected, setHasRedirected] = useState(false)
 
   const redirectPath = searchParams.get("redirect") || "/dashboard"
 
+  // Only redirect once when fully authenticated
   useEffect(() => {
-    if (isAuthenticated && !authLoading) {
-      console.log("[v0] User already authenticated, redirecting to:", redirectPath)
+    if (isAuthenticated && !authLoading && !hasRedirected) {
+      console.log("[v0] User authenticated, profile loaded:", !!profile)
+      console.log("[v0] Redirecting to:", redirectPath)
+      setHasRedirected(true)
       router.push(redirectPath)
     }
-  }, [isAuthenticated, authLoading, router, redirectPath])
+  }, [isAuthenticated, authLoading, profile, router, redirectPath, hasRedirected])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -50,8 +54,8 @@ export default function LoginPage() {
         setError(signInError.message)
         setIsSigningIn(false)
       } else {
-        console.log("[v0] Login successful, context will trigger redirect via useEffect")
-        // The useEffect above will handle the redirect when isAuthenticated updates
+        console.log("[v0] Login successful")
+        // useEffect will handle redirect
       }
     } catch (err) {
       console.error("[v0] Unexpected login error:", err)
@@ -73,12 +77,23 @@ export default function LoginPage() {
         setError(oAuthError.message)
         setIsOAuthLoading(null)
       }
-      // OAuth redirects automatically via callback page
     } catch (err) {
       console.error("[v0] Unexpected OAuth error:", err)
       setError("An unexpected error occurred. Please try again.")
       setIsOAuthLoading(null)
     }
+  }
+
+  // Don't render login form if already authenticated
+  if (isAuthenticated && !authLoading) {
+    return (
+      <main className="container mx-auto flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-12">
+        <div className="text-center">
+          <div className="mb-4 h-8 w-8 mx-auto animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600" />
+          <p className="text-muted-foreground">Redirecting to dashboard...</p>
+        </div>
+      </main>
+    )
   }
 
   return (
