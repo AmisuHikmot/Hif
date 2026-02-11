@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { createContext, useContext, useEffect, useState } from "react"
+import { createContext, useContext, useEffect, useState, useRef } from "react"
 import { supabase } from "@/lib/supabase/client"
 import type { User, Session } from "@supabase/supabase-js"
 
@@ -40,9 +40,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  
+  // Prevent multiple simultaneous profile fetches
+  const fetchingProfile = useRef<string | null>(null)
 
   const fetchProfile = async (userId: string) => {
+    // If already fetching this user's profile, skip
+    if (fetchingProfile.current === userId) {
+      console.log("[v0] Already fetching profile for:", userId)
+      return
+    }
+
     try {
+      fetchingProfile.current = userId
       console.log("[v0] Fetching profile for user:", userId)
       
       const { data, error } = await supabase
@@ -62,6 +72,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (err) {
       console.error("[v0] Unexpected error in fetchProfile:", err)
+    } finally {
+      fetchingProfile.current = null
     }
   }
 
@@ -126,13 +138,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       console.log("[v0] Sign in successful")
-      setSession(data.session ?? null)
-      setUser(data.user ?? null)
-
-      if (data.user) {
-        await fetchProfile(data.user.id)
-      }
-
+      // DON'T set session/user/fetch profile here
+      // Let onAuthStateChange handle it
+      
       return { error: null }
     } catch (err) {
       console.error("[v0] Unexpected sign in error:", err)
@@ -184,8 +192,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { error: new Error(profileError.message) }
     }
 
-    await fetchProfile(createdUser.id)
-
+    // Let onAuthStateChange fetch the profile
     return { error: null }
   }
 
