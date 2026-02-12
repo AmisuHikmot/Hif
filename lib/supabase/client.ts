@@ -13,9 +13,9 @@ const supabaseClient = createBrowserClient(
   }
 )
 
-// Always return the same instance
 export const supabase = supabaseClient
 
+// Always return the same instance
 export function createClient() {
-  return supabaseClient // Return existing instance, don't create new one
+  return supabaseClient
 }
