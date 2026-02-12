@@ -1,9 +1,9 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter, useSearchParams, usePathname } from "next/navigation"
 import { Eye, EyeOff, Mail, Lock, Chrome, Apple } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -15,11 +15,9 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useAuth } from "@/contexts/auth-context"
 import { signInWithOAuth } from "@/lib/auth/oauth"
 
-// Force dynamic rendering - prevents prerender errors
-export const dynamic = 'force-dynamic'
-
 export default function LoginPage() {
   const router = useRouter()
+  const pathname = usePathname()
   const searchParams = useSearchParams()
   const { signIn, isAuthenticated, isLoading: authLoading } = useAuth()
 
@@ -29,16 +27,32 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  
+  // Track if we've already redirected
+  const hasRedirected = useRef(false)
 
   const redirectPath = searchParams.get("redirect") || "/dashboard"
 
-  // Redirect when authenticated - use replace to avoid history stack issues
+  // Only redirect if authenticated AND still on login page
   useEffect(() => {
-    if (isAuthenticated && !authLoading) {
-      console.log("[v0] User authenticated, redirecting to:", redirectPath)
+    // Don't redirect if:
+    // 1. Not authenticated
+    // 2. Still loading
+    // 3. Not on login/auth page
+    // 4. Already redirected
+    if (!isAuthenticated || authLoading || hasRedirected.current) {
+      return
+    }
+
+    // Check if we're on a login/auth page
+    const isOnAuthPage = pathname.startsWith('/auth/login') || pathname.startsWith('/auth/callback')
+    
+    if (isOnAuthPage) {
+      console.log("[v0] User authenticated on login page, redirecting to:", redirectPath)
+      hasRedirected.current = true
       router.replace(redirectPath)
     }
-  }, [isAuthenticated, authLoading, router, redirectPath])
+  }, [isAuthenticated, authLoading, pathname, router, redirectPath])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -54,8 +68,8 @@ export default function LoginPage() {
         setError(signInError.message)
         setIsSigningIn(false)
       } else {
-        console.log("[v0] Login successful, waiting for auth state change")
-        // Don't set isSigningIn to false here - let the redirect happen
+        console.log("[v0] Login successful, waiting for redirect")
+        // Don't set isSigningIn to false - let redirect happen
       }
     } catch (err) {
       console.error("[v0] Unexpected login error:", err)
@@ -84,7 +98,7 @@ export default function LoginPage() {
     }
   }
 
-  // Show loading spinner if already authenticated
+  // Show loading spinner if authenticated (redirect in progress)
   if (isAuthenticated && !authLoading) {
     return (
       <main className="container mx-auto flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-12">
