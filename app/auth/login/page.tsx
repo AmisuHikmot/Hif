@@ -1,9 +1,9 @@
 "use client"
 
 import type React from "react"
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
-import { useRouter, useSearchParams, usePathname } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Eye, EyeOff, Mail, Lock, Chrome, Apple } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -17,9 +17,8 @@ import { signInWithOAuth } from "@/lib/auth/oauth"
 
 export default function LoginPage() {
   const router = useRouter()
-  const pathname = usePathname()
   const searchParams = useSearchParams()
-  const { signIn, isAuthenticated, isLoading: authLoading } = useAuth()
+  const { signIn, isAuthenticated, isLoading: authLoading, profile } = useAuth()
 
   const [showPassword, setShowPassword] = useState(false)
   const [isSigningIn, setIsSigningIn] = useState(false)
@@ -27,25 +26,19 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  
-  const hasRedirectedRef = useRef(false)
+  const [hasRedirected, setHasRedirected] = useState(false)
 
   const redirectPath = searchParams.get("redirect") || "/dashboard"
 
-  // CRITICAL: Only redirect if we're actually on the login page
+  // Only redirect once when fully authenticated
   useEffect(() => {
-    // Don't redirect if already redirected
-    if (hasRedirectedRef.current) {
-      return
+    if (isAuthenticated && !authLoading && !hasRedirected) {
+      console.log("[v0] User authenticated, profile loaded:", !!profile)
+      console.log("[v0] Redirecting to:", redirectPath)
+      setHasRedirected(true)
+      router.push(redirectPath)
     }
-
-    // Only redirect if authenticated, not loading, and actually on login page
-    if (isAuthenticated && !authLoading && pathname === '/auth/login') {
-      console.log("[v0] User authenticated on login page, redirecting to:", redirectPath)
-      hasRedirectedRef.current = true
-      router.replace(redirectPath)
-    }
-  }, [isAuthenticated, authLoading, pathname, router, redirectPath])
+  }, [isAuthenticated, authLoading, profile, router, redirectPath, hasRedirected])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -61,8 +54,8 @@ export default function LoginPage() {
         setError(signInError.message)
         setIsSigningIn(false)
       } else {
-        console.log("[v0] Login successful, waiting for redirect")
-        // Don't set isSigningIn to false - let redirect happen
+        console.log("[v0] Login successful")
+        // useEffect will handle redirect
       }
     } catch (err) {
       console.error("[v0] Unexpected login error:", err)
@@ -91,8 +84,8 @@ export default function LoginPage() {
     }
   }
 
-  // Only show loading if authenticated AND on login page
-  if (isAuthenticated && !authLoading && pathname === '/auth/login') {
+  // Don't render login form if already authenticated
+  if (isAuthenticated && !authLoading) {
     return (
       <main className="container mx-auto flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-12">
         <div className="text-center">
@@ -179,14 +172,7 @@ export default function LoginPage() {
                   </Label>
                 </div>
                 <Button type="submit" className="w-full" disabled={isSigningIn}>
-                  {isSigningIn ? (
-                    <>
-                      <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                      Signing in...
-                    </>
-                  ) : (
-                    "Sign in"
-                  )}
+                  {isSigningIn ? "Signing in..." : "Sign in"}
                 </Button>
               </form>
             </TabsContent>
@@ -233,14 +219,7 @@ export default function LoginPage() {
                   </Label>
                 </div>
                 <Button type="submit" className="w-full" disabled={isSigningIn}>
-                  {isSigningIn ? (
-                    <>
-                      <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                      Signing in...
-                    </>
-                  ) : (
-                    "Sign in"
-                  )}
+                  {isSigningIn ? "Signing in..." : "Sign in"}
                 </Button>
               </form>
             </TabsContent>
@@ -251,7 +230,7 @@ export default function LoginPage() {
               <div className="w-full border-t border-gray-200"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="bg-white px-2 text-gray-500 dark:bg-gray-950">Or continue with</span>
+              <span className="bg-white px-2 text-gray-500">Or continue with</span>
             </div>
           </div>
 
@@ -260,7 +239,7 @@ export default function LoginPage() {
               type="button"
               variant="outline"
               onClick={() => handleOAuthLogin("google")}
-              disabled={isOAuthLoading !== null || isSigningIn}
+              disabled={isOAuthLoading !== null}
               className="w-full"
             >
               {isOAuthLoading === "google" ? (
@@ -274,7 +253,7 @@ export default function LoginPage() {
               type="button"
               variant="outline"
               onClick={() => handleOAuthLogin("apple")}
-              disabled={isOAuthLoading !== null || isSigningIn}
+              disabled={isOAuthLoading !== null}
               className="w-full"
             >
               {isOAuthLoading === "apple" ? (
@@ -288,7 +267,7 @@ export default function LoginPage() {
               type="button"
               variant="outline"
               onClick={() => handleOAuthLogin("facebook")}
-              disabled={isOAuthLoading !== null || isSigningIn}
+              disabled={isOAuthLoading !== null}
               className="w-full"
             >
               {isOAuthLoading === "facebook" ? (
