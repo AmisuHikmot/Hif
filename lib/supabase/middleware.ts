@@ -19,30 +19,37 @@ export async function updateSession(request: NextRequest) {
           supabaseResponse = NextResponse.next({
             request,
           })
-          cookiesToSet.forEach(({ name, value, options }) => supabaseResponse.cookies.set(name, value, options))
+          cookiesToSet.forEach(({ name, value, options }) => 
+            supabaseResponse.cookies.set(name, value, options)
+          )
         },
       },
     },
   )
 
+  // CRITICAL: Just refresh the session, don't do auth checks here
+  // Let the client-side AuthProvider and dashboard layout handle auth checks
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
-  // Protected routes
-  const protectedPaths = ["/dashboard", "/admin"]
-  const isProtectedPath = protectedPaths.some((path) => request.nextUrl.pathname.startsWith(path))
+  // Only protect /admin routes in middleware
+  // Let client-side handle /dashboard protection to avoid race conditions
+  if (request.nextUrl.pathname.startsWith("/admin")) {
+    if (!user) {
+      const url = request.nextUrl.clone()
+      url.pathname = "/auth/login"
+      url.searchParams.set("redirect", request.nextUrl.pathname)
+      return NextResponse.redirect(url)
+    }
 
-  if (isProtectedPath && !user) {
-    const url = request.nextUrl.clone()
-    url.pathname = "/auth/login"
-    url.searchParams.set("redirect", request.nextUrl.pathname)
-    return NextResponse.redirect(url)
-  }
-
-  if (request.nextUrl.pathname.startsWith("/admin") && user) {
+    // Check admin role
     try {
-      const { data: profileData } = await supabase.from("profiles").select("role").eq("id", user.id).single()
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single()
 
       if (profileData?.role !== "admin") {
         const url = request.nextUrl.clone()
@@ -50,13 +57,13 @@ export async function updateSession(request: NextRequest) {
         return NextResponse.redirect(url)
       }
     } catch (error) {
-      // If profile lookup fails, redirect to dashboard (user exists but profile may not be fully created yet)
-      console.error("[v0] Error checking admin role:", error)
+      console.error("[Middleware] Error checking admin role:", error)
       const url = request.nextUrl.clone()
       url.pathname = "/dashboard"
       return NextResponse.redirect(url)
     }
   }
 
+  // For all other routes, just update the session cookies and continue
   return supabaseResponse
 }
