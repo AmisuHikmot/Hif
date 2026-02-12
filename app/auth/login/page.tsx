@@ -18,7 +18,7 @@ import { signInWithOAuth } from "@/lib/auth/oauth"
 export default function LoginPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { signIn, isAuthenticated, isLoading: authLoading, profile } = useAuth()
+  const { signIn, isAuthenticated, isLoading: authLoading } = useAuth()
 
   const [showPassword, setShowPassword] = useState(false)
   const [isSigningIn, setIsSigningIn] = useState(false)
@@ -26,19 +26,16 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
-  const [hasRedirected, setHasRedirected] = useState(false)
 
   const redirectPath = searchParams.get("redirect") || "/dashboard"
 
-  // Only redirect once when fully authenticated
+  // Redirect when authenticated - use replace to avoid history stack issues
   useEffect(() => {
-    if (isAuthenticated && !authLoading && !hasRedirected) {
-      console.log("[v0] User authenticated, profile loaded:", !!profile)
-      console.log("[v0] Redirecting to:", redirectPath)
-      setHasRedirected(true)
-      router.push(redirectPath)
+    if (isAuthenticated && !authLoading) {
+      console.log("[v0] User authenticated, redirecting to:", redirectPath)
+      router.replace(redirectPath)
     }
-  }, [isAuthenticated, authLoading, profile, router, redirectPath, hasRedirected])
+  }, [isAuthenticated, authLoading, router, redirectPath])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -54,8 +51,9 @@ export default function LoginPage() {
         setError(signInError.message)
         setIsSigningIn(false)
       } else {
-        console.log("[v0] Login successful")
-        // useEffect will handle redirect
+        console.log("[v0] Login successful, waiting for auth state change")
+        // Don't set isSigningIn to false here - let the redirect happen
+        // The useEffect will handle the redirect
       }
     } catch (err) {
       console.error("[v0] Unexpected login error:", err)
@@ -77,6 +75,7 @@ export default function LoginPage() {
         setError(oAuthError.message)
         setIsOAuthLoading(null)
       }
+      // If successful, redirect will be handled by Supabase
     } catch (err) {
       console.error("[v0] Unexpected OAuth error:", err)
       setError("An unexpected error occurred. Please try again.")
@@ -84,7 +83,7 @@ export default function LoginPage() {
     }
   }
 
-  // Don't render login form if already authenticated
+  // Show loading spinner if already authenticated
   if (isAuthenticated && !authLoading) {
     return (
       <main className="container mx-auto flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-12">
@@ -172,7 +171,14 @@ export default function LoginPage() {
                   </Label>
                 </div>
                 <Button type="submit" className="w-full" disabled={isSigningIn}>
-                  {isSigningIn ? "Signing in..." : "Sign in"}
+                  {isSigningIn ? (
+                    <>
+                      <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      Signing in...
+                    </>
+                  ) : (
+                    "Sign in"
+                  )}
                 </Button>
               </form>
             </TabsContent>
@@ -219,7 +225,14 @@ export default function LoginPage() {
                   </Label>
                 </div>
                 <Button type="submit" className="w-full" disabled={isSigningIn}>
-                  {isSigningIn ? "Signing in..." : "Sign in"}
+                  {isSigningIn ? (
+                    <>
+                      <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                      Signing in...
+                    </>
+                  ) : (
+                    "Sign in"
+                  )}
                 </Button>
               </form>
             </TabsContent>
@@ -230,7 +243,7 @@ export default function LoginPage() {
               <div className="w-full border-t border-gray-200"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="bg-white px-2 text-gray-500">Or continue with</span>
+              <span className="bg-white px-2 text-gray-500 dark:bg-gray-950">Or continue with</span>
             </div>
           </div>
 
@@ -239,7 +252,7 @@ export default function LoginPage() {
               type="button"
               variant="outline"
               onClick={() => handleOAuthLogin("google")}
-              disabled={isOAuthLoading !== null}
+              disabled={isOAuthLoading !== null || isSigningIn}
               className="w-full"
             >
               {isOAuthLoading === "google" ? (
@@ -253,7 +266,7 @@ export default function LoginPage() {
               type="button"
               variant="outline"
               onClick={() => handleOAuthLogin("apple")}
-              disabled={isOAuthLoading !== null}
+              disabled={isOAuthLoading !== null || isSigningIn}
               className="w-full"
             >
               {isOAuthLoading === "apple" ? (
@@ -267,7 +280,7 @@ export default function LoginPage() {
               type="button"
               variant="outline"
               onClick={() => handleOAuthLogin("facebook")}
-              disabled={isOAuthLoading !== null}
+              disabled={isOAuthLoading !== null || isSigningIn}
               className="w-full"
             >
               {isOAuthLoading === "facebook" ? (
@@ -292,4 +305,4 @@ export default function LoginPage() {
       </Card>
     </main>
   )
-}
+}s
