@@ -15,6 +15,9 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useAuth } from "@/contexts/auth-context"
 import { signInWithOAuth } from "@/lib/auth/oauth"
 
+// Force dynamic rendering - prevents prerender errors
+export const dynamic = 'force-dynamic'
+
 export default function LoginPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -53,7 +56,6 @@ export default function LoginPage() {
       } else {
         console.log("[v0] Login successful, waiting for auth state change")
         // Don't set isSigningIn to false here - let the redirect happen
-        // The useEffect will handle the redirect
       }
     } catch (err) {
       console.error("[v0] Unexpected login error:", err)
@@ -75,7 +77,6 @@ export default function LoginPage() {
         setError(oAuthError.message)
         setIsOAuthLoading(null)
       }
-      // If successful, redirect will be handled by Supabase
     } catch (err) {
       console.error("[v0] Unexpected OAuth error:", err)
       setError("An unexpected error occurred. Please try again.")
@@ -305,4 +306,4 @@ export default function LoginPage() {
       </Card>
     </main>
   )
-}s
+}
