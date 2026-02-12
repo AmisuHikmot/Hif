@@ -17,6 +17,10 @@ import { useAuth } from "@/contexts/auth-context"
 import { createClient } from "@/lib/supabase/client"
 import DashboardNav from "@/components/dashboard/dashboard-nav"
 import { Loader2 } from "lucide-react"
+import { ProfilePictureUpload } from "@/components/profile/profile-picture-upload"
+import { PasswordChangeForm } from "@/components/profile/password-change-form"
+import { TwoFAStatus } from "@/components/profile/2fa-status"
+import { NotificationPreferences } from "@/components/profile/notification-preferences"
 
 export default function ProfilePage() {
   const { user, profile, isLoading: authLoading, refreshProfile } = useAuth()
@@ -236,34 +240,26 @@ export default function ProfilePage() {
               <form onSubmit={handleSaveProfile}>
                 <CardContent className="space-y-6">
                   <div className="flex flex-col items-center space-y-4 sm:flex-row sm:items-start sm:space-x-4 sm:space-y-0">
-                    <Avatar className="h-24 w-24">
-                      <AvatarImage src={profile?.avatar_url || undefined} alt={formData.firstName} />
-                      <AvatarFallback className="text-2xl bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300">
-                        {getInitials()}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="space-y-2">
-                      <div className="text-center sm:text-left">
-                        <h3 className="font-medium">Profile Photo</h3>
-                        <p className="text-sm text-muted-foreground">
-                          This will be displayed on your profile and in the member directory
-                        </p>
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        <Button type="button" variant="outline" size="sm" className="bg-transparent">
-                          Upload New Photo
-                        </Button>
-                        {profile?.avatar_url && (
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            className="text-destructive hover:text-destructive bg-transparent"
-                          >
-                            Remove
-                          </Button>
-                        )}
-                      </div>
+                    <div>
+                      <h3 className="font-medium mb-2">Profile Picture</h3>
+                      <ProfilePictureUpload
+                        currentImageUrl={profile?.profile_picture_url}
+                        onUploadSuccess={(url) => {
+                          refreshProfile()
+                          toast({
+                            title: "Success",
+                            description: "Profile picture updated"
+                          })
+                        }}
+                        onDeleteSuccess={() => {
+                          refreshProfile()
+                          toast({
+                            title: "Success",
+                            description: "Profile picture removed"
+                          })
+                        }}
+                        userId={user?.id || ""}
+                      />
                     </div>
                   </div>
 
@@ -360,98 +356,11 @@ export default function ProfilePage() {
               </form>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Account Settings</CardTitle>
-                <CardDescription>Manage your account security and preferences</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <form onSubmit={handleUpdatePassword} className="space-y-4">
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="new-password">New Password</Label>
-                      <Input
-                        id="new-password"
-                        type="password"
-                        value={passwordData.newPassword}
-                        onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="confirm-password">Confirm New Password</Label>
-                      <Input
-                        id="confirm-password"
-                        type="password"
-                        value={passwordData.confirmPassword}
-                        onChange={(e) => setPasswordData({ ...passwordData, confirmPassword: e.target.value })}
-                      />
-                    </div>
-                  </div>
-                  <Button type="submit" variant="outline" className="bg-transparent" disabled={isPasswordLoading}>
-                    {isPasswordLoading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Updating...
-                      </>
-                    ) : (
-                      "Update Password"
-                    )}
-                  </Button>
-                </form>
+            <PasswordChangeForm />
 
-                <Separator />
+            <TwoFAStatus />
 
-                <div className="space-y-4">
-                  <h3 className="font-medium">Notification Preferences</h3>
-
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label htmlFor="email-notifications">Email Notifications</Label>
-                      <p className="text-sm text-muted-foreground">Receive email updates about events and activities</p>
-                    </div>
-                    <Switch
-                      id="email-notifications"
-                      checked={notifications.emailNotifications}
-                      onCheckedChange={(checked) => {
-                        setNotifications({ ...notifications, emailNotifications: checked })
-                      }}
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label htmlFor="sms-notifications">SMS Notifications</Label>
-                      <p className="text-sm text-muted-foreground">Receive text messages about important updates</p>
-                    </div>
-                    <Switch
-                      id="sms-notifications"
-                      checked={notifications.smsNotifications}
-                      onCheckedChange={(checked) => {
-                        setNotifications({ ...notifications, smsNotifications: checked })
-                      }}
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <Label htmlFor="newsletter">Newsletter</Label>
-                      <p className="text-sm text-muted-foreground">Receive our monthly newsletter</p>
-                    </div>
-                    <Switch
-                      id="newsletter"
-                      checked={notifications.newsletter}
-                      onCheckedChange={(checked) => {
-                        setNotifications({ ...notifications, newsletter: checked })
-                      }}
-                    />
-                  </div>
-
-                  <Button variant="outline" className="bg-transparent" onClick={handleUpdateNotifications}>
-                    Save Notification Preferences
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <NotificationPreferences />
           </div>
         </main>
       </div>
