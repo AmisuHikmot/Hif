@@ -28,28 +28,21 @@ export default function LoginPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   
-  // Track if we've already redirected
-  const hasRedirected = useRef(false)
+  const hasRedirectedRef = useRef(false)
 
   const redirectPath = searchParams.get("redirect") || "/dashboard"
 
-  // Only redirect if authenticated AND still on login page
+  // CRITICAL: Only redirect if we're actually on the login page
   useEffect(() => {
-    // Don't redirect if:
-    // 1. Not authenticated
-    // 2. Still loading
-    // 3. Not on login/auth page
-    // 4. Already redirected
-    if (!isAuthenticated || authLoading || hasRedirected.current) {
+    // Don't redirect if already redirected
+    if (hasRedirectedRef.current) {
       return
     }
 
-    // Check if we're on a login/auth page
-    const isOnAuthPage = pathname.startsWith('/auth/login') || pathname.startsWith('/auth/callback')
-    
-    if (isOnAuthPage) {
+    // Only redirect if authenticated, not loading, and actually on login page
+    if (isAuthenticated && !authLoading && pathname === '/auth/login') {
       console.log("[v0] User authenticated on login page, redirecting to:", redirectPath)
-      hasRedirected.current = true
+      hasRedirectedRef.current = true
       router.replace(redirectPath)
     }
   }, [isAuthenticated, authLoading, pathname, router, redirectPath])
@@ -98,8 +91,8 @@ export default function LoginPage() {
     }
   }
 
-  // Show loading spinner if authenticated (redirect in progress)
-  if (isAuthenticated && !authLoading) {
+  // Only show loading if authenticated AND on login page
+  if (isAuthenticated && !authLoading && pathname === '/auth/login') {
     return (
       <main className="container mx-auto flex min-h-[calc(100vh-4rem)] items-center justify-center px-4 py-12">
         <div className="text-center">
