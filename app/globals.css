@@ -3,6 +3,18 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Arabic Font Support */
+@font-face {
+  font-family: "Arabic";
+  src: url("https://fonts.googleapis.com/css2?family=Traditional+Arabic&display=swap");
+}
+
+.font-arabic {
+  font-family: "Traditional Arabic", "Arabic Typesetting", Arial, sans-serif;
+  text-align: right;
+  direction: rtl;
+}
+
 :root {
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
