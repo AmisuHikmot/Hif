@@ -7,9 +7,9 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const type = searchParams.get('type');
 
-    if (type === 'reflection-verse') {
+    if (type === 'ramadan_reflection-verse') {
       const { data, error } = await supabase
-        .from('reflection_verses')
+        .from('ramadan_reflection_verses')
         .select('*')
         .eq('is_featured', true)
         .limit(1)
@@ -19,9 +19,9 @@ export async function GET(request: Request) {
       return NextResponse.json(data);
     }
 
-    if (type === 'daily-reminders') {
+    if (type === 'ramadan_daily-reminders') {
       const { data, error } = await supabase
-        .from('daily_reminders')
+        .from('ramadan_daily_reminders')
         .select('*')
         .order('day_number', { ascending: true });
 
@@ -29,9 +29,9 @@ export async function GET(request: Request) {
       return NextResponse.json(data);
     }
 
-    if (type === 'knowledge') {
+    if (type === 'ramadan_knowledge') {
       const { data, error } = await supabase
-        .from('knowledge_base')
+        .from('ramadan_knowledge_base')
         .select('*')
         .order('order_rank', { ascending: true });
 
@@ -41,7 +41,7 @@ export async function GET(request: Request) {
 
     if (type === 'ramadan_duas') {
       const { data, error } = await supabase
-        .from('duas')
+        .from('ramadan_duas')
         .select('*')
         .order('order_rank', { ascending: true });
 
@@ -49,9 +49,9 @@ export async function GET(request: Request) {
       return NextResponse.json(data);
     }
 
-    if (type === 'charity') {
+    if (type === 'ramadan_charity') {
       const { data, error } = await supabase
-        .from('charity_information')
+        .from('ramadan_charity_information')
         .select('*')
         .limit(1)
         .single();
