@@ -4,9 +4,21 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ramadanService, type Dua } from '@/lib/services/ramadan-service';
 import { Copy, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+
+interface Dua {
+  id: string;
+  title: string;
+  category: string;
+  arabic_text: string;
+  arabic_transliteration: string | null;
+  english_translation: string;
+  reference: string | null;
+  audio_url: string | null;
+  is_featured: boolean;
+  order_rank: number;
+}
 
 const DUA_CATEGORIES = [
   { id: 'suhoor', label: 'Suhoor (Before Fasting)' },
@@ -24,9 +36,15 @@ export default function RamadanDuasPage() {
 
   useEffect(() => {
     const fetchDuas = async () => {
-      const fetchedDuas = await ramadanService.getAllDuas();
-      setDuas(fetchedDuas);
-      setLoading(false);
+      try {
+        const response = await fetch('/api/ramadan/content?type=duas');
+        const fetchedDuas = await response.json();
+        setDuas(fetchedDuas);
+      } catch (error) {
+        console.error('[v0] Error fetching duas:', error);
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchDuas();

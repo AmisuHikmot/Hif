@@ -3,9 +3,23 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ramadanService, type DailyReminder } from '@/lib/services/ramadan-service';
 import { Download, Share2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+
+interface DailyReminder {
+  id: string;
+  day_number: number;
+  reminder_type: string;
+  title: string;
+  arabic_text: string | null;
+  english_text: string;
+  transliteration: string | null;
+  category: string | null;
+  reference: string | null;
+  image_url: string | null;
+  author: string | null;
+  tags: string[];
+}
 
 export default function DailyReminderPage() {
   const [reminder, setReminder] = useState<DailyReminder | null>(null);
@@ -16,14 +30,20 @@ export default function DailyReminderPage() {
 
   useEffect(() => {
     const fetchReminders = async () => {
-      // Fetch current day reminder
-      const currentReminder = await ramadanService.getDailyReminder(currentDay);
-      setReminder(currentReminder);
-
-      // Fetch all reminders for navigation
-      const allRemindersList = await ramadanService.getAllDailyReminders();
-      setAllReminders(allRemindersList);
-      setLoading(false);
+      try {
+        // Fetch all reminders
+        const response = await fetch('/api/ramadan/content?type=daily-reminders');
+        const allRemindersList = await response.json();
+        setAllReminders(allRemindersList);
+        
+        // Set current day reminder
+        const current = allRemindersList.find((r: DailyReminder) => r.day_number === currentDay);
+        setReminder(current || null);
+      } catch (error) {
+        console.error('[v0] Error fetching reminders:', error);
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchReminders();

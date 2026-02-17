@@ -4,8 +4,16 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { ramadanService, type ReflectionVerse } from '@/lib/services/ramadan-service';
 import { ArrowRight } from 'lucide-react';
+
+interface ReflectionVerse {
+  id: string;
+  surah_number: number;
+  ayah_number: number;
+  arabic_text: string;
+  english_translation: string;
+  theme: string | null;
+}
 
 export default function RamadanHome() {
   const [showAyah, setShowAyah] = useState(false);
@@ -15,11 +23,17 @@ export default function RamadanHome() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch the featured verse
+    // Fetch the featured verse from API
     const fetchVerse = async () => {
-      const reflectionVerse = await ramadanService.getFeaturedReflectionVerse();
-      setVerse(reflectionVerse);
-      setLoading(false);
+      try {
+        const response = await fetch('/api/ramadan/content?type=reflection-verse');
+        const reflectionVerse = await response.json();
+        setVerse(reflectionVerse);
+      } catch (error) {
+        console.error('[v0] Error fetching verse:', error);
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchVerse();

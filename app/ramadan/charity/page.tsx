@@ -3,16 +3,31 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import {
-  ramadanService,
-  type CharityInfo,
-  type BankAccount,
-} from '@/lib/services/ramadan-service';
 import { Copy, Heart } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
+interface CharityInfo {
+  id: string;
+  title: string;
+  description: string;
+  impact: string | null;
+  image_url: string | null;
+}
+
+interface BankAccount {
+  id: string;
+  bank_name: string;
+  account_name: string;
+  account_number: string;
+  account_type: string;
+  sort_code: string | null;
+  swift_code: string | null;
+  iban: string | null;
+  is_active: boolean;
+}
+
 export default function RamadanCharityPage() {
-  const [charityInfo, setCharityInfo] = useState<CharityInfo[]>([]);
+  const [charityInfo, setCharityInfo] = useState<CharityInfo | null>(null);
   const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
   const [loading, setLoading] = useState(true);
   const [copiedAccount, setCopiedAccount] = useState<string | null>(null);
@@ -20,13 +35,15 @@ export default function RamadanCharityPage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const [info, accounts] = await Promise.all([
-        ramadanService.getCharityInfo(),
-        ramadanService.getBankAccounts(),
-      ]);
-      setCharityInfo(info);
-      setBankAccounts(accounts);
-      setLoading(false);
+      try {
+        const response = await fetch('/api/ramadan/content?type=charity');
+        const info = await response.json();
+        setCharityInfo(info);
+      } catch (error) {
+        console.error('[v0] Error fetching charity info:', error);
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchData();
@@ -66,21 +83,26 @@ export default function RamadanCharityPage() {
         </div>
 
         {/* Charity Information */}
-        <div className="grid gap-6 mb-12">
-          {charityInfo.map((info) => (
-            <Card key={info.id} className="bg-slate-900/50 border-slate-700 backdrop-blur">
+        {charityInfo && (
+          <div className="grid gap-6 mb-12">
+            <Card className="bg-slate-900/50 border-slate-700 backdrop-blur">
               <CardHeader>
-                <CardTitle className="text-emerald-400 flex items-center gap-2">
-                  {info.icon && <span className="text-2xl">{info.icon}</span>}
-                  {info.section_name}
+                <CardTitle className="text-emerald-400">
+                  {charityInfo.title}
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="text-slate-200 leading-relaxed">{info.content}</p>
+              <CardContent className="space-y-4">
+                <p className="text-slate-200 leading-relaxed">{charityInfo.description}</p>
+                {charityInfo.impact && (
+                  <div className="bg-emerald-600/10 border border-emerald-600/20 p-4 rounded">
+                    <p className="text-slate-400 text-sm mb-2">Impact</p>
+                    <p className="text-emerald-400 font-semibold">{charityInfo.impact}</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
-          ))}
-        </div>
+          </div>
+        )}
 
         {/* Divider */}
         <div className="h-px bg-gradient-to-r from-transparent via-emerald-500/30 to-transparent my-12" />
@@ -109,8 +131,8 @@ export default function RamadanCharityPage() {
                         <p className="text-white font-medium">{account.bank_name}</p>
                       </div>
                       <div className="bg-slate-950/30 p-4 rounded">
-                        <p className="text-slate-400 text-sm mb-1">Currency</p>
-                        <p className="text-white font-medium">{account.currency}</p>
+                        <p className="text-slate-400 text-sm mb-1">Account Type</p>
+                        <p className="text-white font-medium">{account.account_type}</p>
                       </div>
                     </div>
 
@@ -134,11 +156,19 @@ export default function RamadanCharityPage() {
                       </div>
                     </div>
 
-                    {/* Account Type */}
-                    {account.account_type && (
+                    {/* Sort Code */}
+                    {account.sort_code && (
                       <div className="bg-slate-950/30 p-4 rounded">
-                        <p className="text-slate-400 text-sm mb-1">Account Type</p>
-                        <p className="text-white font-medium">{account.account_type}</p>
+                        <p className="text-slate-400 text-sm mb-1">Sort Code</p>
+                        <p className="text-white font-medium font-mono">{account.sort_code}</p>
+                      </div>
+                    )}
+
+                    {/* IBAN */}
+                    {account.iban && (
+                      <div className="bg-slate-950/30 p-4 rounded">
+                        <p className="text-slate-400 text-sm mb-1">IBAN</p>
+                        <p className="text-white font-medium font-mono">{account.iban}</p>
                       </div>
                     )}
                   </CardContent>

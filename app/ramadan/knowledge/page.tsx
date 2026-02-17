@@ -3,8 +3,20 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { ramadanService, type KnowledgeArticle } from '@/lib/services/ramadan-service';
 import { ArrowRight, Clock } from 'lucide-react';
+
+interface KnowledgeArticle {
+  id: string;
+  slug: string;
+  title: string;
+  description: string | null;
+  content: string;
+  category: string | null;
+  difficulty_level: string;
+  read_time_minutes: number | null;
+  image_url: string | null;
+  order_rank: number;
+}
 
 export default function RamadanKnowledgePage() {
   const [articles, setArticles] = useState<KnowledgeArticle[]>([]);
@@ -13,9 +25,15 @@ export default function RamadanKnowledgePage() {
 
   useEffect(() => {
     const fetchArticles = async () => {
-      const fetchedArticles = await ramadanService.getKnowledgeArticles();
-      setArticles(fetchedArticles);
-      setLoading(false);
+      try {
+        const response = await fetch('/api/ramadan/content?type=knowledge');
+        const fetchedArticles = await response.json();
+        setArticles(fetchedArticles);
+      } catch (error) {
+        console.error('[v0] Error fetching articles:', error);
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchArticles();
