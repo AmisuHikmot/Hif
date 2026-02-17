@@ -235,22 +235,22 @@ No additional environment variables required. Uses existing Supabase integration
 ### Adding Content
 
 **New Daily Reminder:**
-```sql
+\`\`\`sql
 INSERT INTO ramadan_daily_reminders (day_number, reminder_type, title, english_text, is_published)
 VALUES (1, 'hadith', 'Title', 'Content...', TRUE);
-```
+\`\`\`
 
 **New Knowledge Article:**
-```sql
+\`\`\`sql
 INSERT INTO ramadan_knowledge_base (slug, title, content, is_published)
 VALUES ('article-slug', 'Title', 'Content...', TRUE);
-```
+\`\`\`
 
 **New Dua:**
-```sql
+\`\`\`sql
 INSERT INTO ramadan_duas (title, category, arabic_text, english_translation)
 VALUES ('Dua Title', 'iftar', 'Arabic...', 'English...');
-```
+\`\`\`
 
 ---
 

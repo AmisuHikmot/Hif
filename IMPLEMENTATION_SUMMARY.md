@@ -8,7 +8,7 @@ A comprehensive, production-ready Ramadan experience with 5 main pages, dynamic 
 
 ## Architecture Overview
 
-```
+\`\`\`
 /app/ramadan/
 ├── page.tsx                    # Home - Intro + Featured Verse
 ├── layout.tsx                  # Ramadan section layout
@@ -30,7 +30,7 @@ A comprehensive, production-ready Ramadan experience with 5 main pages, dynamic 
 /scripts/
 ├── 32-ramadan-content-tables.sql    # Database migrations
 └── 33-ramadan-sample-data.sql       # Sample content
-```
+\`\`\`
 
 ---
 
@@ -94,7 +94,7 @@ A comprehensive, production-ready Ramadan experience with 5 main pages, dynamic 
 ## Technical Implementation
 
 ### Database Schema
-```
+\`\`\`
 ramadan_daily_reminders
 ├── day_number (1-30, UNIQUE)
 ├── reminder_type (hadith, dua, quote, tip)
@@ -139,7 +139,7 @@ user_ramadan_tracking
 ├── duas_bookmarked (array)
 ├── knowledge_articles_read (array)
 └── last_visited
-```
+\`\`\`
 
 ### Service Layer (RamadanService)
 - 11 data-fetching methods with error handling
@@ -264,25 +264,25 @@ Inserted on deployment:
 ### Common Tasks
 
 **Add New Daily Reminder:**
-```sql
+\`\`\`sql
 INSERT INTO ramadan_daily_reminders 
 (day_number, reminder_type, title, english_text, is_published)
 VALUES (5, 'hadith', 'Title', 'Content', TRUE);
-```
+\`\`\`
 
 **Publish Knowledge Article:**
-```sql
+\`\`\`sql
 INSERT INTO ramadan_knowledge_base 
 (slug, title, content, is_published)
 VALUES ('article', 'Title', 'Content', TRUE);
-```
+\`\`\`
 
 **Add Dua:**
-```sql
+\`\`\`sql
 INSERT INTO ramadan_duas 
 (title, category, arabic_text, english_translation)
 VALUES ('Dua', 'iftar', 'Arabic', 'English');
-```
+\`\`\`
 
 ---
 

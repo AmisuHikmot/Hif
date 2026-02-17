@@ -72,7 +72,7 @@ A complete Ramadan experience with 5 new pages, database tables, and navbar inte
 4. Fill in content and set `is_published = TRUE`
 
 ### Option 2: SQL Script
-```sql
+\`\`\`sql
 -- Add daily reminder
 INSERT INTO ramadan_daily_reminders 
 (day_number, reminder_type, title, english_text, is_published)
@@ -87,7 +87,7 @@ VALUES ('article-url', 'Article Title', 'Full content...', TRUE);
 INSERT INTO ramadan_duas 
 (title, category, arabic_text, english_translation)
 VALUES ('Dua Name', 'iftar', 'Arabic text', 'English text');
-```
+\`\`\`
 
 ---
 
@@ -99,32 +99,32 @@ Edit `/app/globals.css` to update:
 - Dark gradient colors
 
 Example:
-```css
+\`\`\`css
 /* Change emerald to blue */
 .bg-emerald-600 → .bg-blue-600
-```
+\`\`\`
 
 ### Change Audio File
 Edit `/app/ramadan/page.tsx` line ~90:
-```typescript
+\`\`\`typescript
 const audioUrl = 'YOUR_NEW_AUDIO_URL_HERE';
-```
+\`\`\`
 
 ### Update Bank Details
 Edit `/scripts/33-ramadan-sample-data.sql` or Supabase dashboard:
-```sql
+\`\`\`sql
 UPDATE ramadan_bank_accounts 
 SET account_number = 'NEW_NUMBER' 
 WHERE account_name = 'Hamduk Unique Concept';
-```
+\`\`\`
 
 ### Modify Intro Text
 Edit `/app/ramadan/page.tsx` lines ~153-160:
-```typescript
+\`\`\`typescript
 <h1>Your Custom Title</h1>
 <p>Your Custom Subtitle</p>
 <p>Your Custom Quote</p>
-```
+\`\`\`
 
 ---
 
@@ -145,7 +145,7 @@ Edit `/app/ramadan/page.tsx` lines ~153-160:
 
 ## File Structure
 
-```
+\`\`\`
 Created Files:
 ├── /app/ramadan/
 │   ├── page.tsx (Home page)
@@ -167,7 +167,7 @@ Documentation:
 ├── /RAMADAN_FEATURE_GUIDE.md (Complete docs)
 ├── /IMPLEMENTATION_SUMMARY.md (Technical overview)
 └── /RAMADAN_QUICK_START.md (This file)
-```
+\`\`\`
 
 ---
 

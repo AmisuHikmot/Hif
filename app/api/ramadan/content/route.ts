@@ -39,7 +39,7 @@ export async function GET(request: Request) {
       return NextResponse.json(data);
     }
 
-    if (type === 'duas') {
+    if (type === 'ramadan_duas') {
       const { data, error } = await supabase
         .from('duas')
         .select('*')
