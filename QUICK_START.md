@@ -16,9 +16,9 @@ A complete profile management system with these features:
 
 ### 1. Database Setup (Already Done)
 The migration script has already been executed:
-```sql
+\`\`\`sql
 Scripts/31-enhance-profiles-for-new-features.sql
-```
+\`\`\`
 
 This created:
 - Enhanced `profiles` table
@@ -31,22 +31,22 @@ This created:
 
 Create a storage bucket in Supabase:
 
-```bash
+\`\`\`bash
 # Via Supabase Dashboard:
 1. Go to Storage > Buckets
 2. Create new bucket: "profile-pictures"
 3. Set to Private (authentication required)
 4. Enable RLS for the bucket
-```
+\`\`\`
 
 Or it will auto-create on first use if you have admin access.
 
 ### 3. Access the Features
 
 **Profile Page:**
-```
+\`\`\`
 http://localhost:3000/dashboard/profile
-```
+\`\`\`
 
 Features available:
 - Update personal information
@@ -69,7 +69,7 @@ Features available:
 - **Profile Service**: `/lib/services/profile-service.ts` - All business logic
 
 ### API Endpoints
-```
+\`\`\`
 GET    /api/profile                      - Get profile
 PUT    /api/profile                      - Update profile
 POST   /api/profile/picture/upload       - Upload picture
@@ -82,7 +82,7 @@ POST   /api/auth/2fa                     - Generate 2FA secret
 POST   /api/auth/2fa/verify              - Verify and enable 2FA
 GET    /api/auth/2fa/status              - Get status
 DELETE /api/auth/2fa/status              - Disable 2FA
-```
+\`\`\`
 
 ### Components
 - `ProfilePictureUpload` - `/components/profile/profile-picture-upload.tsx`
@@ -101,7 +101,7 @@ DELETE /api/auth/2fa/status              - Disable 2FA
 
 ### Using Profile Service
 
-```typescript
+\`\`\`typescript
 import { getProfile, updateProfile } from '@/lib/services/profile-service';
 
 // Get user profile
@@ -112,11 +112,11 @@ await updateProfile(userId, {
   first_name: 'John',
   last_name: 'Doe'
 });
-```
+\`\`\`
 
 ### Using TOTP
 
-```typescript
+\`\`\`typescript
 import { 
   generateTOTPSecret, 
   generateTOTPToken, 
@@ -131,11 +131,11 @@ const token = generateTOTPToken(secret);
 
 // Verify token
 const isValid = verifyTOTPToken(secret, '123456');
-```
+\`\`\`
 
 ### Using Storage
 
-```typescript
+\`\`\`typescript
 import { 
   uploadProfilePicture, 
   deleteProfilePicture,
@@ -153,24 +153,24 @@ const filePath = await uploadProfilePicture(userId, file);
 
 // Delete
 await deleteProfilePicture(filePath);
-```
+\`\`\`
 
 ---
 
 ## Database Schema Reference
 
 ### profiles table (new columns)
-```sql
+\`\`\`sql
 profile_picture_url TEXT
 profile_picture_uploaded_at TIMESTAMP
 notification_preferences JSONB
 last_password_change TIMESTAMP
 password_change_count INTEGER
 updated_at TIMESTAMP
-```
+\`\`\`
 
 ### user_2fa_secrets table
-```sql
+\`\`\`sql
 id UUID PRIMARY KEY
 user_id UUID (FK)
 secret TEXT (TOTP secret)
@@ -180,10 +180,10 @@ setup_at TIMESTAMP
 verified_at TIMESTAMP
 created_at TIMESTAMP
 updated_at TIMESTAMP
-```
+\`\`\`
 
 ### Notification Preferences JSON
-```json
+\`\`\`json
 {
   "emailNotifications": true,
   "smsNotifications": false,
@@ -193,7 +193,7 @@ updated_at TIMESTAMP
   "communityDigest": false,
   "generalAnnouncements": true
 }
-```
+\`\`\`
 
 ---
 
@@ -222,7 +222,7 @@ updated_at TIMESTAMP
 
 ## Testing Checklist
 
-```
+\`\`\`
 [ ] Profile picture upload works
 [ ] Profile picture deletion works
 [ ] Profile fields update correctly
@@ -235,7 +235,7 @@ updated_at TIMESTAMP
 [ ] Rate limiting prevents brute force
 [ ] User can't access other users' data (RLS)
 [ ] Deleted pictures don't remain in storage
-```
+\`\`\`
 
 ---
 
@@ -270,9 +270,9 @@ updated_at TIMESTAMP
 ## Next Steps
 
 1. **QR Code Rendering** (Optional)
-   ```bash
+   \`\`\`bash
    npm install qrcode.react
-   ```
+   \`\`\`
    Then update `/app/auth/setup-2fa/page.tsx` to render QR code
 
 2. **Email Notifications**

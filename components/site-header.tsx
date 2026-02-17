@@ -208,6 +208,33 @@ export function SiteHeader() {
               </DropdownMenuContent>
             </DropdownMenu>
 
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  className="h-auto py-2 px-3 text-sm font-medium bg-emerald-600/10 hover:bg-emerald-600/20 text-emerald-600 dark:text-emerald-400 relative animate-pulse"
+                >
+                  Ramadan <ChevronDown className="ml-1 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-48">
+                <DropdownMenuItem asChild>
+                  <Link href="/ramadan">Home</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/ramadan/daily-reminder">Daily Reminder</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/ramadan/knowledge">Learn Ramadan</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/ramadan/duas">Duas Corner</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/ramadan/charity">Charity</Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             <Link href="/events">
               <Button
                 variant="ghost"
@@ -514,6 +541,49 @@ export function SiteHeader() {
                   onClick={toggleMenu}
                 >
                   Members Directory
+                </Link>
+              </div>
+            </div>
+
+            <div className="border-b pb-3 mb-3 bg-emerald-600/10 p-3 rounded">
+              <button className="font-medium text-sm w-full text-left mb-2 text-emerald-600 dark:text-emerald-400">
+                Ramadan
+              </button>
+              <div className="pl-4 flex flex-col gap-2">
+                <Link
+                  href="/ramadan"
+                  className="text-sm text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 font-medium"
+                  onClick={toggleMenu}
+                >
+                  Home
+                </Link>
+                <Link
+                  href="/ramadan/daily-reminder"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                  onClick={toggleMenu}
+                >
+                  Daily Reminder
+                </Link>
+                <Link
+                  href="/ramadan/knowledge"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                  onClick={toggleMenu}
+                >
+                  Learn Ramadan
+                </Link>
+                <Link
+                  href="/ramadan/duas"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                  onClick={toggleMenu}
+                >
+                  Duas Corner
+                </Link>
+                <Link
+                  href="/ramadan/charity"
+                  className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                  onClick={toggleMenu}
+                >
+                  Charity
                 </Link>
               </div>
             </div>

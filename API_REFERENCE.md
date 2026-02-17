@@ -4,9 +4,9 @@
 
 All endpoints require an authenticated user (Supabase auth token). Include in the Authorization header:
 
-```
+\`\`\`
 Authorization: Bearer {user_token}
-```
+\`\`\`
 
 ---
 
@@ -16,13 +16,13 @@ Authorization: Bearer {user_token}
 Get the current user's profile.
 
 **Request:**
-```http
+\`\`\`http
 GET /api/profile
 Authorization: Bearer {token}
-```
+\`\`\`
 
 **Response:** `200 OK`
-```json
+\`\`\`json
 {
   "id": "uuid",
   "email": "user@example.com",
@@ -45,7 +45,7 @@ Authorization: Bearer {token}
   "password_change_count": 2,
   "updated_at": "2024-01-01T00:00:00Z"
 }
-```
+\`\`\`
 
 ---
 
@@ -53,7 +53,7 @@ Authorization: Bearer {token}
 Update the current user's profile.
 
 **Request:**
-```http
+\`\`\`http
 PUT /api/profile
 Authorization: Bearer {token}
 Content-Type: application/json
@@ -65,14 +65,14 @@ Content-Type: application/json
   "bio": "My bio",
   "occupation": "Engineer"
 }
-```
+\`\`\`
 
 **Response:** `200 OK`
-```json
+\`\`\`json
 {
   // Same as GET response
 }
-```
+\`\`\`
 
 **Errors:**
 - `401` - Unauthorized
@@ -85,21 +85,21 @@ Content-Type: application/json
 Upload a new profile picture.
 
 **Request:**
-```http
+\`\`\`http
 POST /api/profile/picture/upload
 Authorization: Bearer {token}
 Content-Type: multipart/form-data
 
 Form data:
 - file: File (JPEG, PNG, or WebP, max 5MB)
-```
+\`\`\`
 
 **Response:** `200 OK`
-```json
+\`\`\`json
 {
   "url": "https://supabase.../storage/v1/object/public/profile-pictures/..."
 }
-```
+\`\`\`
 
 **Errors:**
 - `400` - Invalid file (size, type)
@@ -112,17 +112,17 @@ Form data:
 Delete the current user's profile picture.
 
 **Request:**
-```http
+\`\`\`http
 DELETE /api/profile/picture/upload
 Authorization: Bearer {token}
-```
+\`\`\`
 
 **Response:** `200 OK`
-```json
+\`\`\`json
 {
   "success": true
 }
-```
+\`\`\`
 
 **Errors:**
 - `401` - Unauthorized
@@ -137,13 +137,13 @@ Authorization: Bearer {token}
 Get notification preferences for current user.
 
 **Request:**
-```http
+\`\`\`http
 GET /api/profile/notifications
 Authorization: Bearer {token}
-```
+\`\`\`
 
 **Response:** `200 OK`
-```json
+\`\`\`json
 {
   "emailNotifications": true,
   "smsNotifications": false,
@@ -153,7 +153,7 @@ Authorization: Bearer {token}
   "communityDigest": false,
   "generalAnnouncements": true
 }
-```
+\`\`\`
 
 ---
 
@@ -161,7 +161,7 @@ Authorization: Bearer {token}
 Update notification preferences.
 
 **Request:**
-```http
+\`\`\`http
 PUT /api/profile/notifications
 Authorization: Bearer {token}
 Content-Type: application/json
@@ -171,16 +171,16 @@ Content-Type: application/json
   "smsNotifications": true,
   "newsletter": false
 }
-```
+\`\`\`
 
 Note: Only include fields you want to update; others will retain their values.
 
 **Response:** `200 OK`
-```json
+\`\`\`json
 {
   // Updated preferences
 }
-```
+\`\`\`
 
 **Errors:**
 - `401` - Unauthorized
@@ -193,18 +193,18 @@ Note: Only include fields you want to update; others will retain their values.
 Record a password change (called after Supabase updates password).
 
 **Request:**
-```http
+\`\`\`http
 POST /api/profile/password
 Authorization: Bearer {token}
-```
+\`\`\`
 
 **Response:** `200 OK`
-```json
+\`\`\`json
 {
   "success": true,
   "message": "Password change recorded"
 }
-```
+\`\`\`
 
 ---
 
@@ -214,13 +214,13 @@ Authorization: Bearer {token}
 Generate a new TOTP secret for 2FA setup.
 
 **Request:**
-```http
+\`\`\`http
 POST /api/auth/2fa
 Authorization: Bearer {token}
-```
+\`\`\`
 
 **Response:** `200 OK`
-```json
+\`\`\`json
 {
   "secret": "JBSWY3DPEBLW64TMMQ",
   "qrCodeUri": "otpauth://totp/...",
@@ -230,7 +230,7 @@ Authorization: Bearer {token}
     "..."
   ]
 }
-```
+\`\`\`
 
 **Notes:**
 - `secret`: Base32-encoded secret for manual entry
@@ -243,7 +243,7 @@ Authorization: Bearer {token}
 Verify TOTP token and enable 2FA.
 
 **Request:**
-```http
+\`\`\`http
 POST /api/auth/2fa/verify
 Authorization: Bearer {token}
 Content-Type: application/json
@@ -251,15 +251,15 @@ Content-Type: application/json
 {
   "token": "123456"
 }
-```
+\`\`\`
 
 **Response:** `200 OK`
-```json
+\`\`\`json
 {
   "success": true,
   "message": "2FA has been enabled"
 }
-```
+\`\`\`
 
 **Errors:**
 - `400` - Invalid token (wrong code)
@@ -272,30 +272,30 @@ Content-Type: application/json
 Get current 2FA status.
 
 **Request:**
-```http
+\`\`\`http
 GET /api/auth/2fa/status
 Authorization: Bearer {token}
-```
+\`\`\`
 
 **Response:** `200 OK`
-```json
+\`\`\`json
 {
   "is_enabled": true,
   "setup_at": "2024-01-01T00:00:00Z",
   "verified_at": "2024-01-01T00:00:00Z",
   "has_backup_codes": true
 }
-```
+\`\`\`
 
 If 2FA is not set up:
-```json
+\`\`\`json
 {
   "is_enabled": false,
   "setup_at": null,
   "verified_at": null,
   "has_backup_codes": false
 }
-```
+\`\`\`
 
 ---
 
@@ -303,7 +303,7 @@ If 2FA is not set up:
 Disable 2FA (requires password confirmation).
 
 **Request:**
-```http
+\`\`\`http
 DELETE /api/auth/2fa/status
 Authorization: Bearer {token}
 Content-Type: application/json
@@ -311,15 +311,15 @@ Content-Type: application/json
 {
   "password": "user_password"
 }
-```
+\`\`\`
 
 **Response:** `200 OK`
-```json
+\`\`\`json
 {
   "success": true,
   "message": "2FA has been disabled"
 }
-```
+\`\`\`
 
 **Errors:**
 - `400` - Password required
@@ -332,11 +332,11 @@ Content-Type: application/json
 
 All endpoints return consistent error responses:
 
-```json
+\`\`\`json
 {
   "error": "Error message describing what went wrong"
 }
-```
+\`\`\`
 
 ### Common Status Codes
 
@@ -363,7 +363,7 @@ All endpoints return consistent error responses:
 
 ### Using Fetch API
 
-```typescript
+\`\`\`typescript
 // Get profile
 const profile = await fetch('/api/profile', {
   headers: {
@@ -405,11 +405,11 @@ const twoFA = await fetch('/api/auth/2fa', {
 
 console.log(twoFA.secret);
 console.log(twoFA.qrCodeUri);
-```
+\`\`\`
 
 ### Using SWR
 
-```typescript
+\`\`\`typescript
 import useSWR from 'swr';
 
 function ProfileComponent() {
@@ -432,7 +432,7 @@ function ProfileComponent() {
     </div>
   );
 }
-```
+\`\`\`
 
 ---
 
@@ -483,7 +483,7 @@ If migrating from v0:
 
 For better performance:
 
-```typescript
+\`\`\`typescript
 // Profile - Cache for 5 minutes
 fetch('/api/profile', {
   headers: { 'Cache-Control': 'max-age=300' }
@@ -498,7 +498,7 @@ fetch('/api/profile/notifications', {
 fetch('/api/auth/2fa/status', {
   headers: { 'Cache-Control': 'no-cache' }
 });
-```
+\`\`\`
 
 ---
 

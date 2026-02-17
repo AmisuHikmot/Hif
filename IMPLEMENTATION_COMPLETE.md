@@ -129,7 +129,7 @@ All endpoints require authentication with proper RLS enforcement.
 
 ## File Structure Summary
 
-```
+\`\`\`
 /scripts/
   └── 31-enhance-profiles-for-new-features.sql
 
@@ -154,7 +154,7 @@ All endpoints require authentication with proper RLS enforcement.
   ├── password-change-form.tsx
   ├── 2fa-status.tsx
   └── notification-preferences.tsx
-```
+\`\`\`
 
 ---
 
