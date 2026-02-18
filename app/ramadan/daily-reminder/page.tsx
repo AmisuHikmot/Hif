@@ -32,7 +32,7 @@ export default function DailyReminderPage() {
     const fetchReminders = async () => {
       try {
         // Fetch all reminders
-        const response = await fetch('/api/ramadan/content?type=ramadan_daily-reminders');
+        const response = await fetch('/api/ramadan/content?type=daily-reminders');
         const allRemindersList = await response.json();
         setAllReminders(allRemindersList);
         

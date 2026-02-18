@@ -36,7 +36,7 @@ export default function RamadanCharityPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch('/api/ramadan/content?type=ramadan_charity');
+        const response = await fetch('/api/ramadan/content?type=charity');
         const info = await response.json();
         setCharityInfo(info);
       } catch (error) {
