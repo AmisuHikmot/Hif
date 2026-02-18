@@ -26,7 +26,7 @@ export default function RamadanKnowledgePage() {
   useEffect(() => {
     const fetchArticles = async () => {
       try {
-        const response = await fetch('/api/ramadan/content?type=knowledge');
+        const response = await fetch('/api/ramadan/content?type=ramadan_knowledge');
         const fetchedArticles = await response.json();
         setArticles(fetchedArticles);
       } catch (error) {
