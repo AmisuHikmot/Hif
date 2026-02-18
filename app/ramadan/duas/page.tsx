@@ -37,7 +37,7 @@ export default function RamadanDuasPage() {
   useEffect(() => {
     const fetchDuas = async () => {
       try {
-        const response = await fetch('/api/ramadan/content?type=duas');
+        const response = await fetch('/api/ramadan/content?type=ramadan_duas');
         const fetchedDuas = await response.json();
         setDuas(fetchedDuas);
       } catch (error) {
