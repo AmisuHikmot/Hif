@@ -14,7 +14,6 @@ export async function GET(request: Request) {
         .eq('is_featured', true)
         .limit(1)
         .single();
-
       if (error) throw error;
       return NextResponse.json(data);
     }
@@ -24,7 +23,6 @@ export async function GET(request: Request) {
         .from('ramadan_daily_reminders')
         .select('*')
         .order('day_number', { ascending: true });
-
       if (error) throw error;
       return NextResponse.json(data);
     }
@@ -34,7 +32,6 @@ export async function GET(request: Request) {
         .from('ramadan_knowledge_base')
         .select('*')
         .order('order_rank', { ascending: true });
-
       if (error) throw error;
       return NextResponse.json(data);
     }
@@ -44,20 +41,32 @@ export async function GET(request: Request) {
         .from('ramadan_duas')
         .select('*')
         .order('order_rank', { ascending: true });
-
       if (error) throw error;
       return NextResponse.json(data);
     }
 
+    // ── FIXED: returns both charity info sections AND bank accounts ──
     if (type === 'ramadan_charity') {
-      const { data, error } = await supabase
-        .from('ramadan_charity_info')
-        .select('*')
-        .limit(1)
-        .single();
+      const [charityRes, bankRes] = await Promise.all([
+        supabase
+          .from('ramadan_charity_info')
+          .select('*')
+          .eq('is_active', true)
+          .order('order_rank', { ascending: true }),
+        supabase
+          .from('ramadan_bank_accounts')
+          .select('*')
+          .eq('is_active', true)
+          .order('display_order', { ascending: true }),
+      ]);
 
-      if (error) throw error;
-      return NextResponse.json(data);
+      if (charityRes.error) throw charityRes.error;
+      if (bankRes.error) throw bankRes.error;
+
+      return NextResponse.json({
+        charityInfo: charityRes.data ?? [],
+        bankAccounts: bankRes.data ?? [],
+      });
     }
 
     return NextResponse.json({ error: 'Invalid type parameter' }, { status: 400 });
