@@ -26,7 +26,7 @@ export default function RamadanHome() {
     // Fetch the featured verse from API
     const fetchVerse = async () => {
       try {
-        const response = await fetch('/api/ramadan/content?type=reflection-verse');
+        const response = await fetch('/api/ramadan/content?type=ramadan_reflection-verse');
         const reflectionVerse = await response.json();
         setVerse(reflectionVerse);
       } catch (error) {
