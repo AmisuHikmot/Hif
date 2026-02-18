@@ -51,7 +51,7 @@ export async function GET(request: Request) {
 
     if (type === 'ramadan_charity') {
       const { data, error } = await supabase
-        .from('ramadan_charity_information')
+        .from('ramadan_charity_info')
         .select('*')
         .limit(1)
         .single();
