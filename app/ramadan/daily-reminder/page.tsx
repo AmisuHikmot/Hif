@@ -482,7 +482,7 @@ function drawReminderCanvas(
   ctx.fillRect(24, h - 90, w - 48, 66);
   ctx.fillStyle = '#d4af37';
   ctx.font      = `bold ${Math.round(w * 0.02)}px Georgia`;
-  ctx.fillText('🌙  Ramadan Kareem  •  hamduk.org  🌙', w / 2, h - 52);
+  ctx.fillText('🌙  Ramadan Kareem  •  hif.com.ng  🌙', w / 2, h - 52);
 }
 
 // ─── Main Component ───────────────────────────────────────────────────────────
