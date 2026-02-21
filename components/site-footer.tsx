@@ -270,7 +270,7 @@ export function SiteFooter() {
                 </a>
                 <div className="flex items-center gap-2 text-sm text-slate-400">
                   <Phone className="w-4 h-4 opacity-60" />
-                  +234 XXX XXX XXXX
+                  +234 706 227 3586
                 </div>
               </div>
             </div>
