@@ -7,7 +7,7 @@ import {
   AlertCircle, Loader2, Star, ImagePlus, X,
   Shield, Send, Globe, Instagram, Phone, Mail,
 } from 'lucide-react';
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from "@/lib/supabase/client"
 
 // ─── Supabase ─────────────────────────────────────────────────────────────────
 const supabase = createClient(
