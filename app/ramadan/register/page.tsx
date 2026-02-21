@@ -1062,7 +1062,7 @@ export default function MosqueRegistrationPage() {
           {/* Footer */}
           <div className="text-center pb-6">
             <div className="inline-flex items-center gap-2 text-amber-400/40 text-xs">
-              <Moon className="w-3 h-3" /><span>Hamduk Islamic Foundation · Quiz Programme</span><Moon className="w-3 h-3" />
+              <Moon className="w-3 h-3" /><span>Hamduk Islamic Foundation · Quiz Programmee</span><Moon className="w-3 h-3" />
             </div>
           </div>
 
@@ -1070,4 +1070,5 @@ export default function MosqueRegistrationPage() {
       </div>
     </div>
   );
+
 }
