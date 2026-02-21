@@ -262,11 +262,11 @@ export function SiteFooter() {
               {/* Contact */}
               <div className="space-y-2">
                 <a
-                  href="mailto:hif@hamduk.com.ng"
+                  href="mailto:info@hif.com.ng"
                   className="flex items-center gap-2 text-sm text-slate-400 hover:text-emerald-400 transition-colors group"
                 >
                   <Mail className="w-4 h-4 opacity-60 group-hover:opacity-100" />
-                  hif@hamduk.com.ng
+                  info@hif.com.ng
                 </a>
                 <div className="flex items-center gap-2 text-sm text-slate-400">
                   <Phone className="w-4 h-4 opacity-60" />
