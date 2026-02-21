@@ -40,11 +40,11 @@ const WhatsAppIcon = () => (
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 const SOCIAL_LINKS = [
-  { icon: XIcon,        label: "X (Twitter)",  href: "https://x.com/hamdukfoundation",              color: "#e2e8f0" },
-  { icon: InstagramIcon,label: "Instagram",    href: "https://instagram.com/hamdukfoundation",      color: "#e1306c" },
-  { icon: FacebookIcon, label: "Facebook",     href: "https://facebook.com/hamdukfoundation",       color: "#1877f2" },
-  { icon: TikTokIcon,   label: "TikTok",       href: "https://tiktok.com/@hamdukfoundation",        color: "#ff0050" },
-  { icon: WhatsAppIcon, label: "WhatsApp",     href: "https://wa.me/234XXXXXXXXXX",                 color: "#25d366" },
+  { icon: XIcon,        label: "X (Twitter)",  href: "https://x.com/hif_ng",              color: "#e2e8f0" },
+  { icon: InstagramIcon,label: "Instagram",    href: "https://instagram.com/hif_ng",      color: "#e1306c" },
+  { icon: FacebookIcon, label: "Facebook",     href: "https://facebook.com/hif_ng",       color: "#1877f2" },
+  { icon: TikTokIcon,   label: "TikTok",       href: "https://tiktok.com/@hif_ng",        color: "#ff0050" },
+  { icon: WhatsAppIcon, label: "WhatsApp",     href: "https://wa.me/2347062273586",                 color: "#25d366" },
 ]
 
 const FOOTER_COLS = [
@@ -156,78 +156,6 @@ export function SiteFooter() {
         style={{ background: "radial-gradient(ellipse,#10b981,transparent)" }}
         aria-hidden
       />
-
-      {/* ══════════════════════════════════════════════════════════════
-          TOP BAND — Digital Hub promo
-      ══════════════════════════════════════════════════════════════ */}
-      <div
-        className="relative border-b"
-        style={{ borderColor: "#10b98122" }}
-      >
-        <div className="container mx-auto max-w-7xl px-6 py-5">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            {/* Left: Digital Hub branding */}
-            <div className="flex items-center gap-4">
-              {/* Icon */}
-              <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                style={{
-                  background: "linear-gradient(135deg,#064e3b,#10b981)",
-                  boxShadow:  "0 0 20px rgba(16,185,129,0.3)",
-                }}
-              >
-                <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5" stroke="white" strokeWidth="1.8">
-                  <circle cx="12" cy="12" r="10" />
-                  <path d="M2 12h20M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20" strokeLinecap="round" />
-                </svg>
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <p
-                    className="text-xs font-bold tracking-widest uppercase"
-                    style={{ color: "#10b981", letterSpacing: "0.18em" }}
-                  >
-                    Hamduk Digital Hub
-                  </p>
-                  <span
-                    className="text-xs px-1.5 py-0.5 rounded font-bold"
-                    style={{ background: "#10b98122", color: "#10b981", border: "1px solid #10b98133" }}
-                  >
-                    NEW
-                  </span>
-                </div>
-                <p className="text-slate-400 text-sm mt-0.5">
-                  Our digital arm — resources, tools & online services for the Muslim community
-                </p>
-              </div>
-            </div>
-
-            {/* Right: Visit link */}
-            <a
-              href="https://digital.hamduk.com.ng"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all shrink-0"
-              style={{
-                background:  "rgba(16,185,129,0.08)",
-                border:      "1px solid rgba(16,185,129,0.25)",
-                color:       "#10b981",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = "rgba(16,185,129,0.15)"
-                e.currentTarget.style.borderColor = "rgba(16,185,129,0.5)"
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = "rgba(16,185,129,0.08)"
-                e.currentTarget.style.borderColor = "rgba(16,185,129,0.25)"
-              }}
-            >
-              <span>digital.hamduk.com.ng</span>
-              <ExternalLink className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-            </a>
-          </div>
-        </div>
-      </div>
 
       {/* ══════════════════════════════════════════════════════════════
           MAIN FOOTER BODY
@@ -347,7 +275,7 @@ export function SiteFooter() {
                 })}
 
                 {/* Label next to icons */}
-                <p className="text-xs text-slate-600 ml-2">@hamdukfoundation</p>
+                <p className="text-xs text-slate-600 ml-2">@hif_ng</p>
               </div>
             </div>
           </div>
@@ -490,7 +418,7 @@ export function SiteFooter() {
                 className="hover:text-emerald-500 transition-colors"
                 style={{ color: "#10b98166" }}
               >
-                Powered by Hamduk Digital Hub
+                Designed by Hamduk Digital Hub
               </a>
             </p>
 
