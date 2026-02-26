@@ -259,7 +259,7 @@ export async function POST(req: NextRequest) {
     const results = await Promise.allSettled(
       targets.map(({ email, name, role }) =>
         resend.emails.send({
-          from:    'Hamduk Islamic Foundation <hif@hamduk.com.ng>',
+          from:    'Hamduk Islamic Foundation <noreply@hif.com.ng>',
           to:      [email],
           subject: `✅ Registration Confirmed — ${mosque_name} | Code: ${reg_code}`,
           html:    buildEmailHtml({
