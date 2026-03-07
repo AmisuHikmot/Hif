@@ -4,8 +4,15 @@ import DonationForm from "@/components/donation/donation-form"
 import DonationProjects from "@/components/donation/donation-projects"
 
 export const metadata: Metadata = {
-  title: "Donate | Hamduk Islamic Foundation",
-  description: "Support the mission of Hamduk Islamic Foundation through your generous donations",
+  title: "Donate & Support Our Islamic Mission | Help Communities | Hamduk Foundation",
+  description: "Make a meaningful donation to Hamduk Islamic Foundation. Support education, charity projects, community development, and humanitarian efforts in Nigeria and beyond.",
+  keywords: ["donate", "charity", "Islamic charity", "support", "community projects", "sadaqah", "zakah", "Hamduk"],
+  openGraph: {
+    title: "Support Hamduk Islamic Foundation - Donate Today",
+    description: "Your donations help us advance Islamic education and community development",
+    url: "https://hamdukislamicfoundation.org/donate",
+    type: "website",
+  },
 }
 
 export default function DonatePage() {

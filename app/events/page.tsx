@@ -8,8 +8,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import EventCard from "@/components/event-card"
 
 export const metadata: Metadata = {
-  title: "Events | Hamduk Islamic Foundation",
-  description: "Upcoming and past events organized by Hamduk Islamic Foundation.",
+  title: "Islamic Events & Conferences | Register for Upcoming Programs | Hamduk Foundation",
+  description: "Discover upcoming Islamic events, conferences, and community programs organized by Hamduk Islamic Foundation. Register now for educational lectures, Ramadan programs, and cultural events.",
+  keywords: ["Islamic events", "conferences", "lectures", "Islamic programs", "community events", "Hamduk", "Nigeria"],
+  openGraph: {
+    title: "Islamic Events & Conferences - Hamduk Foundation",
+    description: "Join our community for inspiring Islamic events and educational programs",
+    url: "https://hamdukislamicfoundation.org/events",
+    type: "website",
+  },
 }
 
 async function getEvents() {
