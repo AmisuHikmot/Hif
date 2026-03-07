@@ -15,7 +15,7 @@ The website logo has been converted to a favicon and installed at:
 - **Logo SVG**: `/public/icon.svg` - Vector logo
 
 **Metadata Link in layout.tsx:**
-```typescript
+\`\`\`typescript
 icons: {
   icon: [
     { url: "/favicon.jpg", sizes: "any" },
@@ -24,7 +24,7 @@ icons: {
   ],
   apple: "/apple-icon.png",
 }
-```
+\`\`\`
 
 ---
 
@@ -99,7 +99,7 @@ All routes include:
 
 ### Organization Schema
 Implemented in `/app/layout.tsx` with complete organization details:
-```json
+\`\`\`json
 {
   "@type": "Organization",
   "name": "Hamduk Islamic Foundation",
@@ -115,11 +115,11 @@ Implemented in `/app/layout.tsx` with complete organization details:
     "email": "info@hamdukislamicfoundation.org"
   }
 }
-```
+\`\`\`
 
 ### Site Navigation Element Schema
 Structured data for all 7 primary navigation items with descriptions:
-```json
+\`\`\`json
 {
   "@type": "SiteNavigationElement",
   "itemListElement": [
@@ -132,7 +132,7 @@ Structured data for all 7 primary navigation items with descriptions:
     {"position": 7, "name": "Sign Up", "url": "..."}
   ]
 }
-```
+\`\`\`
 
 **Benefits:**
 - Google generates rich sitelinks in search results
@@ -187,11 +187,11 @@ All pages now have unique, keyword-rich titles optimized for Google search resul
 - Links to XML sitemap
 
 ### Rules:
-```
+\`\`\`
 Allow: / (all public pages)
 Disallow: /admin/, /dashboard/, /api/, /auth/, /payment/callback, /_next/, /search
 Sitemap: https://hamdukislamicfoundation.org/sitemap.xml
-```
+\`\`\`
 
 ---
 
@@ -200,29 +200,29 @@ Sitemap: https://hamdukislamicfoundation.org/sitemap.xml
 All pages include:
 
 ### Standard Meta Tags
-```html
+\`\`\`html
 <meta name="description" content="...">
 <meta name="keywords" content="...">
 <meta name="robots" content="index, follow">
 <meta name="theme-color" content="#1e3a5f">
-```
+\`\`\`
 
 ### Open Graph Tags
-```html
+\`\`\`html
 <meta property="og:title" content="...">
 <meta property="og:description" content="...">
 <meta property="og:url" content="...">
 <meta property="og:image" content="...">
 <meta property="og:type" content="website">
-```
+\`\`\`
 
 ### Twitter Card Tags
-```html
+\`\`\`html
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="...">
 <meta name="twitter:description" content="...">
 <meta name="twitter:image" content="...">
-```
+\`\`\`
 
 ---
 
@@ -356,7 +356,7 @@ All major pages are linked from:
 
 ## 14. Navigation Map for Users
 
-```
+\`\`\`
 HOMEPAGE (/)
 ├── ABOUT (/about/history)
 │   ├── Vision (/about/vision)
@@ -386,7 +386,7 @@ HOMEPAGE (/)
 │   └── Contact Form & Information
 ├── SIGN IN (/auth/login)
 └── SIGN UP (/auth/register)
-```
+\`\`\`
 
 ---
 

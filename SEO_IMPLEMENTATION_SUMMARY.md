@@ -50,7 +50,7 @@
 
 All required pages accessible within 2 clicks from homepage:
 
-```
+\`\`\`
 HOMEPAGE
 │
 ├─[CLICK 1]─→ ABOUT /about/history
@@ -84,7 +84,7 @@ HOMEPAGE
 ├─[CLICK 1]─→ SIGN IN /auth/login ✓
 │
 └─[CLICK 1]─→ SIGN UP /auth/register ✓
-```
+\`\`\`
 
 ✓ All pages within 2 clicks as requested
 
@@ -93,7 +93,7 @@ HOMEPAGE
 ### 5. **JSON-LD Structured Data Implementation**
 
 #### **Organization Schema**
-```json
+\`\`\`json
 {
   "@type": "Organization",
   "name": "Hamduk Islamic Foundation",
@@ -112,7 +112,7 @@ HOMEPAGE
     "https://www.instagram.com/hamdukislamic"
   ]
 }
-```
+\`\`\`
 
 **Benefits:**
 - Enhanced Google Knowledge Panel
@@ -120,7 +120,7 @@ HOMEPAGE
 - Social media profile links visible in SERP
 
 #### **SiteNavigationElement Schema**
-```json
+\`\`\`json
 {
   "@type": "SiteNavigationElement",
   "itemListElement": [
@@ -175,7 +175,7 @@ HOMEPAGE
     }
   ]
 }
-```
+\`\`\`
 
 **Benefits:**
 - Google generates **rich sitelinks** in search results
@@ -237,13 +237,13 @@ Each key page includes:
 ✅ Theme color meta tag
 
 **Example (Ramadan Page):**
-```html
+\`\`\`html
 <title>Ramadan Kareem - Daily Reflections, Duas & Community Impact | Hamduk Islamic Foundation</title>
 <meta name="description" content="Experience sacred moments with daily Qur'anic reflections, authentic duas, charitable giving, and spiritual reminders throughout Ramadan.">
 <meta name="keywords" content="Ramadan, Qur'an, duas, reflection, Islamic, charity, spiritual">
 <meta property="og:title" content="Ramadan Kareem - Daily Reflections & Duas">
 <meta name="twitter:card" content="summary_large_image">
-```
+\`\`\`
 
 ---
 
@@ -347,7 +347,7 @@ Before launch, verify:
 ## 📊 Quick Reference
 
 ### URL Structure (2-Click Access)
-```
+\`\`\`
 Homepage / 
   ↓ (Click 1: Main navigation)
   → About, Events, Ramadan, Donate, Contact, Sign In/Up
@@ -355,7 +355,7 @@ Homepage /
     → Ramadan: Daily Reminder, Knowledge, Duas, Charity
     → About: Vision, Founders, Leadership, Branches
     → Events: Upcoming, Past, Details
-```
+\`\`\`
 
 ### Key Metrics
 - **Homepage Priority:** 1.0

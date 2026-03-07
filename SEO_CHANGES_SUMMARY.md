@@ -46,7 +46,7 @@ Updated in:
 ### 4. JSON-LD Structured Data ✅
 
 #### Organization Schema
-```json
+\`\`\`json
 {
   "@type": "Organization",
   "name": "Hamduk Islamic Foundation",
@@ -59,7 +59,7 @@ Updated in:
     "email": "info@hif.com.ng"
   }
 }
-```
+\`\`\`
 
 #### Site Navigation Schema (7 key pages)
 - Organization name and URL properly indexed
@@ -206,7 +206,7 @@ All Ramadan pages updated with:
 
 ## 📊 Site Structure at a Glance
 
-```
+\`\`\`
 Homepage (/)
 ├── About Us (/about/history)
 │   ├── Founders (/about/founders)
@@ -230,7 +230,7 @@ Homepage (/)
 ├── Conferences (/conference/...)
 ├── Members (/members)
 └── Legal Pages (/privacy, /terms, /cookie-policy)
-```
+\`\`\`
 
 ---
 

@@ -23,22 +23,32 @@ async function getEvents() {
   const supabase = await createClient()
   const today = new Date().toISOString().split("T")[0]
 
+  // Fetch events with their featured images
   const { data: upcomingEvents } = await supabase
     .from("events")
-    .select("*")
+    .select(
+      `*,
+      event_images!left(image_url, thumbnail_url, is_featured)`
+    )
     .gte("event_date", today)
     .order("event_date", { ascending: true })
 
   const { data: pastEvents } = await supabase
     .from("events")
-    .select("*")
+    .select(
+      `*,
+      event_images!left(image_url, thumbnail_url, is_featured)`
+    )
     .lt("event_date", today)
     .order("event_date", { ascending: false })
     .limit(12)
 
   const { data: ongoingEvents } = await supabase
     .from("events")
-    .select("*")
+    .select(
+      `*,
+      event_images!left(image_url, thumbnail_url, is_featured)`
+    )
     .eq("status", "ongoing")
     .order("event_date", { ascending: true })
 
@@ -73,6 +83,25 @@ export default async function EventsPage() {
     const startTime = start?.substring(0, 5) || "TBA"
     const endTime = end?.substring(0, 5)
     return endTime ? `${startTime} - ${endTime}` : startTime
+  }
+
+  // Get featured image for event from database
+  const getFeaturedImage = (event: any) => {
+    if (!event.event_images || event.event_images.length === 0) {
+      return "/placeholder.svg"
+    }
+    
+    // Look for featured image first
+    const featuredImage = event.event_images.find((img: any) => img.is_featured)
+    if (featuredImage?.image_url) return featuredImage.image_url
+    
+    // Fall back to first image
+    if (event.event_images[0]?.image_url) return event.event_images[0].image_url
+    
+    // Fall back to event's image_url if exists
+    if (event.image_url) return event.image_url
+    
+    return "/placeholder.svg"
   }
 
   return (
@@ -131,7 +160,7 @@ export default async function EventsPage() {
                   date={formatEventDate(event.event_date)}
                   time={formatEventTime(event.start_time, event.end_time)}
                   location={event.location}
-                  imageSrc="/islamic-gathering.png"
+                  imageSrc={getFeaturedImage(event)}
                   slug={event.id}
                 />
               ))}
@@ -154,7 +183,7 @@ export default async function EventsPage() {
                   date={formatEventDate(event.event_date)}
                   time={formatEventTime(event.start_time, event.end_time)}
                   location={event.location}
-                  imageSrc="/islamic-program.png"
+                  imageSrc={getFeaturedImage(event)}
                   slug={event.id}
                 />
               ))}
@@ -177,7 +206,7 @@ export default async function EventsPage() {
                   date={formatEventDate(event.event_date)}
                   time={formatEventTime(event.start_time, event.end_time)}
                   location={event.location}
-                  imageSrc="/past-islamic-event.jpg"
+                  imageSrc={getFeaturedImage(event)}
                   isPast={true}
                   slug={event.id}
                 />
