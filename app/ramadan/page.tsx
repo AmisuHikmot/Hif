@@ -3,6 +3,21 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { ArrowRight, Moon, Star, BookOpen, Heart, Scroll, Volume2, VolumeX } from 'lucide-react';
+import type { Metadata } from 'next';
+
+// This export is handled by metadata in layout, but here for SEO reference
+export const metadata: Metadata = {
+  title: "Ramadan Kareem | Daily Reflections, Duas & Charity | Hamduk Islamic Foundation",
+  description: "Experience Ramadan with Hamduk Islamic Foundation. Daily Qur'anic reflections, authentic duas, charitable giving, and spiritual reminders throughout the blessed month.",
+  keywords: ["Ramadan", "Islamic reflection", "Quran", "Duas", "Charity", "Hamduk", "Fasting", "Spiritual development"],
+  openGraph: {
+    title: "Ramadan Kareem - Daily Reflections & Duas",
+    description: "Experience sacred moments with daily Qur'anic reflections and authentic duas this Ramadan",
+    url: "https://www.hif.com.ng/ramadan",
+    type: "website",
+    siteName: "Hamduk Islamic Foundation",
+  },
+};
 
 interface ReflectionVerse {
   id: string;

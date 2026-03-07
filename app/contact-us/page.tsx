@@ -3,6 +3,7 @@
 import type React from "react"
 import { useState } from "react"
 import { Mail, Phone, MapPin, Send, Loader2, CheckCircle } from "lucide-react"
+import type { Metadata } from "next"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
