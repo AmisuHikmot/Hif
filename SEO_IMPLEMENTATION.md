@@ -13,7 +13,7 @@
 - `/public/favicon.png` - PNG favicon (192x192)
 
 ### Implementation in layout.tsx
-```typescript
+\`\`\`typescript
 icons: {
   icon: [
     { url: "/favicon.ico", sizes: "any" },
@@ -23,7 +23,7 @@ icons: {
   ],
   apple: "/apple-icon.png",
 }
-```
+\`\`\`
 
 ---
 
@@ -98,7 +98,7 @@ All reachable within 1 click from homepage (`/`):
 ## 3. JSON-LD Structured Data
 
 ### Organization Schema (in layout.tsx)
-```json
+\`\`\`json
 {
   "@context": "https://schema.org",
   "@type": "Organization",
@@ -125,10 +125,10 @@ All reachable within 1 click from homepage (`/`):
     "email": "info@hif.com.ng"
   }
 }
-```
+\`\`\`
 
 ### Site Navigation Schema (in layout.tsx)
-```json
+\`\`\`json
 {
   "@context": "https://schema.org",
   "@type": "SiteNavigationElement",
@@ -155,7 +155,7 @@ All reachable within 1 click from homepage (`/`):
     ]
   }
 }
-```
+\`\`\`
 
 ---
 
@@ -222,19 +222,19 @@ All reachable within 1 click from homepage (`/`):
 ## 6. URL Strategy & Consistency ✅
 
 ### Base Domain
-```
+\`\`\`
 OLD: https://hamdukislamicfoundation.org
 NEW: https://www.hif.com.ng ✅
-```
+\`\`\`
 
 ### All URLs Updated
 All internal links, canonical tags, and metadata URLs have been updated to use `https://www.hif.com.ng`
 
 ### Canonical Tags
 Each page includes canonical tags to prevent duplicate content issues:
-```html
+\`\`\`html
 <link rel="canonical" href="https://www.hif.com.ng/page-name" />
-```
+\`\`\`
 
 ---
 
@@ -265,7 +265,7 @@ Every page includes:
 - `og:image`: Social sharing image (1200x630px recommended)
 
 Example:
-```typescript
+\`\`\`typescript
 openGraph: {
   title: "Page Title",
   description: "Page description for social sharing",
@@ -280,21 +280,21 @@ openGraph: {
     },
   ],
 }
-```
+\`\`\`
 
 ---
 
 ## 9. Twitter Card Tags
 
 All pages include Twitter Card metadata:
-```typescript
+\`\`\`typescript
 twitter: {
   card: "summary_large_image",
   title: "Page Title",
   description: "Page description",
   images: ["https://www.hif.com.ng/image.png"],
 }
-```
+\`\`\`
 
 ---
 
@@ -321,7 +321,7 @@ All Ramadan pages include:
 
 ### Breadcrumb Navigation
 Plan to implement breadcrumb schema:
-```json
+\`\`\`json
 {
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
@@ -331,7 +331,7 @@ Plan to implement breadcrumb schema:
     {"@type": "ListItem", "position": 3, "name": "Knowledge", "item": "https://www.hif.com.ng/ramadan/knowledge"}
   ]
 }
-```
+\`\`\`
 
 ### Mobile Optimization
 - Viewport meta tag: `width=device-width, initial-scale=1`

@@ -28,13 +28,13 @@ Updated in:
 ### ✅ 3. Site Navigation Hierarchy
 
 **3-Layer Structure**:
-```
+\`\`\`
 Layer 1: Homepage (/)
 Layer 2: 7 Top-Level Pages (1 click away)
   - About Us, Events, Ramadan, Donate, Contact, Sign In, Sign Up
 Layer 3: 33+ Sub-Pages (2 clicks away)
   - About sub-pages, Ramadan sub-pages, Membership, Focus areas, Media, etc.
-```
+\`\`\`
 
 **All top-level pages reachable within 2 clicks from homepage** ✅
 

@@ -2,7 +2,7 @@
 
 ## 🗺️ Complete Navigation Map
 
-```
+\`\`\`
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                                                                               │
 │                    HAMDUK ISLAMIC FOUNDATION WEBSITE                        │
@@ -90,25 +90,25 @@
                                    Politics
                                  └─Islam in
                                    Nigeria
-```
+\`\`\`
 
 ---
 
 ## 📊 Priority Hierarchy
 
 ### **TIER 1 - CRITICAL (Priority 0.95-1.0)**
-```
+\`\`\`
 ┌─────────────────────────────────────┐
 │ Homepage                  (1.0)      │
 │ Events                    (0.95)     │
 │ Ramadan Portal            (0.95)     │
 └─────────────────────────────────────┘
-```
+\`\`\`
 **Goal:** 100% visibility, maximum crawl budget
 **Change Frequency:** Weekly to Daily
 
 ### **TIER 2 - HIGH IMPORTANCE (Priority 0.85-0.9)**
-```
+\`\`\`
 ┌─────────────────────────────────────┐
 │ About Us                  (0.9)      │
 │ Donate                    (0.9)      │
@@ -116,12 +116,12 @@
 │ Ramadan Sub-pages         (0.85)     │
 │ Membership Pages          (0.75-0.85)│
 └─────────────────────────────────────┘
-```
+\`\`\`
 **Goal:** High visibility, regular indexing
 **Change Frequency:** Weekly to Monthly
 
 ### **TIER 3 - MEDIUM IMPORTANCE (Priority 0.7-0.8)**
-```
+\`\`\`
 ┌─────────────────────────────────────┐
 │ Contact Us                (0.8)      │
 │ Sign In/Up                (0.7-0.8)  │
@@ -130,12 +130,12 @@
 │ Media Pages               (0.7)      │
 │ Conferences               (0.75)     │
 └─────────────────────────────────────┘
-```
+\`\`\`
 **Goal:** Moderate visibility, periodic indexing
 **Change Frequency:** Monthly
 
 ### **TIER 4 - LOWER PRIORITY (Priority 0.5-0.7)**
-```
+\`\`\`
 ┌─────────────────────────────────────┐
 │ Legal Pages (Privacy, Terms) (0.5)   │
 │ Past Leaders              (0.6)      │
@@ -143,7 +143,7 @@
 │ Admin Dashboard           (0.4)      │
 │ Protected Pages           (0.3-0.5)  │
 └─────────────────────────────────────┘
-```
+\`\`\`
 **Goal:** Low visibility, minimal crawl
 **Change Frequency:** Yearly (or Never)
 **Note:** Some are intentionally de-indexed (robots.txt)
@@ -152,7 +152,7 @@
 
 ## 🎯 2-Click Accessibility Matrix
 
-```
+\`\`\`
 HOMEPAGE (1 click)
 │
 ├─ ABOUT (1 click) ──────────────────┬─ VISION (2 clicks)
@@ -184,13 +184,13 @@ HOMEPAGE (1 click)
 
 ✅ All 7 requested pages within 2 clicks!
 ⭐ All 4 Ramadan pages within 2 clicks!
-```
+\`\`\`
 
 ---
 
 ## 🔗 Cross-Linking Strategy
 
-```
+\`\`\`
 ┌──────────────────────────────────────────────────────────────┐
 │                    INTERNAL LINKING MAP                      │
 └──────────────────────────────────────────────────────────────┘
@@ -222,13 +222,13 @@ ABOUT PAGES                    EVENTS PAGE                   RAMADAN PAGES
                         ├─→ About (Office Info)
                         └─→ All Major Pages (CTAs)
 
-```
+\`\`\`
 
 ---
 
 ## 📱 Mobile Navigation Flow
 
-```
+\`\`\`
 ┌─────────────────────────────────────┐
 │      MOBILE MENU (Hamburger)        │
 ├─────────────────────────────────────┤
@@ -254,13 +254,13 @@ ABOUT PAGES                    EVENTS PAGE                   RAMADAN PAGES
 │      Footer Links (collapsible)     │
 │ Focus Areas, Media, Membership, etc.│
 └─────────────────────────────────────┘
-```
+\`\`\`
 
 ---
 
 ## 🏢 Organizational Hierarchy
 
-```
+\`\`\`
 HAMDUK ISLAMIC FOUNDATION (Root)
 │
 ├── CORE OPERATIONS
@@ -292,7 +292,7 @@ HAMDUK ISLAMIC FOUNDATION (Root)
     ├── Dashboard
     ├── Registration
     └── Event Management
-```
+\`\`\`
 
 ---
 
@@ -326,7 +326,7 @@ HAMDUK ISLAMIC FOUNDATION (Root)
 
 ## 📈 Content Freshness Schedule
 
-```
+\`\`\`
 DAILY UPDATES
 ├─ Ramadan Daily Reminder (During Ramadan)
 ├─ Ramadan Knowledge (Updates 2-3x/week)
@@ -349,13 +349,13 @@ YEARLY UPDATES
 ├─ Leadership/Board
 ├─ Legal Documents
 └─ Strategic Pages
-```
+\`\`\`
 
 ---
 
 ## 🎓 Content Distribution Matrix
 
-```
+\`\`\`
                     TARGET PAGES FOR KEYWORD OPTIMIZATION
                     
 Page Type       | Primary Keywords        | Secondary Keywords      | LSI Keywords
@@ -368,13 +368,13 @@ DONATE          | Support, Charity       | Projects, Impact        | Giving
 CONTACT         | Support, Help          | Inquiries, Reach        | Connect
 SIGNUP/LOGIN    | Community, Member      | Join, Account           | Access
 ────────────────┴────────────────────────┴─────────────────────────┴──────────────
-```
+\`\`\`
 
 ---
 
 ## ⚙️ Technical SEO Structure
 
-```
+\`\`\`
 ┌──────────────────────────────────────────────────────────┐
 │                  ROBOTS.TXT RULES                        │
 ├──────────────────────────────────────────────────────────┤
@@ -407,42 +407,42 @@ SIGNUP/LOGIN    | Community, Member      | Join, Account           | Access
 │   ├─ SemrushBot (SEO competitor)                         │
 │   └─ DotBot (aggressive crawler)                         │
 └──────────────────────────────────────────────────────────┘
-```
+\`\`\`
 
 ---
 
 ## 🎯 Conversion Path Examples
 
 ### **Path 1: New Visitor → Membership**
-```
+\`\`\`
 Homepage → Sign Up → Create Account → Dashboard → Membership Info
-```
+\`\`\`
 
 ### **Path 2: Event Interested → Registration**
-```
+\`\`\`
 Homepage → Events → Event Details → Register Event → Confirmation
-```
+\`\`\`
 
 ### **Path 3: Donor → Donation**
-```
+\`\`\`
 Homepage → About (Trust) → Donate → Choose Project → Payment → Confirmation
-```
+\`\`\`
 
 ### **Path 4: Ramadan Seeker → Spiritual Content**
-```
+\`\`\`
 Homepage → Ramadan → Daily Reminders/Duas → Charity Opportunity
-```
+\`\`\`
 
 ### **Path 5: Inquiry → Contact**
-```
+\`\`\`
 Homepage → Contact → Submit Form → Confirmation → Response
-```
+\`\`\`
 
 ---
 
 ## 📋 Checklist for Navigation Quality
 
-```
+\`\`\`
 ✅ NAVIGATION QUALITY CHECKLIST
 
 Page Accessibility:
@@ -476,7 +476,7 @@ Accessibility:
   ✓ Screen reader friendly
   ✓ ARIA labels where needed
   ✓ Alt text for images
-```
+\`\`\`
 
 ---
 
