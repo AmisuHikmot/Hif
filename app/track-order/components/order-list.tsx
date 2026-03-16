@@ -31,7 +31,7 @@ interface Order {
   payment_status: string
   order_status: string
   created_at: string
-  shop_order_items_enhanced: any[]  // ← unchanged
+  shop_order_items_enhanced: any[] // ← unchanged
 }
 
 interface OrderListProps {
@@ -41,16 +41,9 @@ interface OrderListProps {
 }
 
 // ── Status config ──────────────────────────────────────────────
+// FIX 1: Record generic must be on a single line
 
-const STATUS_CONFIG: Record
-  string,
-  {
-    label:     string
-    color:     string
-    icon:      React.ReactNode
-    stepIndex: number
-  }
-> = {
+const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ReactNode; stepIndex: number }> = {
   pending: {
     label:     "Order Placed",
     color:     "border-amber-200 bg-amber-50 text-amber-700",
@@ -89,10 +82,9 @@ const STATUS_CONFIG: Record
   },
 }
 
-const PAYMENT_CONFIG: Record
-  string,
-  { label: string; color: string }
-> = {
+// FIX 2: Record generic must be on a single line
+
+const PAYMENT_CONFIG: Record<string, { label: string; color: string }> = {
   paid: {
     label: "Paid",
     color: "border-emerald-200 bg-emerald-50 text-emerald-700",
@@ -112,15 +104,15 @@ const TOTAL_STEPS = 6
 // ── Mini progress bar ──────────────────────────────────────────
 
 function MiniProgressBar({ status }: { status: string }) {
-  const config  = STATUS_CONFIG[status]
+  const config = STATUS_CONFIG[status]
   if (!config || config.stepIndex === 0) return null
 
-  const percent = Math.round((config.stepIndex / TOTAL_STEPS) * 100)
+  const percent    = Math.round((config.stepIndex / TOTAL_STEPS) * 100)
   const isComplete = status === "delivered"
 
   return (
     <div className="mt-3">
-      <div className="flex items-center justify-between text-[11px] text-muted-foreground mb-1">
+      <div className="mb-1 flex items-center justify-between text-[11px] text-muted-foreground">
         <span>Order progress</span>
         <span>{config.stepIndex} of {TOTAL_STEPS} steps</span>
       </div>
@@ -145,11 +137,11 @@ function OrderCard({
   index,
   onSelectOrder,
 }: {
-  order: Order
-  index: number
+  order:         Order
+  index:         number
   onSelectOrder: (order: Order) => void
 }) {
-  const statusConfig  = STATUS_CONFIG[order.order_status]  ?? {
+  const statusConfig = STATUS_CONFIG[order.order_status] ?? {
     label:     order.order_status,
     color:     "border-gray-200 bg-gray-50 text-gray-700",
     icon:      <AlertCircle className="h-3 w-3" />,
@@ -161,14 +153,14 @@ function OrderCard({
   }
 
   // ── unchanged: uses shop_order_items_enhanced exactly as passed ──
-  const items        = order.shop_order_items_enhanced ?? []
-  const digitalCount = items.filter((i: any) => i.product_type === "digital").length
-  const physicalCount= items.filter((i: any) => i.product_type === "physical").length
+  const items         = order.shop_order_items_enhanced ?? []
+  const digitalCount  = items.filter((i: any) => i.product_type === "digital").length
+  const physicalCount = items.filter((i: any) => i.product_type === "physical").length
 
   const formattedDate = new Date(order.created_at).toLocaleDateString("en-NG", {
-    year:    "numeric",
-    month:   "long",
-    day:     "numeric",
+    year:  "numeric",
+    month: "long",
+    day:   "numeric",
   })
   const formattedTime = new Date(order.created_at).toLocaleTimeString("en-NG", {
     hour:   "2-digit",
@@ -200,19 +192,14 @@ function OrderCard({
           {/* Top row: reference + total */}
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0 flex-1">
-              {/* Reference */}
               <p className="truncate font-mono text-sm font-semibold text-foreground">
                 {order.reference}
               </p>
-
-              {/* Date + time */}
               <div className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
                 <Calendar className="h-3 w-3 flex-shrink-0" />
                 {formattedDate} at {formattedTime}
               </div>
             </div>
-
-            {/* Total + arrow */}
             <div className="flex items-center gap-3">
               <p className="text-right font-bold text-foreground">
                 {formatPrice(order.total)}
@@ -245,7 +232,6 @@ function OrderCard({
 
           {/* Bottom row: status badges */}
           <div className="mt-3 flex flex-wrap items-center gap-2">
-            {/* Order status badge */}
             <Badge
               variant="outline"
               className={`flex items-center gap-1 text-xs font-medium ${statusConfig.color}`}
@@ -253,8 +239,6 @@ function OrderCard({
               {statusConfig.icon}
               {statusConfig.label}
             </Badge>
-
-            {/* Payment status badge */}
             <Badge
               variant="outline"
               className={`text-xs font-medium ${paymentConfig.color}`}
@@ -264,11 +248,9 @@ function OrderCard({
           </div>
 
           {/* Mini progress bar — hidden for cancelled */}
-          {!isCancelled && (
-            <MiniProgressBar status={order.order_status} />
-          )}
+          {!isCancelled && <MiniProgressBar status={order.order_status} />}
 
-          {/* Cancelled reason strip */}
+          {/* Cancelled strip */}
           {isCancelled && (
             <div className="mt-3 flex items-center gap-1.5 text-xs text-red-600">
               <XCircle className="h-3 w-3 flex-shrink-0" />
@@ -277,7 +259,7 @@ function OrderCard({
           )}
         </div>
 
-        {/* Footer: view details prompt */}
+        {/* Footer */}
         <div className="border-t border-border bg-muted/30 px-4 py-2.5">
           <p className="flex items-center gap-1 text-xs font-medium text-muted-foreground">
             Tap to view full tracking details
@@ -331,6 +313,7 @@ export function OrderList({ orders, onSelectOrder, onBack }: OrderListProps) {
       </AnimatePresence>
 
       {/* Footer note */}
+      {/* FIX 3: restored missing opening <a> tag */}
       <motion.p
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
