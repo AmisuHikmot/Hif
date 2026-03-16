@@ -54,6 +54,7 @@ export async function POST(request: NextRequest) {
           .from("shop_orders_enhanced")
           .update({
             payment_status: "paid",
+            payment_confirmed_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           })
           .eq("reference", reference)

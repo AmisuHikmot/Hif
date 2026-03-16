@@ -1,68 +1,37 @@
-// Email configuration and sending utilities
-import nodemailer from "nodemailer"
+import { Resend } from "resend"
 
-const SMTP_HOST = process.env.SMTP_HOST || "smtp.gmail.com"
-const SMTP_PORT = parseInt(process.env.SMTP_PORT || "587")
-const SMTP_USER = process.env.SMTP_USER
-const SMTP_PASSWORD = process.env.SMTP_PASSWORD
-const FROM_EMAIL = process.env.FROM_EMAIL || SMTP_USER
-const FROM_NAME = process.env.FROM_NAME || "HIF Store"
+const resend = new Resend(process.env.RESEND_API_KEY)
 
-// Create transporter instance
-let transporter: nodemailer.Transporter | null = null
-
-function getTransporter() {
-  if (!transporter && SMTP_USER && SMTP_PASSWORD) {
-    transporter = nodemailer.createTransport({
-      host: SMTP_HOST,
-      port: SMTP_PORT,
-      secure: SMTP_PORT === 465, // true for 465, false for other ports
-      auth: {
-        user: SMTP_USER,
-        pass: SMTP_PASSWORD,
-      },
-    })
-  }
-  return transporter
-}
-
-interface EmailOptions {
-  to: string
-  subject: string
-  html: string
-  text?: string
-}
-
-export async function sendEmail({ to, subject, html, text }: EmailOptions): Promise<boolean> {
+async function sendEmail(
+  to: string,
+  subject: string,
+  htmlContent: string
+): Promise<{ success: boolean; messageId?: string; error?: string }> {
   try {
-    const mailer = getTransporter()
-
-    if (!mailer) {
-      console.warn("[v0] Email service not configured. Email not sent to:", to)
-      return false
-    }
-
-    const result = await mailer.sendMail({
-      from: `${FROM_NAME} <${FROM_EMAIL}>`,
+    const result = await resend.emails.send({
+      from: "orders@hif.com.ng",
       to,
       subject,
-      html,
-      text: text || html.replace(/<[^>]*>/g, ""),
+      html: htmlContent,
     })
 
-    console.log("[v0] Email sent successfully:", result.messageId)
-    return true
+    if (result.error) {
+      console.error("[v0] Resend error:", result.error)
+      return { success: false, error: result.error.message }
+    }
+
+    return { success: true, messageId: result.data?.id }
   } catch (error) {
-    console.error("[v0] Failed to send email:", error)
-    return false
+    console.error("[v0] Email sending failed:", error)
+    return { success: false, error: error instanceof Error ? error.message : "Unknown error" }
   }
 }
 
 export async function sendOrderConfirmationEmail(
-  email: string,
+  customerEmail: string,
   customerName: string,
   orderReference: string,
-  orderTotal: number,
+  totalAmount: number,
   items: Array<{ productName: string; quantity: number; unitPrice: number }>,
   hasDigital: boolean
 ) {
@@ -70,157 +39,150 @@ export async function sendOrderConfirmationEmail(
     .map(
       (item) =>
         `<tr>
-      <td style="padding: 10px; border-bottom: 1px solid #ddd;">${item.productName}</td>
-      <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: center;">${item.quantity}</td>
-      <td style="padding: 10px; border-bottom: 1px solid #ddd; text-align: right;">₦${(item.unitPrice * item.quantity).toLocaleString("en-NG")}</td>
-    </tr>`
+          <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${item.productName}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; text-align: center;">${item.quantity}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; text-align: right;">₦${(item.unitPrice / 100).toLocaleString("en-NG", { minimumFractionDigits: 2 })}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; text-align: right;">₦${((item.unitPrice * item.quantity) / 100).toLocaleString("en-NG", { minimumFractionDigits: 2 })}</td>
+        </tr>`
     )
     .join("")
 
-  const downloadNote = hasDigital
-    ? `<div style="background-color: #f0f7ff; padding: 15px; border-left: 4px solid #0066cc; margin-top: 20px; border-radius: 4px;">
-    <p style="margin: 0; color: #0066cc; font-weight: bold;">📥 Digital Products Available</p>
-    <p style="margin: 5px 0 0 0; color: #333; font-size: 14px;">You can download your digital products from your account.</p>
-  </div>`
-    : ""
-
-  const html = `
+  const htmlContent = `
     <!DOCTYPE html>
     <html>
-    <head>
-      <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background-color: #1a1a1a; color: white; padding: 20px; border-radius: 4px 4px 0 0; }
-        .content { border: 1px solid #ddd; padding: 20px; }
-        .footer { background-color: #f5f5f5; padding: 15px; text-align: center; font-size: 12px; color: #666; border-radius: 0 0 4px 4px; }
-        table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-        th { background-color: #f5f5f5; padding: 10px; text-align: left; font-weight: bold; }
-        .total-row { background-color: #f0f0f0; font-weight: bold; font-size: 16px; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <h1 style="margin: 0;">Order Confirmation</h1>
-          <p style="margin: 10px 0 0 0; opacity: 0.9;">Thank you for your purchase!</p>
-        </div>
-
-        <div class="content">
-          <p>Hi ${customerName},</p>
-          
-          <p>Your order has been confirmed and payment received. Below are your order details:</p>
-
-          <div style="background-color: #f9f9f9; padding: 15px; border-radius: 4px; margin: 20px 0;">
-            <p style="margin: 0;"><strong>Order Reference:</strong> ${orderReference}</p>
-            <p style="margin: 5px 0 0 0;"><strong>Order Date:</strong> ${new Date().toLocaleDateString("en-NG")}</p>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: #f5f5f5; padding: 20px; text-align: center; border-radius: 8px; }
+          .header h1 { margin: 0; color: #064e3b; }
+          .content { padding: 20px 0; }
+          .order-info { background: #f9fafb; padding: 15px; border-radius: 8px; margin: 15px 0; }
+          .order-info p { margin: 8px 0; }
+          .label { font-weight: bold; color: #064e3b; }
+          table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+          table th { background: #f3f4f6; padding: 8px; text-align: left; font-weight: bold; border-bottom: 2px solid #e5e7eb; }
+          .footer { text-align: center; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #666; font-size: 12px; }
+          .button { display: inline-block; padding: 10px 20px; background: #064e3b; color: white; text-decoration: none; border-radius: 4px; margin: 10px 0; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>✅ Order Confirmed!</h1>
+            <p style="margin: 10px 0 0 0; color: #666;">Thank you for your purchase</p>
           </div>
 
-          <h3 style="margin-top: 20px;">Order Items</h3>
-          <table>
-            <thead>
-              <tr>
-                <th>Product</th>
-                <th style="text-align: center;">Qty</th>
-                <th style="text-align: right;">Subtotal</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${itemsHtml}
-              <tr class="total-row">
-                <td colspan="2" style="padding: 10px; text-align: right;">Total:</td>
-                <td style="padding: 10px; text-align: right;">₦${orderTotal.toLocaleString("en-NG")}</td>
-              </tr>
-            </tbody>
-          </table>
+          <div class="content">
+            <p>Assalamu alaykum wa rahmatullahi wa barakatuh,</p>
+            
+            <p>Thank you <span class="label">${customerName}</span>, your order has been confirmed and payment has been received.</p>
 
-          ${downloadNote}
+            <div class="order-info">
+              <p><span class="label">Order Reference:</span> ${orderReference}</p>
+              <p><span class="label">Total Amount:</span> ₦${(totalAmount / 100).toLocaleString("en-NG", { minimumFractionDigits: 2 })}</p>
+              <p><span class="label">Order Date:</span> ${new Date().toLocaleDateString("en-NG")}</p>
+            </div>
 
-          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
-            <p style="margin: 0; color: #666; font-size: 14px;">If you have any questions about your order, please don't hesitate to contact us.</p>
-            <p style="margin: 10px 0 0 0; color: #666; font-size: 14px;">Best regards,<br><strong>HIF Store Team</strong></p>
+            <h3 style="color: #064e3b; margin-top: 20px;">Order Items</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th style="text-align: center;">Quantity</th>
+                  <th style="text-align: right;">Unit Price</th>
+                  <th style="text-align: right;">Subtotal</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${itemsHtml}
+              </tbody>
+            </table>
+
+            <p style="margin-top: 20px;">
+              ${hasDigital ? '📥 <strong>Your digital downloads will be available immediately after payment confirmation.</strong> You will receive a separate email with download links for your digital products.' : '📦 Your order is being processed and will be dispatched soon. You will receive a tracking update via email.'}
+            </p>
+
+            <p style="margin-top: 20px;">
+              <a href="https://www.hif.com.ng/track-order?ref=${orderReference}" class="button">Track Your Order</a>
+            </p>
+
+            <p style="margin-top: 20px;">
+              If you have any questions, please don't hesitate to contact us at <a href="mailto:support@hif.com.ng">support@hif.com.ng</a>.
+            </p>
+
+            <p>Baarak Allaahu feek,<br/>The HIF Team</p>
+          </div>
+
+          <div class="footer">
+            <p>© 2026 Hamduk Islamic Foundation. All rights reserved.</p>
+            <p><a href="https://www.hif.com.ng">www.hif.com.ng</a> | <a href="mailto:support@hif.com.ng">support@hif.com.ng</a></p>
           </div>
         </div>
-
-        <div class="footer">
-          <p style="margin: 0;">© ${new Date().getFullYear()} HIF. All rights reserved.</p>
-          <p style="margin: 5px 0 0 0;">This is an automated email. Please do not reply.</p>
-        </div>
-      </div>
-    </body>
+      </body>
     </html>
   `
 
-  return sendEmail({
-    to: email,
-    subject: `Order Confirmation - ${orderReference}`,
-    html,
-  })
+  return sendEmail(customerEmail, `Order Confirmation - ${orderReference}`, htmlContent)
 }
 
 export async function sendDigitalDownloadEmail(
-  email: string,
+  customerEmail: string,
   customerName: string,
   productName: string,
   downloadLink: string
 ) {
-  const html = `
+  const htmlContent = `
     <!DOCTYPE html>
     <html>
-    <head>
-      <style>
-        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background-color: #1a1a1a; color: white; padding: 20px; border-radius: 4px 4px 0 0; }
-        .content { border: 1px solid #ddd; padding: 20px; }
-        .footer { background-color: #f5f5f5; padding: 15px; text-align: center; font-size: 12px; color: #666; border-radius: 0 0 4px 4px; }
-        .download-button { display: inline-block; padding: 12px 30px; background-color: #0066cc; color: white; text-decoration: none; border-radius: 4px; font-weight: bold; margin: 20px 0; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <h1 style="margin: 0;">Your Digital Download</h1>
-          <p style="margin: 10px 0 0 0; opacity: 0.9;">Thank you for your purchase!</p>
-        </div>
-
-        <div class="content">
-          <p>Hi ${customerName},</p>
-          
-          <p>Your digital product is ready for download!</p>
-
-          <div style="background-color: #f9f9f9; padding: 15px; border-radius: 4px; margin: 20px 0;">
-            <p style="margin: 0;"><strong>Product:</strong> ${productName}</p>
+      <head>
+        <meta charset="utf-8">
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: #f5f5f5; padding: 20px; text-align: center; border-radius: 8px; }
+          .header h1 { margin: 0; color: #064e3b; }
+          .content { padding: 20px 0; }
+          .download-box { background: #ecfdf5; border: 2px solid #064e3b; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0; }
+          .button { display: inline-block; padding: 12px 30px; background: #064e3b; color: white; text-decoration: none; border-radius: 4px; font-weight: bold; margin: 10px 0; }
+          .footer { text-align: center; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #666; font-size: 12px; }
+          .warning { color: #d97706; font-size: 12px; margin-top: 10px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>📥 Your Download is Ready!</h1>
+            <p style="margin: 10px 0 0 0; color: #666;">Access your digital product now</p>
           </div>
 
-          <p>Click the button below to download your file:</p>
+          <div class="content">
+            <p>Assalamu alaykum wa rahmatullahi wa barakatuh,</p>
+            
+            <p>Your digital product <span style="font-weight: bold; color: #064e3b;">${productName}</span> is ready for download!</p>
 
-          <center>
-            <a href="${downloadLink}" class="download-button">Download Now</a>
-          </center>
+            <div class="download-box">
+              <p style="margin: 0 0 15px 0;">Click the button below to download your product:</p>
+              <a href="${downloadLink}" class="button">Download Now</a>
+              <p class="warning">This link will expire in 7 days. Download your files before then.</p>
+            </div>
 
-          <p style="font-size: 12px; color: #666; margin-top: 20px;">
-            <strong>Note:</strong> This download link will expire in 7 days. Make sure to save your file before the expiration date.
-          </p>
+            <p style="margin-top: 20px;">
+              If you have any trouble downloading, please let us know at <a href="mailto:support@hif.com.ng">support@hif.com.ng</a>.
+            </p>
 
-          <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
-            <p style="margin: 0; color: #666; font-size: 14px;">If you have any issues downloading, please contact us.</p>
-            <p style="margin: 10px 0 0 0; color: #666; font-size: 14px;">Best regards,<br><strong>HIF Store Team</strong></p>
+            <p>Baarak Allaahu feek,<br/>The HIF Team</p>
+          </div>
+
+          <div class="footer">
+            <p>© 2026 Hamduk Islamic Foundation. All rights reserved.</p>
+            <p><a href="https://www.hif.com.ng">www.hif.com.ng</a> | <a href="mailto:support@hif.com.ng">support@hif.com.ng</a></p>
           </div>
         </div>
-
-        <div class="footer">
-          <p style="margin: 0;">© ${new Date().getFullYear()} HIF. All rights reserved.</p>
-          <p style="margin: 5px 0 0 0;">This is an automated email. Please do not reply.</p>
-        </div>
-      </div>
-    </body>
+      </body>
     </html>
   `
 
-  return sendEmail({
-    to: email,
-    subject: `Your Digital Download: ${productName}`,
-    html,
-  })
+  return sendEmail(customerEmail, `Your Digital Download: ${productName}`, htmlContent)
 }

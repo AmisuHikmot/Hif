@@ -4,8 +4,7 @@ import { useState, useCallback } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
-import { ArrowLeft, Download, Plus, Minus } from "lucide-react"
+import { ArrowLeft, Download } from "lucide-react"
 import { addToCart, formatPrice } from "@/lib/shop"
 import type { Product } from "@/lib/shop"
 
@@ -105,51 +104,14 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
       <div className="space-y-4 rounded-lg border border-muted bg-muted/50 p-6">
         <h3 className="font-semibold">Add to Cart</h3>
 
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
-          <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium">Quantity</label>
-            <div className="flex items-center border border-input rounded-lg bg-background">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                disabled={quantity <= 1}
-                className="h-10 w-10 rounded-none"
-              >
-                <Minus className="h-4 w-4" />
-              </Button>
-              <Input
-                type="number"
-                min={1}
-                max={maxQuantity}
-                value={quantity}
-                onChange={(e) => setQuantity(Math.max(1, Math.min(maxQuantity, parseInt(e.target.value) || 1)))}
-                className="h-10 w-20 border-0 text-center"
-              />
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setQuantity(Math.min(maxQuantity, quantity + 1))}
-                disabled={quantity >= maxQuantity}
-                className="h-10 w-10 rounded-none"
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-            <span className="text-xs text-muted-foreground">
-              {product.type === "physical" ? `Max available: ${product.stock}` : "Unlimited stock"}
-            </span>
-          </div>
-
-          <Button
-            size="lg"
-            onClick={handleAddToCart}
-            disabled={isOutOfStock || isAdding}
-            className="w-full sm:w-auto"
-          >
-            {isAdding ? "Adding..." : isOutOfStock ? "Out of Stock" : `Add ${quantity} to Cart`}
-          </Button>
-        </div>
+        <Button
+          size="lg"
+          onClick={handleAddToCart}
+          disabled={isOutOfStock || isAdding}
+          className="w-full"
+        >
+          {isAdding ? "Adding..." : isOutOfStock ? "Out of Stock" : "Add to Cart"}
+        </Button>
 
         <p className="text-xs text-muted-foreground">
           You can review and modify quantities in your shopping cart before checkout.
