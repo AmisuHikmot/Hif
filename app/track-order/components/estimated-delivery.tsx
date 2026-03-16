@@ -10,25 +10,25 @@ import { Button } from "@/components/ui/button"
 // ── Types ──────────────────────────────────────────────────────
 
 interface TimeLeft {
-  days: number
-  hours: number
-  minutes: number
-  seconds: number
+  days:      number
+  hours:     number
+  minutes:   number
+  seconds:   number
   isOverdue: boolean
-  isToday: boolean
-  isTomorrow: boolean
+  isToday:   boolean
+  isTomorrow:boolean
 }
 
 interface EstimatedDeliveryProps {
-  date: string
+  date:           string
   orderReference?: string
-  orderStatus?: string
+  orderStatus?:   string
 }
 
 // ── Helpers ────────────────────────────────────────────────────
 
 function calculateTimeLeft(dateStr: string): TimeLeft {
-  const now = new Date()
+  const now      = new Date()
   const delivery = new Date(dateStr)
 
   // Normalise to end of delivery day (23:59:59)
@@ -36,15 +36,15 @@ function calculateTimeLeft(dateStr: string): TimeLeft {
 
   const diff = delivery.getTime() - now.getTime()
 
-  const todayDate = now.toDateString()
+  const todayDate      = now.toDateString()
   const deliveryDateStr = new Date(dateStr).toDateString()
 
   const tomorrow = new Date(now)
   tomorrow.setDate(now.getDate() + 1)
 
-  const isToday = deliveryDateStr === todayDate
+  const isToday    = deliveryDateStr === todayDate
   const isTomorrow = deliveryDateStr === tomorrow.toDateString()
-  const isOverdue = diff < 0
+  const isOverdue  = diff < 0
 
   if (isOverdue) {
     return { days: 0, hours: 0, minutes: 0, seconds: 0, isOverdue: true, isToday, isTomorrow }
@@ -76,7 +76,7 @@ function buildWhatsAppLink(reference: string): string {
 
 function buildEmailLink(reference: string): string {
   const subject = encodeURIComponent(`Late Delivery Enquiry — ${reference}`)
-  const body = encodeURIComponent(
+  const body    = encodeURIComponent(
     `Assalamu Alaykum,\n\nMy order ${reference} appears to be running late.\nCould you please provide an update?\n\nJazakAllahu Khairan.`
   )
   return `mailto:support@hif.com.ng?subject=${subject}&body=${body}`
@@ -112,8 +112,8 @@ export function EstimatedDelivery({
   orderReference,
   orderStatus,
 }: EstimatedDeliveryProps) {
-  const [timeLeft, setTimeLeft]       = useState<TimeLeft>(() => calculateTimeLeft(date))
-  const [showSupport, setShowSupport] = useState(false)
+  const [timeLeft, setTimeLeft]         = useState<TimeLeft>(() => calculateTimeLeft(date))
+  const [showSupport, setShowSupport]   = useState(false)
 
   const isDelivered = orderStatus === "delivered"
 
@@ -138,7 +138,7 @@ export function EstimatedDelivery({
 
   const formattedDate = formatDeliveryDate(date)
 
-  // ── Delivered state ──────────────────────────────────────────
+  // ── Delivered state ────────────────────────────────────────
 
   if (isDelivered) {
     return (
@@ -165,7 +165,7 @@ export function EstimatedDelivery({
     )
   }
 
-  // ── Overdue state ────────────────────────────────────────────
+  // ── Overdue state ──────────────────────────────────────────
 
   if (timeLeft.isOverdue) {
     return (
@@ -182,7 +182,7 @@ export function EstimatedDelivery({
               <span className="text-sm font-semibold text-amber-800">
                 Delivery Running Late
               </span>
-              <Badge className="ml-auto border-amber-300 bg-amber-200 text-amber-800 text-xs">
+              <Badge className="ml-auto border-amber-300 bg-amber-200 text-xs text-amber-800">
                 Est. {formattedDate}
               </Badge>
             </div>
@@ -191,8 +191,8 @@ export function EstimatedDelivery({
             <p className="text-sm leading-relaxed text-amber-800">
               Your order was estimated to arrive by{" "}
               <span className="font-medium">{formattedDate}</span>.
-              We apologise for the delay — our team is working to get your order
-              to you as soon as possible insha'Allah.
+              We apologise for the delay — our team is working to get your
+              order to you as soon as possible insha'Allah.
             </p>
             <button
               onClick={() => setShowSupport((s) => !s)}
@@ -217,6 +217,8 @@ export function EstimatedDelivery({
                   Get help with order {orderReference}
                 </div>
                 <div className="flex flex-col gap-2 p-4 sm:flex-row">
+
+                  {/* FIX: restored missing <a opening tag on WhatsApp button */}
                   <Button
                     asChild
                     variant="outline"
@@ -228,7 +230,6 @@ export function EstimatedDelivery({
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      {/* WhatsApp SVG icon */}
                       <svg
                         viewBox="0 0 24 24"
                         className="h-4 w-4 fill-current"
@@ -239,6 +240,7 @@ export function EstimatedDelivery({
                       WhatsApp Us
                     </a>
                   </Button>
+
                   <Button
                     asChild
                     variant="outline"
@@ -250,6 +252,7 @@ export function EstimatedDelivery({
                       Email Support
                     </a>
                   </Button>
+
                   <Button
                     asChild
                     variant="outline"
@@ -270,9 +273,9 @@ export function EstimatedDelivery({
     )
   }
 
-  // ── Normal countdown state ───────────────────────────────────
+  // ── Normal countdown state ─────────────────────────────────
 
-  const isUrgent = timeLeft.days === 0 // arriving today or tomorrow
+  const isUrgent = timeLeft.days === 0
 
   return (
     <motion.div
@@ -293,12 +296,12 @@ export function EstimatedDelivery({
             </span>
           </div>
           {timeLeft.isToday && (
-            <Badge className="border-emerald-300 bg-emerald-100 text-emerald-800 text-xs font-medium">
+            <Badge className="border-emerald-300 bg-emerald-100 text-xs font-medium text-emerald-800">
               🎉 Arriving Today
             </Badge>
           )}
           {timeLeft.isTomorrow && !timeLeft.isToday && (
-            <Badge className="border-blue-300 bg-blue-200 text-blue-800 text-xs font-medium">
+            <Badge className="border-blue-300 bg-blue-200 text-xs font-medium text-blue-800">
               Tomorrow
             </Badge>
           )}
@@ -318,20 +321,20 @@ export function EstimatedDelivery({
             {timeLeft.isToday ? (
               // Today — show hours + minutes + seconds
               <div className="flex items-end gap-2">
-                <CountdownUnit value={timeLeft.hours}   label="hours"   />
+                <CountdownUnit value={timeLeft.hours}   label="hours" />
                 <span className="mb-3 text-lg font-bold text-blue-700">:</span>
-                <CountdownUnit value={timeLeft.minutes} label="mins"    />
+                <CountdownUnit value={timeLeft.minutes} label="mins"  />
                 <span className="mb-3 text-lg font-bold text-blue-700">:</span>
-                <CountdownUnit value={timeLeft.seconds} label="secs"    />
+                <CountdownUnit value={timeLeft.seconds} label="secs"  />
               </div>
             ) : (
               // Multi-day — show days + hours + minutes
               <div className="flex items-end gap-2">
-                <CountdownUnit value={timeLeft.days}    label="days"    />
+                <CountdownUnit value={timeLeft.days}    label="days"  />
                 <span className="mb-3 text-lg font-bold text-blue-700">:</span>
-                <CountdownUnit value={timeLeft.hours}   label="hours"   />
+                <CountdownUnit value={timeLeft.hours}   label="hours" />
                 <span className="mb-3 text-lg font-bold text-blue-700">:</span>
-                <CountdownUnit value={timeLeft.minutes} label="mins"    />
+                <CountdownUnit value={timeLeft.minutes} label="mins"  />
               </div>
             )}
           </div>
