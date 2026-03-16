@@ -70,7 +70,7 @@ Complete, production-ready online shop system for selling physical and digital I
 
 #### Promo Code Validation
 **Route**: `POST /api/shop/validate-promo`
-```javascript
+\`\`\`javascript
 // Request
 { code: "PROMO2024" }
 
@@ -82,11 +82,11 @@ Complete, production-ready online shop system for selling physical and digital I
   discountType: "percentage",
   discountValue: 10
 }
-```
+\`\`\`
 
 #### Order Initialization
 **Route**: `POST /api/shop/orders/initialize`
-```javascript
+\`\`\`javascript
 // Request
 {
   items: [{ productId: "uuid", quantity: 1 }],
@@ -105,7 +105,7 @@ Complete, production-ready online shop system for selling physical and digital I
   authorizationUrl: "https://checkout.paystack.com/...",
   accessCode: "..."
 }
-```
+\`\`\`
 
 #### Digital Download
 **Route**: `GET /api/shop/download?token=secure-random-token`
@@ -170,10 +170,10 @@ Complete, production-ready online shop system for selling physical and digital I
 
 ## 📋 Environment Variables Required
 
-```env
+\`\`\`env
 NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY=pk_live_xxxxx
 PAYSTACK_SECRET_KEY=sk_live_xxxxx
-```
+\`\`\`
 
 ## 🎯 Features Implemented
 
@@ -206,14 +206,14 @@ PAYSTACK_SECRET_KEY=sk_live_xxxxx
 
 ## 📱 Pages Navigation
 
-```
+\`\`\`
 /shop                          - Product listing
 /shop/product/[slug]          - Product details
 /cart                          - Shopping cart
 /checkout                      - Checkout form
 /payment/callback?ref=...     - Payment verification
 /shop/order-success?ref=...   - Order confirmation
-```
+\`\`\`
 
 ## 🔧 Database Migrations
 
