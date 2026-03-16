@@ -64,7 +64,7 @@ export function TrackOrderClient() {
 
   const handleSearchByReference = async (searchRef?: string) => {
     const refToSearch = searchRef || reference
-    if (!refToSearch.trim()) {
+    if (!refToSearch || !refToSearch.trim()) {
       setError("Please enter a valid order reference")
       return
     }
