@@ -17,7 +17,12 @@ interface FormData {
   fullName: string
   email: string
   phone: string
-  address: string
+  addressLine: string
+  city: string
+  state: string
+  postalCode: string
+  country: string
+  deliveryMethod: "standard" | "express"
 }
 
 interface PromoCode {
@@ -33,7 +38,12 @@ export function CheckoutClient() {
     fullName: "",
     email: "",
     phone: "",
-    address: "",
+    addressLine: "",
+    city: "",
+    state: "",
+    postalCode: "",
+    country: "Nigeria",
+    deliveryMethod: "standard",
   })
   const [promoCode, setPromoCode] = useState("")
   const [appliedPromo, setAppliedPromo, ] = useState<PromoCode | null>(null)
@@ -54,7 +64,9 @@ export function CheckoutClient() {
 
   // Calculate totals
   const hasPhysical = cartItems.some((item) => item.productType === "physical")
-  const shippingFee = hasPhysical ? 1500 : 0
+  const shippingFee = hasPhysical 
+    ? (formData.deliveryMethod === "standard" ? 1500 : 3000)
+    : 0
   const subtotal = cartItems.reduce((total, item) => total + item.price * item.quantity, 0)
 
   const discountAmount = appliedPromo
@@ -117,8 +129,16 @@ export function CheckoutClient() {
     if (!formData.phone.trim()) {
       newErrors.phone = "Phone number is required"
     }
-    if (hasPhysical && !formData.address.trim()) {
-      newErrors.address = "Delivery address is required"
+    if (hasPhysical) {
+      if (!formData.addressLine.trim()) {
+        newErrors.addressLine = "Address line is required"
+      }
+      if (!formData.city.trim()) {
+        newErrors.city = "City is required"
+      }
+      if (!formData.state.trim()) {
+        newErrors.state = "State is required"
+      }
     }
 
     setErrors(newErrors)
@@ -146,7 +166,10 @@ export function CheckoutClient() {
           customerName: formData.fullName,
           customerEmail: formData.email,
           customerPhone: formData.phone,
-          deliveryAddress: hasPhysical ? formData.address : null,
+          deliveryAddress: hasPhysical 
+            ? `${formData.addressLine}, ${formData.city}, ${formData.state}${formData.postalCode ? ` ${formData.postalCode}` : ''}, ${formData.country}`
+            : null,
+          deliveryMethod: hasPhysical ? formData.deliveryMethod : null,
           promoCodeId: appliedPromo?.id,
         }),
       })
@@ -234,23 +257,114 @@ export function CheckoutClient() {
             </div>
 
             {hasPhysical && (
-              <div>
-                <label className="mb-2 block text-sm font-medium">Delivery Address *</label>
-                <textarea
-                  placeholder="Enter your delivery address"
-                  value={formData.address}
-                  onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  className={`min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm ${
-                    errors.address ? "border-destructive" : "border-input"
-                  }`}
-                />
-                {errors.address && (
-                  <p className="mt-1 text-xs text-destructive">{errors.address}</p>
-                )}
-              </div>
+              <>
+                <div>
+                  <label className="mb-2 block text-sm font-medium">Address Line *</label>
+                  <Input
+                    placeholder="House number, Street name"
+                    value={formData.addressLine}
+                    onChange={(e) => setFormData({ ...formData, addressLine: e.target.value })}
+                    className={errors.addressLine ? "border-destructive" : ""}
+                  />
+                  {errors.addressLine && (
+                    <p className="mt-1 text-xs text-destructive">{errors.addressLine}</p>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="mb-2 block text-sm font-medium">City *</label>
+                    <Input
+                      placeholder="Lagos, Abuja, etc."
+                      value={formData.city}
+                      onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                      className={errors.city ? "border-destructive" : ""}
+                    />
+                    {errors.city && (
+                      <p className="mt-1 text-xs text-destructive">{errors.city}</p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="mb-2 block text-sm font-medium">State *</label>
+                    <Input
+                      placeholder="Lagos, Oyo, etc."
+                      value={formData.state}
+                      onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                      className={errors.state ? "border-destructive" : ""}
+                    />
+                    {errors.state && (
+                      <p className="mt-1 text-xs text-destructive">{errors.state}</p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="mb-2 block text-sm font-medium">Postal Code (Optional)</label>
+                    <Input
+                      placeholder="e.g., 100001"
+                      value={formData.postalCode}
+                      onChange={(e) => setFormData({ ...formData, postalCode: e.target.value })}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-2 block text-sm font-medium">Country</label>
+                    <Input
+                      placeholder="Nigeria"
+                      value={formData.country}
+                      onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+                      disabled
+                    />
+                  </div>
+                </div>
+              </>
             )}
           </div>
         </Card>
+
+        {/* Delivery Method */}
+        {hasPhysical && (
+          <Card className="p-6">
+            <h3 className="mb-4 text-lg font-semibold">Delivery Method</h3>
+            <div className="space-y-3">
+              <label className="flex items-start gap-3 rounded-lg border border-input p-3 cursor-pointer hover:bg-muted"
+                htmlFor="standard">
+                <input
+                  id="standard"
+                  type="radio"
+                  name="delivery"
+                  value="standard"
+                  checked={formData.deliveryMethod === "standard"}
+                  onChange={(e) => setFormData({ ...formData, deliveryMethod: e.target.value as "standard" | "express" })}
+                  className="mt-1"
+                />
+                <div className="flex-1">
+                  <p className="font-medium text-sm">Standard Delivery</p>
+                  <p className="text-xs text-muted-foreground">₦1,500 • 3-5 business days</p>
+                </div>
+              </label>
+
+              <label className="flex items-start gap-3 rounded-lg border border-input p-3 cursor-pointer hover:bg-muted"
+                htmlFor="express">
+                <input
+                  id="express"
+                  type="radio"
+                  name="delivery"
+                  value="express"
+                  checked={formData.deliveryMethod === "express"}
+                  onChange={(e) => setFormData({ ...formData, deliveryMethod: e.target.value as "standard" | "express" })}
+                  className="mt-1"
+                />
+                <div className="flex-1">
+                  <p className="font-medium text-sm">Express Delivery</p>
+                  <p className="text-xs text-muted-foreground">₦3,000 • 1-2 business days</p>
+                </div>
+              </label>
+            </div>
+          </Card>
+        )}
 
         {/* Promo Code */}
         <Card className="p-6">

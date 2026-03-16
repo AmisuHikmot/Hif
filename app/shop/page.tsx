@@ -1,6 +1,7 @@
 import { Metadata } from "next"
 import { createClient } from "@/lib/supabase/server"
 import { ShopClient } from "./shop-client"
+import { CartBanner } from "@/components/shop/cart-banner"
 
 export const metadata: Metadata = {
   title: "Shop | HIF",
@@ -29,7 +30,8 @@ export default async function ShopPage() {
   const products = productsResult.data || []
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background pb-24">
+      <CartBanner />
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h1 className="text-balance text-4xl font-bold tracking-tight text-foreground">

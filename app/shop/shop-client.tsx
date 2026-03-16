@@ -49,9 +49,7 @@ export function ShopClient({ initialProducts, categories }: ShopClientProps) {
         quantity: 1,
         image_url: product.image_url,
       })
-
-      // Show toast notification (optional)
-      alert(`${product.name} added to cart!`)
+      // Cart banner will show automatically via cart-updated event
     },
     []
   )
@@ -116,9 +114,39 @@ export function ShopClient({ initialProducts, categories }: ShopClientProps) {
               onValueChange={(value) => setPriceRange([value[0], value[1]])}
               className="w-full"
             />
-            <div className="mt-2 flex justify-between text-xs text-muted-foreground">
-              <span>{formatPrice(priceRange[0])}</span>
-              <span>{formatPrice(priceRange[1])}</span>
+            <div className="mt-3 space-y-2">
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <label className="text-xs font-medium text-muted-foreground">Min</label>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={priceRange[0]}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value) || 0
+                      setPriceRange([Math.min(val, priceRange[1]), priceRange[1]])
+                    }}
+                    className="mt-1 text-sm"
+                  />
+                </div>
+                <div className="flex-1">
+                  <label className="text-xs font-medium text-muted-foreground">Max</label>
+                  <Input
+                    type="number"
+                    min={0}
+                    value={priceRange[1]}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value) || maxPrice
+                      setPriceRange([priceRange[0], Math.max(val, priceRange[0])])
+                    }}
+                    className="mt-1 text-sm"
+                  />
+                </div>
+              </div>
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>{formatPrice(priceRange[0])}</span>
+                <span>{formatPrice(priceRange[1])}</span>
+              </div>
             </div>
           </div>
         </div>
