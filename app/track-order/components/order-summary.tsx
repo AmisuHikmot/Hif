@@ -73,7 +73,16 @@ export function OrderSummary({
     hour12: true,
   })
 
-  const [city, state] = order.delivery_address ? order.delivery_address.split(",").slice(-2) : ["", ""]
+  // Safely extract city/state from delivery address
+  const getDeliveryLocation = (address: string | null | undefined): string => {
+    if (!address) return ""
+    const parts = address.split(",").map((p) => p.trim()).filter(Boolean)
+    if (parts.length === 0) return ""
+    if (parts.length === 1) return parts[0]
+    return `${parts[parts.length - 2]}, ${parts[parts.length - 1]}`
+  }
+
+  const deliveryLocation = getDeliveryLocation(order.delivery_address)
 
   return (
     <Card className="p-6 sm:p-8">
@@ -128,10 +137,10 @@ export function OrderSummary({
             <p className="text-xl font-bold text-primary">{formatPrice(order.total)}</p>
           </div>
 
-          {order.delivery_address && (
+          {deliveryLocation && (
             <div>
               <p className="text-sm text-muted-foreground mb-1">Delivery Location</p>
-              <p className="font-medium">{city.trim()}, {state.trim()}</p>
+              <p className="font-medium">{deliveryLocation}</p>
             </div>
           )}
 
