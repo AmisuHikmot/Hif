@@ -75,7 +75,7 @@ function getDownloadStatus(
   if (limitReached) {
     return {
       canDownload: false,
-      label: `Download limit reached (${item.max_downloads}/${item.max_downloads})`,
+      label: `Download limit reached (${item.download_count}/${item.max_downloads})`,
       reason: "limit_reached",
     }
   }
@@ -107,26 +107,23 @@ function DownloadButton({
   paymentStatus: string
 }) {
   const [state, setState] = useState<DownloadState>("idle")
-  const { canDownload, label, reason } = getDownloadStatus(item, paymentStatus)
+  const { label, reason } = getDownloadStatus(item, paymentStatus)
 
   const handleDownload = async () => {
     if (!item.download_token || state === "loading") return
     setState("loading")
 
     try {
-      // Token is sent to server — never exposed in the URL
-      const res = await fetch("/api/shop/download", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token: item.download_token }),
-      })
+      // ── UNCHANGED: your original GET pattern ──────────────
+      const res = await fetch(
+        `/api/shop/download?token=${item.download_token}`
+      )
 
       if (!res.ok) {
         const data = await res.json()
         throw new Error(data.error ?? "Download failed")
       }
 
-      // API returns a short-lived signed URL — redirect immediately
       const { url } = await res.json()
       window.location.href = url
 
@@ -143,21 +140,23 @@ function DownloadButton({
     }
   }
 
-  // ── Status indicators for non-downloadable states ──────────
+  // ── Payment pending ────────────────────────────────────────
 
   if (reason === "payment_pending") {
     return (
-      <div className="flex items-center gap-1.5 rounded-md bg-amber-50 px-3 py-2 text-xs text-amber-700 border border-amber-200">
+      <div className="flex items-center gap-1.5 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
         <Clock className="h-3.5 w-3.5 flex-shrink-0" />
         {label}
       </div>
     )
   }
 
+  // ── Expired ────────────────────────────────────────────────
+
   if (reason === "expired") {
     return (
       <div className="space-y-1.5">
-        <div className="flex items-center gap-1.5 rounded-md bg-red-50 px-3 py-2 text-xs text-red-700 border border-red-200">
+        <div className="flex items-center gap-1.5 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
           <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
           {label}
         </div>
@@ -181,10 +180,12 @@ function DownloadButton({
     )
   }
 
+  // ── Limit reached ──────────────────────────────────────────
+
   if (reason === "limit_reached") {
     return (
       <div className="space-y-1.5">
-        <div className="flex items-center gap-1.5 rounded-md bg-slate-50 px-3 py-2 text-xs text-slate-600 border border-slate-200">
+        <div className="flex items-center gap-1.5 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
           <Lock className="h-3.5 w-3.5 flex-shrink-0" />
           {label}
         </div>
@@ -208,7 +209,7 @@ function DownloadButton({
     )
   }
 
-  // ── Available download button ──────────────────────────────
+  // ── Available ──────────────────────────────────────────────
 
   return (
     <div className="space-y-1.5">
@@ -216,19 +217,19 @@ function DownloadButton({
         onClick={handleDownload}
         disabled={state === "loading" || state === "done"}
         size="sm"
-        className="w-full gap-2 bg-emerald-700 hover:bg-emerald-600 text-white"
+        className="w-full gap-2 bg-emerald-700 text-white hover:bg-emerald-600"
       >
         {state === "loading" && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
         {state === "done"    && <CheckCircle2 className="h-3.5 w-3.5" />}
         {state === "idle"    && <Download className="h-3.5 w-3.5" />}
         {state === "error"   && <AlertCircle className="h-3.5 w-3.5" />}
-        {state === "loading" ? "Preparing..." :
-         state === "done"    ? "Downloaded"   :
-         state === "error"   ? "Try Again"    :
+        {state === "loading" ? "Preparing..."  :
+         state === "done"    ? "Downloaded"    :
+         state === "error"   ? "Try Again"     :
                                "Download"}
       </Button>
 
-      {/* Expiry + download count info */}
+      {/* Expiry + usage counter */}
       {item.expires_at && (
         <p className="text-center text-[11px] text-muted-foreground">
           Expires {formatExpiry(item.expires_at)}
@@ -252,8 +253,7 @@ function OrderItemRow({
   index: number
   paymentStatus: string
 }) {
-  const isDigital  = item.product_type === "digital"
-  const isPhysical = item.product_type === "physical"
+  const isDigital = item.product_type === "digital"
 
   return (
     <motion.div
@@ -288,11 +288,11 @@ function OrderItemRow({
           )}
         </div>
 
-        {/* Product details */}
+        {/* Details */}
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div className="min-w-0">
-              <p className="truncate font-semibold text-foreground leading-tight">
+              <p className="truncate font-semibold leading-tight text-foreground">
                 {item.product_name}
               </p>
               <div className="mt-1.5 flex flex-wrap items-center gap-2">
@@ -314,7 +314,10 @@ function OrderItemRow({
 
                 {/* Quantity */}
                 <span className="text-xs text-muted-foreground">
-                  Qty: <span className="font-medium text-foreground">{item.quantity}</span>
+                  Qty:{" "}
+                  <span className="font-medium text-foreground">
+                    {item.quantity}
+                  </span>
                 </span>
 
                 {/* Unit price */}
@@ -375,12 +378,18 @@ export function OrderItems({ items, paymentStatus }: OrderItemsProps) {
           {/* Type summary badges */}
           <div className="flex gap-1.5">
             {hasPhysical && (
-              <Badge variant="outline" className="border-blue-200 bg-blue-50 text-blue-700 text-xs">
+              <Badge
+                variant="outline"
+                className="border-blue-200 bg-blue-50 text-xs text-blue-700"
+              >
                 {physicalItems.length} Physical
               </Badge>
             )}
             {hasDigital && (
-              <Badge variant="outline" className="border-violet-200 bg-violet-50 text-violet-700 text-xs">
+              <Badge
+                variant="outline"
+                className="border-violet-200 bg-violet-50 text-xs text-violet-700"
+              >
                 {digitalItems.length} Digital
               </Badge>
             )}
@@ -399,7 +408,8 @@ export function OrderItems({ items, paymentStatus }: OrderItemsProps) {
             >
               <Download className="mt-0.5 h-4 w-4 flex-shrink-0 text-violet-600" />
               <p>
-                Your digital {digitalItems.length === 1 ? "product is" : "products are"} ready
+                Your digital{" "}
+                {digitalItems.length === 1 ? "product is" : "products are"} ready
                 to download. Links expire 72 hours after payment.
               </p>
             </motion.div>
