@@ -69,10 +69,10 @@ export function TrackOrderClient() {
       return
     }
 
-    // Validate format
-    const refRegex = /^shop-\d{8}-[A-Z0-9]{4,}$/i
+    // Validate format: shop_TIMESTAMP_HEX
+    const refRegex = /^shop_\d{13}_[a-f0-9]{8}$/i
     if (!refRegex.test(refToSearch)) {
-      setError("Please enter a valid HIF shop order reference (e.g., shop-20260316-XXXX)")
+      setError("Please enter a valid HIF shop order reference (e.g., shop_1773663154271_0c5fe5e8)")
       return
     }
 
@@ -179,7 +179,7 @@ export function TrackOrderClient() {
                 <div>
                   <label className="block text-sm font-medium mb-2">Order Reference</label>
                   <Input
-                    placeholder="e.g., shop-20260316-XXXX"
+                    placeholder="e.g., shop_1773663154271_0c5fe5e8"
                     value={reference}
                     onChange={(e) => {
                       setReference(e.target.value)
