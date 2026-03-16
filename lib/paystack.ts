@@ -115,3 +115,77 @@ export async function updatePaystackTransaction(reference: string, status: strin
 export async function getPaystackPublicKey() {
   return PAYSTACK_PUBLIC_KEY
 }
+
+// Shop-specific functions
+export async function initializeShopPayment(params: {
+  email: string
+  amount: number // in NGN (will be converted to kobo)
+  reference: string
+  customer_name: string
+  customer_phone: string
+  orderId: string
+}) {
+  const amountInKobo = params.amount * 100
+
+  const response = await fetch("https://api.paystack.co/transaction/initialize", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      email: params.email,
+      amount: amountInKobo,
+      reference: params.reference,
+      metadata: {
+        type: "shop_order",
+        orderId: params.orderId,
+        customerName: params.customer_name,
+        customerPhone: params.customer_phone,
+      },
+    }),
+  })
+
+  if (!response.ok) {
+    let errorDetails = "Unknown error"
+    try {
+      const errorData = await response.json()
+      errorDetails = errorData.message || errorData.error || JSON.stringify(errorData)
+    } catch {
+      errorDetails = `HTTP ${response.status}: ${response.statusText}`
+    }
+    console.error("[v0] Paystack API error:", {
+      status: response.status,
+      statusText: response.statusText,
+      details: errorDetails,
+    })
+    throw new Error(`Paystack API error: ${errorDetails}`)
+  }
+
+  return response.json()
+}
+
+export async function saveShopOrder(
+  orderId: string,
+  reference: string,
+  amount: number,
+  status: string,
+  authorizationUrl?: string,
+  accessCode?: string,
+) {
+  const supabase = await createClient()
+
+  // Update order with Paystack reference and metadata
+  const { error } = await supabase
+    .from("shop_orders_enhanced")
+    .update({
+      reference,
+      metadata: {
+        paystack_access_code: accessCode,
+        authorization_url: authorizationUrl,
+      },
+    })
+    .eq("id", orderId)
+
+  if (error) throw error
+}

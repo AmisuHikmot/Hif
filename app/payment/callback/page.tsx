@@ -34,12 +34,21 @@ export default function PaymentCallbackPage() {
         })
 
         const data = await response.json()
-        console.log("[v0] Verification response:", { success: data.success, status: data.status })
+        console.log("[v0] Verification response:", { success: data.success, status: data.status, type: data.type })
 
         if (data.success && data.status === "success") {
           setStatus("success")
-          setMessage(data.message || "Payment verified successfully! Your donation has been received.")
+          setMessage(data.message || "Payment verified successfully!")
           setDonationId(data.donationId)
+
+          // Redirect to appropriate success page after 2 seconds
+          setTimeout(() => {
+            if (data.type === "shop_order") {
+              router.push(`/shop/order-success?ref=${reference}`)
+            } else {
+              router.push("/dashboard/donations")
+            }
+          }, 2000)
         } else {
           setStatus("failed")
           setMessage(data.message || "Payment verification failed. Please check your payment status and try again.")

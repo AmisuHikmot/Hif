@@ -66,9 +66,11 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = await createClient()
+    const transactionType = paystackData.metadata?.type || "donation"
     const donationId = paystackData.metadata?.donation_id
+    const orderId = paystackData.metadata?.orderId
 
-    if (donationId) {
+    if (transactionType === "donation" && donationId) {
       console.log("[v0] Updating donation record for:", donationId)
 
       const { error: donationUpdateError } = await supabase
@@ -106,14 +108,26 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({
+    const responseData: any = {
       success: true,
-      message: "Payment verified successfully! Your donation has been received.",
-      donationId,
+      message: transactionType === "shop_order" 
+        ? "Payment verified successfully! Your order is being processed." 
+        : "Payment verified successfully! Your donation has been received.",
       amount: paystackData.amount / 100, // Convert kobo back to NGN
       reference,
       status: "success",
-    })
+      type: transactionType,
+    }
+
+    if (donationId) {
+      responseData.donationId = donationId
+    }
+
+    if (orderId) {
+      responseData.orderId = orderId
+    }
+
+    return NextResponse.json(responseData)
   } catch (error) {
     console.error("[v0] Unexpected error in payment verification:", error)
     return NextResponse.json(
