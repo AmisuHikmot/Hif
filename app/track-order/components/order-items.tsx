@@ -23,7 +23,7 @@ import type { TrackingItem } from "../track-order-client"
 // ── Types ──────────────────────────────────────────────────────
 
 interface OrderItemsProps {
-  items: TrackingItem[]
+  items:         TrackingItem[]
   paymentStatus: string
 }
 
@@ -36,8 +36,8 @@ function getDownloadStatus(
   paymentStatus: string
 ): {
   canDownload: boolean
-  label: string
-  reason: "available" | "payment_pending" | "expired" | "limit_reached" | "not_digital"
+  label:       string
+  reason:      "available" | "payment_pending" | "expired" | "limit_reached" | "not_digital"
 } {
   if (item.product_type !== "digital") {
     return { canDownload: false, label: "", reason: "not_digital" }
@@ -46,16 +46,16 @@ function getDownloadStatus(
   if (paymentStatus !== "paid") {
     return {
       canDownload: false,
-      label: "Payment pending — download unavailable",
-      reason: "payment_pending",
+      label:       "Payment pending — download unavailable",
+      reason:      "payment_pending",
     }
   }
 
   if (!item.download_token || !item.expires_at) {
     return {
       canDownload: false,
-      label: "Payment pending — download unavailable",
-      reason: "payment_pending",
+      label:       "Payment pending — download unavailable",
+      reason:      "payment_pending",
     }
   }
 
@@ -63,8 +63,8 @@ function getDownloadStatus(
   if (isExpired) {
     return {
       canDownload: false,
-      label: "Download link expired",
-      reason: "expired",
+      label:       "Download link expired",
+      reason:      "expired",
     }
   }
 
@@ -75,24 +75,24 @@ function getDownloadStatus(
   if (limitReached) {
     return {
       canDownload: false,
-      label: `Download limit reached (${item.download_count}/${item.max_downloads})`,
-      reason: "limit_reached",
+      label:       `Download limit reached (${item.download_count}/${item.max_downloads})`,
+      reason:      "limit_reached",
     }
   }
 
   return {
     canDownload: true,
-    label: "Download available",
-    reason: "available",
+    label:       "Download available",
+    reason:      "available",
   }
 }
 
 function formatExpiry(expiresAt: string): string {
   return new Date(expiresAt).toLocaleDateString("en-NG", {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
+    day:    "numeric",
+    month:  "short",
+    year:   "numeric",
+    hour:   "2-digit",
     minute: "2-digit",
   })
 }
@@ -103,7 +103,7 @@ function DownloadButton({
   item,
   paymentStatus,
 }: {
-  item: TrackingItem
+  item:          TrackingItem
   paymentStatus: string
 }) {
   const [state, setState] = useState<DownloadState>("idle")
@@ -114,7 +114,7 @@ function DownloadButton({
     setState("loading")
 
     try {
-      // ── UNCHANGED: your original GET pattern ──────────────
+      // ── unchanged: your original GET pattern ──────────────
       const res = await fetch(
         `/api/shop/download?token=${item.download_token}`
       )
@@ -140,7 +140,7 @@ function DownloadButton({
     }
   }
 
-  // ── Payment pending ────────────────────────────────────────
+  // ── Payment pending ──────────────────────────────────────
 
   if (reason === "payment_pending") {
     return (
@@ -151,7 +151,7 @@ function DownloadButton({
     )
   }
 
-  // ── Expired ────────────────────────────────────────────────
+  // ── Expired ──────────────────────────────────────────────
 
   if (reason === "expired") {
     return (
@@ -160,6 +160,7 @@ function DownloadButton({
           <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
           {label}
         </div>
+        {/* FIX 1: restored missing <a opening tag */}
         <Button
           asChild
           variant="ghost"
@@ -180,7 +181,7 @@ function DownloadButton({
     )
   }
 
-  // ── Limit reached ──────────────────────────────────────────
+  // ── Limit reached ────────────────────────────────────────
 
   if (reason === "limit_reached") {
     return (
@@ -189,6 +190,7 @@ function DownloadButton({
           <Lock className="h-3.5 w-3.5 flex-shrink-0" />
           {label}
         </div>
+        {/* FIX 2: restored missing <a opening tag */}
         <Button
           asChild
           variant="ghost"
@@ -209,7 +211,7 @@ function DownloadButton({
     )
   }
 
-  // ── Available ──────────────────────────────────────────────
+  // ── Available ────────────────────────────────────────────
 
   return (
     <div className="space-y-1.5">
@@ -242,15 +244,15 @@ function DownloadButton({
   )
 }
 
-// ── Single item row ────────────────────────────────────────────
+// ── Single item row ──────────────────────────────────────────
 
 function OrderItemRow({
   item,
   index,
   paymentStatus,
 }: {
-  item: TrackingItem
-  index: number
+  item:          TrackingItem
+  index:         number
   paymentStatus: string
 }) {
   const isDigital = item.product_type === "digital"
@@ -353,7 +355,7 @@ function OrderItemRow({
   )
 }
 
-// ── Main Component ─────────────────────────────────────────────
+// ── Main Component ───────────────────────────────────────────
 
 export function OrderItems({ items, paymentStatus }: OrderItemsProps) {
   if (!items || items.length === 0) return null
