@@ -78,10 +78,7 @@ const ORDER_STATUS_CONFIG: Record<
   },
 }
 
-const PAYMENT_STATUS_CONFIG: Record
-  string,
-  { label: string; color: string; icon: React.ReactNode }
-> = {
+const PAYMENT_STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
   paid: {
     label: "Payment Confirmed",
     color: "border-emerald-200 bg-emerald-50 text-emerald-700",

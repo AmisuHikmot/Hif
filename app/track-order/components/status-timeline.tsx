@@ -29,16 +29,7 @@ interface StatusTimelineProps {
 
 // ── Status config ──────────────────────────────────────────────
 
-const STATUS_CONFIG: Record
-  string,
-  {
-    label:     string
-    icon:      React.ReactNode
-    color:     string
-    lineColor: string
-    dotColor:  string
-  }
-> = {
+const STATUS_CONFIG: Record<string, { label: string; icon: React.ReactNode; color: string; lineColor: string; dotColor: string }> = {
   pending: {
     label:     "Order Placed",
     icon:      <ShoppingBag className="h-4 w-4" />,
