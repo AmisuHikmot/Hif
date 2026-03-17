@@ -55,7 +55,7 @@ export default function ContactPage() {
       setIsSuccess(true)
       toast({
         title: "Message sent successfully!",
-        description: "We'll get back to you as soon as possible.",
+        description: "We'll get back to you as soon as possible Insha'Allah.",
       })
       setFormData({
         firstName: "",

@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { updatePaystackTransaction } from "@/lib/paystack"
+import { sendOrderConfirmationEmail, sendDigitalDownloadEmail } from "@/lib/email/send-email"
 import crypto from "crypto"
 
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY
@@ -41,27 +42,72 @@ export async function POST(request: NextRequest) {
 
       // Check transaction type
       if (metadata?.type === "shop_order") {
+        // Fetch order details before updating
+        const { data: orderData } = await supabase
+          .from("shop_orders_enhanced")
+          .select("id, customer_email, customer_name, total, has_digital")
+          .eq("reference", reference)
+          .single()
+
         // Handle shop order payment
         const { error: orderError } = await supabase
           .from("shop_orders_enhanced")
           .update({
             payment_status: "paid",
+            payment_confirmed_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           })
           .eq("reference", reference)
 
         if (!orderError) {
           // If a promo code was used, increment its usage
-          const { data: orderData } = await supabase
-            .from("shop_orders_enhanced")
-            .select("promo_code_id")
-            .eq("reference", reference)
-            .single()
-
           if (orderData?.promo_code_id) {
             await supabase.rpc("shop_increment_promo_usage", {
               p_promo_id: orderData.promo_code_id,
             })
+          }
+
+          // Fetch order items for email
+          const { data: orderItems } = await supabase
+            .from("shop_order_items_enhanced")
+            .select("product_name, quantity, unit_price")
+            .eq("order_id", orderData?.id)
+
+          // Send order confirmation email
+          if (orderData && orderItems) {
+            await sendOrderConfirmationEmail(
+              orderData.customer_email,
+              orderData.customer_name,
+              reference,
+              orderData.total,
+              orderItems.map((item: any) => ({
+                productName: item.product_name,
+                quantity: item.quantity,
+                unitPrice: item.unit_price,
+              })),
+              orderData.has_digital
+            )
+          }
+
+          // If order has digital products, fetch and send download links
+          if (orderData?.has_digital) {
+            const { data: downloads } = await supabase
+              .from("shop_digital_downloads")
+              .select("id, shop_products_enhanced:product_id(name), download_token")
+              .eq("order_id", orderData.id)
+
+            if (downloads && downloads.length > 0) {
+              for (const download of downloads) {
+                const product = (download as any).shop_products_enhanced
+                const downloadLink = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/shop/download?token=${(download as any).download_token}`
+                await sendDigitalDownloadEmail(
+                  orderData.customer_email,
+                  orderData.customer_name,
+                  product?.name || "Your Digital Product",
+                  downloadLink
+                )
+              }
+            }
           }
 
           // Log activity

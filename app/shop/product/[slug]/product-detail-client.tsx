@@ -4,7 +4,6 @@ import { useState, useCallback } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Input } from "@/components/ui/input"
 import { ArrowLeft, Download } from "lucide-react"
 import { addToCart, formatPrice } from "@/lib/shop"
 import type { Product } from "@/lib/shop"
@@ -41,8 +40,7 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
         image_url: product.image_url,
       })
 
-      // Show success message and reset
-      alert(`Added ${quantity} ${quantity === 1 ? "item" : "items"} to cart!`)
+      // Reset quantity after successful add
       setQuantity(1)
     } finally {
       setIsAdding(false)
@@ -105,26 +103,6 @@ export function ProductDetailClient({ product }: ProductDetailClientProps) {
 
       <div className="space-y-4 rounded-lg border border-muted bg-muted/50 p-6">
         <h3 className="font-semibold">Add to Cart</h3>
-
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <label htmlFor="quantity" className="text-sm font-medium">
-              Quantity:
-            </label>
-            <Input
-              id="quantity"
-              type="number"
-              min={1}
-              max={maxQuantity}
-              value={quantity}
-              onChange={(e) => setQuantity(Math.max(1, Math.min(maxQuantity, parseInt(e.target.value) || 1)))}
-              className="w-20"
-            />
-          </div>
-          <span className="text-sm text-muted-foreground">
-            {product.type === "physical" ? `Max: ${product.stock}` : "Unlimited"}
-          </span>
-        </div>
 
         <Button
           size="lg"
