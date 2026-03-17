@@ -73,8 +73,8 @@ function DownloadButton({ item, paymentStatus }: { item: TrackingItem; paymentSt
         </div>
         <a
           href={`mailto:support@hif.com.ng?subject=${encodeURIComponent("Download Extension Request")}&body=${encodeURIComponent(`Assalamu Alaykum,\n\nI would like to request a download extension for:\nProduct: ${item.product_name}\n\nJazakAllahu Khairan.`)}`}
-          className="block w-full rounded-md px-3 py-1.5 text-center text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground"
-        >
+          className="block w-full rounded-md px-3 py-1.5 text-center text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground">
+            
           Request extension →
         </a>
       </div>
