@@ -95,7 +95,7 @@ function MobileStep({ step, state, timestamp, stepIndex, totalSteps }: { step: (
           </div>
         )}
       </div>
-      <div className={`flex-1 pb-5 pt-0.5 ${isActive ? "rounded-lg border border-amber-200 bg-amber-50/50 px-3 py-2 -mt-0.5 mb-2 shadow-sm" : ""}`}>
+      <div className={`flex-1 pb-5 pt-0.5 ${isActive ? "rounded-lg border border-amber-200 bg-amber-50/50 px-3 py-2 -mt-0.5 mb-2 shadow-sm" : ""}`} >
         <div className="flex items-center gap-2 flex-wrap">
           <p className={`text-sm font-semibold ${isPending ? "text-muted-foreground/50" : "text-foreground"}`}>{step.label}</p>
           {isActive && <Badge className="border-amber-200 bg-amber-100 px-1.5 py-0 text-[10px] text-amber-700">Current</Badge>}
@@ -128,16 +128,15 @@ function CancelledState({ order }: { order: TrackingOrder }) {
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
             <a
               href={`mailto:support@hif.com.ng?subject=${encodeURIComponent(`Cancelled Order Enquiry — ${order.reference}`)}&body=${encodeURIComponent(`Assalamu Alaykum,\n\nI have a question about my cancelled order: ${order.reference}\n\nJazakAllahu Khairan.`)}`}
-              className="flex items-center gap-2 rounded-md border border-red-200 bg-white px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50"
-            >
+              className="flex items-center gap-2 rounded-md border border-red-200 bg-white px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-50" >
               <Mail className="h-4 w-4" />Email Support
             </a>
             <a
               href={`https://wa.me/+2349167656667?text=${encodeURIComponent(`Assalamu Alaykum, I have a question about my cancelled order: ${order.reference}`)}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 rounded-md border border-green-200 bg-white px-3 py-2 text-sm font-medium text-green-700 hover:bg-green-50"
-            >
+              className="flex items-center gap-2 rounded-md border border-green-200 bg-white px-3 py-2 text-sm font-medium text-green-700 hover:bg-green-50">
+                
               <MessageCircle className="h-4 w-4" />WhatsApp Us
             </a>
             <a href="tel:+2349167656667" className="flex items-center gap-2 rounded-md border border-border bg-white px-3 py-2 text-sm font-medium text-foreground hover:bg-muted">
