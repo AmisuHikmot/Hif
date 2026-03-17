@@ -69,8 +69,8 @@ export function TrackingResults({ order, onBackClick, onOrderUpdate }: TrackingR
                 <motion.div initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 8 }}>
                   <a
                     href={`mailto:support@hif.com.ng?subject=${encodeURIComponent(`Cancellation Request — ${order.reference}`)}&body=${encodeURIComponent(`Assalamu Alaykum,\n\nI would like to request cancellation of my order: ${order.reference}\n\nJazakAllahu Khairan.`)}`}
-                    className="flex items-center gap-1.5 rounded-md px-3 py-2 text-xs text-muted-foreground hover:bg-muted hover:text-red-600"
-                  >
+                    className="flex items-center gap-1.5 rounded-md px-3 py-2 text-xs text-muted-foreground hover:bg-muted hover:text-red-600">
+                      
                     <AlertTriangle className="h-3.5 w-3.5" />Request Cancellation
                   </a>
                 </motion.div>
