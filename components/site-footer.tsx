@@ -1,11 +1,12 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useToast } from "@/components/ui/use-toast"
 import { createClient } from "@/lib/supabase/client"
 import Link from "next/link"
-import { Mail, Phone, ExternalLink, ArrowRight } from "lucide-react"
+import { Mail, Phone, ExternalLink, ArrowRight, ShoppingCart } from "lucide-react"
+import { getCartItemCount } from "@/lib/shop"
 
 // ─── Social icon SVGs (no external deps) ──────────────────────────────────────
 const XIcon = () => (

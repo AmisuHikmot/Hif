@@ -3,7 +3,6 @@
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { ModeToggle } from "@/components/mode-toggle"
-import { LanguageSwitcher } from "@/components/language-switcher"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,15 +11,16 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
 import {
-  ChevronDown, Menu, Search, X, User, LogOut,
+  ChevronDown, Menu, Search, X, User, LogOut, ShoppingCart,
   LayoutDashboard, Settings, Moon, Bell, BookOpen,
-  Heart, Trophy, Home, Star,
+  Heart, Trophy, Home, Star, Package, Truck,
 } from "lucide-react"
 import { useState, useEffect } from "react"
 import { useLanguage } from "@/contexts/language-context"
 import { useAuth } from "@/contexts/auth-context"
 import { SearchDialog } from "@/components/search/search-dialog"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { getCartItemCount } from "@/lib/shop"
 
 // ─── Nav data ─────────────────────────────────────────────────────────────────
 const NAV_GROUPS = [
@@ -33,16 +33,6 @@ const NAV_GROUPS = [
       { href: "/about/executives",   label: "Executives"        },
       { href: "/about/past-leaders", label: "Past Leaders"      },
       { href: "/about/branches",     label: "Branches"          },
-    ],
-  },
-  {
-    label: "nav.focus",
-    links: [
-      { href: "/focus",                label: "Overview"         },
-      { href: "/focus/ramadan-tafsir", label: "Ramadan Tafsir"  },
-      { href: "/focus/lectures",       label: "Lectures"         },
-      { href: "/focus/training",       label: "Training"         },
-      { href: "/focus/advocacy",       label: "Advocacy"         },
     ],
   },
   {
@@ -81,6 +71,13 @@ const STANDALONE = [
   { key: "nav.events",  href: "/events"     },
   { key: "nav.donate",  href: "/donate"     },
   { key: "nav.contact", href: "/contact-us" },
+]
+
+// Shop dropdown menu
+const SHOP_LINKS = [
+  { href: "/shop",        icon: Package,     label: "Shop Home"   },
+  { href: "/cart",        icon: ShoppingCart, label: "Shopping Cart" },
+  { href: "/track-order", icon: Truck,       label: "Track Order"  },
 ]
 
 // Ramadan sub-links — register is marked hot
@@ -356,6 +353,7 @@ export function SiteHeader() {
   const [mobileOpen,   setMobileOpen]   = useState(false)
   const [searchOpen,   setSearchOpen]   = useState(false)
   const [scrolled,     setScrolled]     = useState(false)
+  const [cartCount,    setCartCount]    = useState(0)
   const pathname = usePathname()
   const router   = useRouter()
 
@@ -365,6 +363,18 @@ export function SiteHeader() {
     const fn = () => setScrolled(window.scrollY > 6)
     window.addEventListener("scroll", fn, { passive: true })
     return () => window.removeEventListener("scroll", fn)
+  }, [])
+
+  // Update cart count on mount and when cart changes
+  useEffect(() => {
+    setCartCount(getCartItemCount())
+    
+    const handleCartUpdate = () => {
+      setCartCount(getCartItemCount())
+    }
+
+    window.addEventListener("cart-updated", handleCartUpdate)
+    return () => window.removeEventListener("cart-updated", handleCartUpdate)
   }, [])
 
   // Close sidebar on navigation
@@ -468,6 +478,29 @@ export function SiteHeader() {
               </DropdownMenuContent>
             </DropdownMenu>
 
+            {/* Shop dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-800 transition-all outline-none">
+                  Shop
+                  <ChevronDown className="w-3.5 h-3.5 opacity-50" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-52 p-1.5">
+                {SHOP_LINKS.map((link) => {
+                  const Icon = link.icon
+                  return (
+                    <DropdownMenuItem key={link.href} asChild>
+                      <Link href={link.href} className="flex items-center gap-2 px-2.5 py-2 rounded-md text-sm cursor-pointer">
+                        <Icon className="w-4 h-4 opacity-60" />
+                        {link.label}
+                      </Link>
+                    </DropdownMenuItem>
+                  )
+                })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             {/* Standalone links */}
             {STANDALONE.map((l) => (
               <Link
@@ -490,7 +523,21 @@ export function SiteHeader() {
               <Search className="w-4 h-4" />
             </button>
 
-            <LanguageSwitcher />
+            {/* Cart icon with badge */}
+            <Link href="/cart">
+              <button
+                className="relative h-9 w-9 rounded-lg flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-slate-800 transition-all"
+                aria-label="Shopping cart"
+              >
+                <ShoppingCart className="w-4 h-4" />
+                {cartCount > 0 && (
+                  <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-emerald-600 text-white text-xs font-bold flex items-center justify-center">
+                    {cartCount > 9 ? "9+" : cartCount}
+                  </span>
+                )}
+              </button>
+            </Link>
+
             <ModeToggle />
 
             {/* Auth */}
@@ -687,6 +734,29 @@ export function SiteHeader() {
               ))}
             </MobileSection>
           ))}
+
+          {/* Shop section */}
+          <MobileSection title="Shop">
+            {SHOP_LINKS.map((link) => {
+              const Icon = link.icon
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setMobileOpen(false)}
+                  className="flex items-center gap-2 px-2 py-2 rounded-lg text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-slate-800 transition-all"
+                >
+                  <Icon className="w-4 h-4 opacity-60" />
+                  {link.label}
+                  {link.label === "Shopping Cart" && cartCount > 0 && (
+                    <span className="ml-auto text-xs font-bold bg-emerald-600 text-white px-2 py-0.5 rounded-full">
+                      {cartCount}
+                    </span>
+                  )}
+                </Link>
+              )
+            })}
+          </MobileSection>
 
           {/* Standalone links */}
           <div className="flex flex-col gap-0.5 pt-1">
