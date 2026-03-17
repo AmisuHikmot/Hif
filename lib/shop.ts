@@ -50,15 +50,26 @@ export interface PromoCode {
   discount_value: number
 }
 
-// Format price as Naira
-export function formatPrice(amount: number | string): string {
+// Format price as Naira - FIXED: Added safety checks for undefined/null/NaN
+export function formatPrice(amount: number | string | null | undefined): string {
+  if (amount === null || amount === undefined || amount === "") {
+    return "₦0.00"
+  }
+
   const num = typeof amount === "string" ? parseFloat(amount) : amount
-  return `₦${num.toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+
+  if (isNaN(num as number)) {
+    return "₦0.00"
+  }
+
+  return `₦${num!.toLocaleString("en-NG", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
-// Format price without currency symbol
-export function formatPriceNumber(amount: number | string): number {
+// Format price without currency symbol - FIXED: Added safety checks
+export function formatPriceNumber(amount: number | string | null | undefined): number {
+  if (amount === null || amount === undefined || amount === "") return 0
   const num = typeof amount === "string" ? parseFloat(amount) : amount
+  if (isNaN(num)) return 0
   return Math.round(num * 100) / 100
 }
 
@@ -115,7 +126,7 @@ export function clearCart(): void {
 }
 
 export function getCartTotal(): number {
-  return getCart().reduce((total, item) => total + item.price * item.quantity, 0)
+  return getCart().reduce((total, item) => total + (item.price || 0) * item.quantity, 0)
 }
 
 export function getCartItemCount(): number {
