@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Search, Mail, AlertCircle, Wifi, WifiOff } from "lucide-react"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import { createBrowserClient } from '@supabase/ssr'
 import { toast } from "sonner"
 import { motion, AnimatePresence } from "framer-motion"
 import { TrackingResults } from "./components/tracking-results"
