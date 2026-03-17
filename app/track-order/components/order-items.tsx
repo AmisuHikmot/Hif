@@ -89,8 +89,8 @@ function DownloadButton({ item, paymentStatus }: { item: TrackingItem; paymentSt
         </div>
         <a
           href={`mailto:support@hif.com.ng?subject=${encodeURIComponent("Download Limit Reset Request")}&body=${encodeURIComponent(`Assalamu Alaykum,\n\nI have reached the download limit for:\nProduct: ${item.product_name}\n\nCould you please assist?\n\nJazakAllahu Khairan.`)}`}
-          className="block w-full rounded-md px-3 py-1.5 text-center text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground"
-        >
+          className="block w-full rounded-md px-3 py-1.5 text-center text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground">
+
           Contact support →
         </a>
       </div>
@@ -102,8 +102,8 @@ function DownloadButton({ item, paymentStatus }: { item: TrackingItem; paymentSt
       <button
         onClick={handleDownload}
         disabled={state === "loading" || state === "done"}
-        className="flex w-full items-center justify-center gap-2 rounded-md bg-emerald-700 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-600 disabled:opacity-60"
-      >
+        className="flex w-full items-center justify-center gap-2 rounded-md bg-emerald-700 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-600 disabled:opacity-60">
+        
         {state === "loading" && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
         {state === "done" && <CheckCircle2 className="h-3.5 w-3.5" />}
         {state === "idle" && <Download className="h-3.5 w-3.5" />}
