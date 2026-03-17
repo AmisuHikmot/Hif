@@ -109,7 +109,7 @@ const REF_REGEX = /^shop_\d{13}_[a-f0-9]{8}$/i
 export function TrackOrderClient() {
   const searchParams = useSearchParams()
   const router = useRouter()
-  const supabase = createClientComponentClient()
+  const supabase = createBrowserClient()
   const realtimeChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null)
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
