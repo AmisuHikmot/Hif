@@ -218,14 +218,13 @@ export function EstimatedDelivery({
                 </div>
                 <div className="flex flex-col gap-2 p-4 sm:flex-row">
 
-                  {/* FIX: restored missing <a opening tag on WhatsApp button */}
                   <Button
                     asChild
                     variant="outline"
                     size="sm"
                     className="flex-1 gap-2 border-green-300 text-green-700 hover:bg-green-50"
-                   >
-                    
+                  >
+                    <a
                       href={buildWhatsAppLink(orderReference)}
                       target="_blank"
                       rel="noopener noreferrer"

@@ -42,7 +42,7 @@ interface OrderSummaryProps {
 
 // ── Status config ──────────────────────────────────────────────
 
-const ORDER_STATUS_CONFIG: Record
+const ORDER_STATUS_CONFIG: Record<
   string,
   { label: string; color: string; icon: React.ReactNode }
 > = {

@@ -160,14 +160,13 @@ function DownloadButton({
           <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
           {label}
         </div>
-        {/* FIX 1: restored missing <a opening tag */}
         <Button
           asChild
           variant="ghost"
           size="sm"
           className="h-auto w-full px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground"
         >
-          
+          <a
             href={`mailto:support@hif.com.ng?subject=${encodeURIComponent(
               "Download Extension Request"
             )}&body=${encodeURIComponent(
@@ -190,14 +189,13 @@ function DownloadButton({
           <Lock className="h-3.5 w-3.5 flex-shrink-0" />
           {label}
         </div>
-        {/* FIX 2: restored missing <a opening tag */}
         <Button
           asChild
           variant="ghost"
           size="sm"
           className="h-auto w-full px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground"
         >
-          
+          <a
             href={`mailto:support@hif.com.ng?subject=${encodeURIComponent(
               "Download Limit Reset Request"
             )}&body=${encodeURIComponent(
