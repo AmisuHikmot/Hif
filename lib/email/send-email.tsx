@@ -37,15 +37,23 @@ export async function sendOrderConfirmationEmail(
 ) {
   const itemsHtml = items
     .map(
-      (item) =>
-        `<tr>
-          <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${item.productName}</td>
-          <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; text-align: center;">${item.quantity}</td>
-          <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; text-align: right;">₦${(item.unitPrice / 100).toLocaleString("en-NG", { minimumFractionDigits: 2 })}</td>
-          <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; text-align: right;">₦${((item.unitPrice * item.quantity) / 100).toLocaleString("en-NG", { minimumFractionDigits: 2 })}</td>
+      (item) => {
+        // Safety check for prices
+        const unitPrice = item.unitPrice || 0;
+        const quantity = item.quantity || 0;
+        const subtotal = (unitPrice * quantity) / 100;
+
+        return `<tr>
+          <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${item.productName || 'Product'}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; text-align: center;">${quantity}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; text-align: right;">₦${(unitPrice / 100).toLocaleString("en-NG", { minimumFractionDigits: 2 })}</td>
+          <td style="padding: 8px; border-bottom: 1px solid #e5e7eb; text-align: right;">₦${subtotal.toLocaleString("en-NG", { minimumFractionDigits: 2 })}</td>
         </tr>`
+      }
     )
     .join("")
+
+  const safeTotal = (totalAmount || 0) / 100;
 
   const htmlContent = `
     <!DOCTYPE html>
@@ -64,7 +72,7 @@ export async function sendOrderConfirmationEmail(
           table { width: 100%; border-collapse: collapse; margin: 15px 0; }
           table th { background: #f3f4f6; padding: 8px; text-align: left; font-weight: bold; border-bottom: 2px solid #e5e7eb; }
           .footer { text-align: center; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #666; font-size: 12px; }
-          .button { display: inline-block; padding: 10px 20px; background: #064e3b; color: white; text-decoration: none; border-radius: 4px; margin: 10px 0; }
+          .button { display: inline-block; padding: 10px 20px; background: #064e3b; color: white !important; text-decoration: none; border-radius: 4px; margin: 10px 0; }
         </style>
       </head>
       <body>
@@ -77,11 +85,11 @@ export async function sendOrderConfirmationEmail(
           <div class="content">
             <p>Assalamu alaykum wa rahmatullahi wa barakatuh,</p>
             
-            <p>Thank you <span class="label">${customerName}</span>, your order has been confirmed and payment has been received.</p>
+            <p>Thank you <span class="label">${customerName || 'Customer'}</span>, your order has been confirmed and payment has been received.</p>
 
             <div class="order-info">
-              <p><span class="label">Order Reference:</span> ${orderReference}</p>
-              <p><span class="label">Total Amount:</span> ₦${(totalAmount / 100).toLocaleString("en-NG", { minimumFractionDigits: 2 })}</p>
+              <p><span class="label">Order Reference:</span> ${orderReference || 'N/A'}</p>
+              <p><span class="label">Total Amount:</span> ₦${safeTotal.toLocaleString("en-NG", { minimumFractionDigits: 2 })}</p>
               <p><span class="label">Order Date:</span> ${new Date().toLocaleDateString("en-NG")}</p>
             </div>
 
@@ -145,7 +153,7 @@ export async function sendDigitalDownloadEmail(
           .header h1 { margin: 0; color: #064e3b; }
           .content { padding: 20px 0; }
           .download-box { background: #ecfdf5; border: 2px solid #064e3b; padding: 20px; border-radius: 8px; text-align: center; margin: 20px 0; }
-          .button { display: inline-block; padding: 12px 30px; background: #064e3b; color: white; text-decoration: none; border-radius: 4px; font-weight: bold; margin: 10px 0; }
+          .button { display: inline-block; padding: 12px 30px; background: #064e3b; color: white !important; text-decoration: none; border-radius: 4px; font-weight: bold; margin: 10px 0; }
           .footer { text-align: center; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #666; font-size: 12px; }
           .warning { color: #d97706; font-size: 12px; margin-top: 10px; }
         </style>
@@ -160,7 +168,7 @@ export async function sendDigitalDownloadEmail(
           <div class="content">
             <p>Assalamu alaykum wa rahmatullahi wa barakatuh,</p>
             
-            <p>Your digital product <span style="font-weight: bold; color: #064e3b;">${productName}</span> is ready for download!</p>
+            <p>Your digital product <span style="font-weight: bold; color: #064e3b;">${productName || 'Digital Item'}</span> is ready for download!</p>
 
             <div class="download-box">
               <p style="margin: 0 0 15px 0;">Click the button below to download your product:</p>
