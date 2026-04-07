@@ -4,8 +4,34 @@ import { ShopClient } from "./shop-client"
 import { CartBanner } from "@/components/shop/cart-banner"
 
 export const metadata: Metadata = {
-  title: "Shop | HIF",
-  description: "Browse and purchase Islamic books, resources, and digital products",
+  title: "Islamic Shop | Books, Resources & Digital Products | Hamduk Islamic Foundation",
+  description: "Shop our curated collection of Islamic books, educational resources, and digital products. Support Islamic education and knowledge dissemination through HIF's online store.",
+  keywords: [
+    "Islamic books",
+    "Islamic resources",
+    "Digital Islamic products",
+    "Islamic education materials",
+    "Quranic resources",
+    "Islamic learning",
+    "HIF shop",
+  ],
+  openGraph: {
+    title: "Islamic Shop | Hamduk Islamic Foundation",
+    description: "Browse and purchase authentic Islamic books and resources to support your faith journey.",
+    url: "https://www.hif.com.ng/shop",
+    type: "website",
+    images: [
+      {
+        url: "https://www.hif.com.ng/islamic-program.png",
+        width: 1200,
+        height: 630,
+        alt: "Islamic Shop - HIF",
+      },
+    ],
+  },
+  alternates: {
+    canonical: "https://www.hif.com.ng/shop",
+  },
 }
 
 export default async function ShopPage() {
