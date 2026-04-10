@@ -844,7 +844,6 @@ export function SiteHeader() {
             {/* Theme + language */}
             <div className="flex items-center gap-2 mt-3 px-1">
               <ModeToggle />
-              <LanguageSwitcher />
             </div>
           </div>
 
