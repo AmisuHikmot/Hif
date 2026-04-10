@@ -4,13 +4,34 @@ import { TrackOrderClient } from "./track-order-client"
 import { Package, Search } from "lucide-react"
 
 export const metadata: Metadata = {
-  title: "Track Your Order | Hamduk Islamic Foundation",
+  title: "Track Your Order | Real-Time Order Tracking | Hamduk Islamic Foundation",
   description:
-    "Track your HIF shop order in real time. See live delivery status, download digital products, and get updates at every step.",
+    "Track your HIF shop order in real time. See live delivery status, download digital Islamic products, and get instant updates at every step of your purchase.",
+  keywords: [
+    "order tracking",
+    "delivery status",
+    "HIF shop orders",
+    "order updates",
+    "Islamic shop",
+    "order reference",
+    "real-time tracking",
+  ],
   openGraph: {
-    title: "Track Your Order | HIF Shop",
-    description: "Live order tracking for HIF shop customers.",
+    title: "Track Your Order | Hamduk Islamic Foundation",
+    description: "Real-time order tracking for HIF shop customers. Monitor your delivery status instantly.",
     url: "https://www.hif.com.ng/track-order",
+    type: "website",
+    images: [
+      {
+        url: "https://www.hif.com.ng/islamic-gathering.png",
+        width: 1200,
+        height: 630,
+        alt: "Order Tracking - HIF Shop",
+      },
+    ],
+  },
+  alternates: {
+    canonical: "https://www.hif.com.ng/track-order",
   },
 }
 

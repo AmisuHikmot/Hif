@@ -3,8 +3,18 @@ import Link from "next/link"
 import { ShoppingCartClient } from "./shopping-cart-client"
 
 export const metadata: Metadata = {
-  title: "Shopping Cart | HIF",
-  description: "Review and manage your shopping cart",
+  title: "Shopping Cart | Hamduk Islamic Foundation Shop",
+  description: "Review and manage your shopping cart. Proceed to checkout for Islamic books and resources from HIF.",
+  keywords: ["shopping cart", "checkout", "Islamic books", "HIF shop", "online store"],
+  openGraph: {
+    title: "Shopping Cart | Hamduk Islamic Foundation",
+    description: "Review your selected Islamic books and products before checkout.",
+    url: "https://www.hif.com.ng/cart",
+    type: "website",
+  },
+  alternates: {
+    canonical: "https://www.hif.com.ng/cart",
+  },
 }
 
 export default function CartPage() {

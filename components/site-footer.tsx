@@ -1,11 +1,12 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useToast } from "@/components/ui/use-toast"
 import { createClient } from "@/lib/supabase/client"
 import Link from "next/link"
-import { Mail, Phone, ExternalLink, ArrowRight } from "lucide-react"
+import { Mail, Phone, ExternalLink, ArrowRight, ShoppingCart } from "lucide-react"
+import { getCartItemCount } from "@/lib/shop"
 
 // ─── Social icon SVGs (no external deps) ──────────────────────────────────────
 const XIcon = () => (
@@ -59,13 +60,13 @@ const FOOTER_COLS = [
     ],
   },
   {
-    title: "Programmes",
+    title: "Our Focus",
     links: [
       { label: "Ramadan Tafsir",  href: "/focus/ramadan-tafsir"         },
+      { label: "Lectures",        href: "/focus/lectures"               },
       { label: "Training",        href: "/focus/training"               },
       { label: "Advocacy",        href: "/focus/advocacy"               },
-      { label: "Conferences",     href: "/conference/islam-in-nigeria"  },
-      { label: "Events",          href: "/events"                       },
+      { label: "Overview",        href: "/focus"                        },
     ],
   },
   {
@@ -79,13 +80,14 @@ const FOOTER_COLS = [
     ],
   },
   {
-    title: "Resources",
+    title: "Shop & Resources",
     links: [
+      { label: "Shop",            href: "/shop"                    },
+      { label: "Shopping Cart",   href: "/cart"                    },
+      { label: "Track Order",     href: "/track-order"             },
       { label: "Media Gallery",   href: "/media/gallery"           },
-      { label: "Videos",          href: "/media/videos"            },
       { label: "Research Papers", href: "/publications/papers"     },
       { label: "Journals",        href: "/publications/journals"   },
-      { label: "Contact Us",      href: "/contact-us"              },
     ],
   },
 ]
@@ -99,7 +101,20 @@ const Dot = () => (
 export function SiteFooter() {
   const [email,     setEmail]     = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [cartCount, setCartCount] = useState(0)
   const { toast } = useToast()
+
+  // Update cart count on mount and listen for changes
+  useEffect(() => {
+    setCartCount(getCartItemCount())
+    
+    const handleCartUpdate = () => {
+      setCartCount(getCartItemCount())
+    }
+
+    window.addEventListener("cart-updated", handleCartUpdate)
+    return () => window.removeEventListener("cart-updated", handleCartUpdate)
+  }, [])
 
   const handleNewsletterSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -421,6 +436,20 @@ export function SiteFooter() {
                 Designed by Hamduk Digital Hub
               </a>
             </p>
+
+            {/* Middle: quick shop link */}
+            <Link
+              href="/cart"
+              className="relative inline-flex items-center justify-center h-8 w-8 rounded-lg text-slate-400 hover:text-emerald-400 hover:bg-emerald-950/30 transition-all"
+              title="Shopping Cart"
+            >
+              <ShoppingCart className="w-4 h-4" />
+              {cartCount > 0 && (
+                <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-emerald-600 text-white text-xs font-bold flex items-center justify-center">
+                  {cartCount > 9 ? "9+" : cartCount}
+                </span>
+              )}
+            </Link>
 
             {/* Right: legal links */}
             <nav className="flex items-center gap-1 text-xs text-slate-600 flex-wrap justify-center">
