@@ -1,0 +1,62 @@
+# Robots.txt for Hamduk Islamic Foundation
+# This file helps search engines crawl and index the website efficiently
+
+# Allow all bots by default
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /api/
+Disallow: /auth/callback
+Disallow: /auth/verify-2fa
+Disallow: /auth/setup-2fa
+Disallow: /auth/verify-email
+Disallow: /auth/reset-password
+Disallow: /auth/forgot-password
+Disallow: /payment/
+Disallow: /dashboard/
+Disallow: /_next/
+Disallow: /.git/
+
+# Specific rules for Googlebot
+User-agent: Googlebot
+Allow: /
+
+# Specific rules for Bingbot
+User-agent: Bingbot
+Allow: /
+
+# Specific rules for other crawlers
+User-agent: *
+Allow: /sitemap.xml
+
+# Crawl delay for slower bots (in seconds)
+Crawl-delay: 1
+
+# Request rate limiting
+User-agent: *
+Request-rate: 1/10s
+
+# Sitemap location
+Sitemap: https://www.hif.com.ng/sitemap.xml
+
+# Block bad bots known for aggressive crawling
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+
+# Allow search engines to index images and stylesheets
+User-agent: *
+Allow: *.jpg$
+Allow: *.jpeg$
+Allow: *.png$
+Allow: *.gif$
+Allow: *.css$
+Allow: *.js$
