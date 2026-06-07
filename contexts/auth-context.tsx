@@ -50,6 +50,20 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
+async function syncServerSession(session: Session | null) {
+  if (!session) return
+
+  const response = await fetch("/api/auth/callback", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ session }),
+  })
+
+  if (!response.ok) {
+    throw new Error("Unable to sync authenticated session")
+  }
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<UserProfile | null>(null)
@@ -152,9 +166,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { error: new Error(error.message) }
       }
 
+      await syncServerSession(data.session)
       console.log("[v0] Sign in successful")
-      // DON'T set session/user/fetch profile here
-      // Let onAuthStateChange handle it
+      setSession(data.session ?? null)
+      setUser(data.user ?? null)
+
+      if (data.user) {
+        await fetchProfile(data.user.id)
+      }
       
       return { error: null }
     } catch (err) {
@@ -187,6 +206,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!createdUser) {
       return { error: new Error("Signup succeeded but no user returned") }
     }
+
+    await syncServerSession(data.session)
 
     const { error: profileError } = await supabase.from("profiles").upsert(
       {

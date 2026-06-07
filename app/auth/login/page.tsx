@@ -36,7 +36,8 @@ export default function LoginPage() {
       console.log("[v0] User authenticated, profile loaded:", !!profile)
       console.log("[v0] Redirecting to:", redirectPath)
       setHasRedirected(true)
-      router.push(redirectPath)
+      router.replace(redirectPath)
+      router.refresh()
     }
   }, [isAuthenticated, authLoading, profile, router, redirectPath, hasRedirected])
 
@@ -55,7 +56,8 @@ export default function LoginPage() {
         setIsSigningIn(false)
       } else {
         console.log("[v0] Login successful")
-        // useEffect will handle redirect
+        router.replace(redirectPath)
+        router.refresh()
       }
     } catch (err) {
       console.error("[v0] Unexpected login error:", err)
@@ -113,7 +115,7 @@ export default function LoginPage() {
           <Tabs defaultValue="email" className="w-full">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="email">Email</TabsTrigger>
-              <TabsTrigger value="phone">Phone</TabsTrigger>
+              <TabsTrigger value="phone" disabled>Phone</TabsTrigger>
             </TabsList>
             <TabsContent value="email">
               <form onSubmit={handleLogin} className="space-y-4 pt-4">
@@ -177,7 +179,10 @@ export default function LoginPage() {
               </form>
             </TabsContent>
             <TabsContent value="phone">
-              <form onSubmit={handleLogin} className="space-y-4 pt-4">
+              <div className="space-y-4 pt-4">
+                <Alert>
+                  <AlertDescription>Phone sign in is not enabled yet. Please use email and password.</AlertDescription>
+                </Alert>
                 <div className="space-y-2">
                   <Label htmlFor="phone">Phone Number</Label>
                   <Input id="phone" type="tel" placeholder="+234 XXX XXX XXXX" required disabled={isSigningIn} />
@@ -221,7 +226,7 @@ export default function LoginPage() {
                 <Button type="submit" className="w-full" disabled={isSigningIn}>
                   {isSigningIn ? "Signing in..." : "Sign in"}
                 </Button>
-              </form>
+              </div>
             </TabsContent>
           </Tabs>
 

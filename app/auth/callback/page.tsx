@@ -33,6 +33,18 @@ export default function AuthCallbackPage() {
 
         console.log("[v0] Session established, user ID:", session.user.id)
 
+        const syncResponse = await fetch("/api/auth/callback", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ session }),
+        })
+
+        if (!syncResponse.ok) {
+          console.error("[v0] Failed to sync server session")
+          router.push("/auth/login?error=session_sync_failed")
+          return
+        }
+
         // Give the database trigger a moment to create the profile
         // (usually happens instantly, but just to be safe)
         await new Promise((resolve) => setTimeout(resolve, 500))
@@ -54,7 +66,8 @@ export default function AuthCallbackPage() {
         }
 
         console.log("[v0] Redirecting to dashboard")
-        router.push("/dashboard")
+        router.replace("/dashboard")
+        router.refresh()
       } catch (err) {
         console.error("[v0] Auth callback error:", err)
         router.push("/auth/login?error=callback_error")
