@@ -3,7 +3,7 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useSearchParams } from "next/navigation"
 import { Eye, EyeOff, Mail, Lock, Chrome, Apple } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -16,7 +16,6 @@ import { useAuth } from "@/contexts/auth-context"
 import { signInWithOAuth } from "@/lib/auth/oauth"
 
 export default function LoginPage() {
-  const router = useRouter()
   const searchParams = useSearchParams()
   const { isAuthenticated, isLoading: authLoading, profile, syncCurrentSession } = useAuth()
 
@@ -28,7 +27,14 @@ export default function LoginPage() {
   const [password, setPassword] = useState("")
   const [hasRedirected, setHasRedirected] = useState(false)
 
-  const redirectPath = searchParams.get("redirect") || "/dashboard"
+  const requestedRedirect = searchParams.get("redirect")
+  const redirectPath =
+    requestedRedirect &&
+    requestedRedirect.startsWith("/") &&
+    requestedRedirect !== "/" &&
+    !requestedRedirect.startsWith("/auth")
+      ? requestedRedirect
+      : "/dashboard"
 
   useEffect(() => {
     if (!isAuthenticated || authLoading || hasRedirected || isSigningIn) return

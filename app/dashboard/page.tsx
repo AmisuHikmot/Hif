@@ -22,13 +22,61 @@ async function getDashboardData(userId: string) {
 
   try {
     console.log("[Dashboard] Starting data fetch for user:", userId)
-    
-    // Get user profile - use maybeSingle to avoid errors if not found
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", userId)
-      .maybeSingle()
+
+    const currentYear = new Date().getFullYear()
+
+    const [
+      profileResult,
+      membershipResult,
+      registrationsResult,
+      donationsResult,
+      yearlyDonationsResult,
+      allDonationsResult,
+      activitiesResult,
+      notificationsResult,
+      upcomingEventsResult,
+      eventAttendanceResult,
+    ] = await Promise.all([
+      supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
+      supabase
+        .from("memberships")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      supabase
+        .from("event_registrations")
+        .select("*, events(*)")
+        .eq("user_id", userId)
+        .order("registration_date", { ascending: false })
+        .limit(5),
+      supabase.from("donations").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(5),
+      supabase
+        .from("donations")
+        .select("amount")
+        .eq("user_id", userId)
+        .gte("created_at", `${currentYear}-01-01`)
+        .eq("payment_status", "completed"),
+      supabase.from("donations").select("amount").eq("user_id", userId).eq("payment_status", "completed"),
+      supabase.from("activity_logs").select("*").eq("user_id", userId).order("created_at", { ascending: false }).limit(5),
+      supabase
+        .from("notifications")
+        .select("*")
+        .eq("user_id", userId)
+        .eq("is_read", false)
+        .order("created_at", { ascending: false })
+        .limit(5),
+      supabase
+        .from("events")
+        .select("*")
+        .gte("event_date", new Date().toISOString().split("T")[0])
+        .order("event_date", { ascending: true })
+        .limit(3),
+      supabase.from("event_registrations").select("id").eq("user_id", userId).eq("attendance_status", "attended"),
+    ])
+
+    const { data: profile, error: profileError } = profileResult
 
     if (profileError) {
       console.error("[Dashboard] Profile fetch error:", profileError.message)
@@ -36,115 +84,59 @@ async function getDashboardData(userId: string) {
       console.log("[Dashboard] Profile fetched:", profile?.email)
     }
 
-    // Get membership info - use maybeSingle instead of single
-    const { data: membership, error: membershipError } = await supabase
-      .from("memberships")
-      .select("*")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle()
+    const { data: membership, error: membershipError } = membershipResult
 
     if (membershipError) {
       console.error("[Dashboard] Membership fetch error:", membershipError.message)
     }
 
-    // Get user's event registrations
-    const { data: registrations, error: registrationsError } = await supabase
-      .from("event_registrations")
-      .select("*, events(*)")
-      .eq("user_id", userId)
-      .order("registration_date", { ascending: false })
-      .limit(5)
+    const { data: registrations, error: registrationsError } = registrationsResult
 
     if (registrationsError) {
       console.error("[Dashboard] Registrations fetch error:", registrationsError.message)
     }
 
-    // Get user's donations
-    const { data: donations, error: donationsError } = await supabase
-      .from("donations")
-      .select("*")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false })
-      .limit(5)
+    const { data: donations, error: donationsError } = donationsResult
 
     if (donationsError) {
       console.error("[Dashboard] Donations fetch error:", donationsError.message)
     }
 
-    // Get total donations this year
-    const currentYear = new Date().getFullYear()
-    const { data: yearlyDonations, error: yearlyError } = await supabase
-      .from("donations")
-      .select("amount")
-      .eq("user_id", userId)
-      .gte("created_at", `${currentYear}-01-01`)
-      .eq("payment_status", "completed")
+    const { data: yearlyDonations, error: yearlyError } = yearlyDonationsResult
 
     if (yearlyError) {
       console.error("[Dashboard] Yearly donations fetch error:", yearlyError.message)
     }
 
-    const totalDonationsThisYear = yearlyDonations?.reduce((sum, d) => sum + Number(d.amount), 0) || 0
+    const totalDonationsThisYear = yearlyDonations?.reduce((sum: number, d: any) => sum + Number(d.amount), 0) || 0
 
-    // Get total all-time donations
-    const { data: allDonations, error: allDonationsError } = await supabase
-      .from("donations")
-      .select("amount")
-      .eq("user_id", userId)
-      .eq("payment_status", "completed")
+    const { data: allDonations, error: allDonationsError } = allDonationsResult
 
     if (allDonationsError) {
       console.error("[Dashboard] All donations fetch error:", allDonationsError.message)
     }
 
-    const totalAllTimeDonations = allDonations?.reduce((sum, d) => sum + Number(d.amount), 0) || 0
+    const totalAllTimeDonations = allDonations?.reduce((sum: number, d: any) => sum + Number(d.amount), 0) || 0
 
-    // Get activity logs
-    const { data: activities, error: activitiesError } = await supabase
-      .from("activity_logs")
-      .select("*")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false })
-      .limit(5)
+    const { data: activities, error: activitiesError } = activitiesResult
 
     if (activitiesError) {
       console.error("[Dashboard] Activities fetch error:", activitiesError.message)
     }
 
-    // Get notifications
-    const { data: notifications, error: notificationsError } = await supabase
-      .from("notifications")
-      .select("*")
-      .eq("user_id", userId)
-      .eq("is_read", false)
-      .order("created_at", { ascending: false })
-      .limit(5)
+    const { data: notifications, error: notificationsError } = notificationsResult
 
     if (notificationsError) {
       console.error("[Dashboard] Notifications fetch error:", notificationsError.message)
     }
 
-    // Get upcoming events
-    const today = new Date().toISOString().split("T")[0]
-    const { data: upcomingEvents, error: eventsError } = await supabase
-      .from("events")
-      .select("*")
-      .gte("event_date", today)
-      .order("event_date", { ascending: true })
-      .limit(3)
+    const { data: upcomingEvents, error: eventsError } = upcomingEventsResult
 
     if (eventsError) {
       console.error("[Dashboard] Events fetch error:", eventsError.message)
     }
 
-    // Get event attendance count
-    const { data: eventAttendance, error: attendanceError } = await supabase
-      .from("event_registrations")
-      .select("id")
-      .eq("user_id", userId)
-      .eq("attendance_status", "attended")
+    const { data: eventAttendance, error: attendanceError } = eventAttendanceResult
 
     if (attendanceError) {
       console.error("[Dashboard] Attendance fetch error:", attendanceError.message)

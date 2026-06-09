@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -43,6 +43,12 @@ export default function SettingsPage() {
     twoFactorEnabled: false,
     showProfilePublicly: false,
   })
+
+  useEffect(() => {
+    if (!user) {
+      router.replace("/auth/login?redirect=/dashboard/settings")
+    }
+  }, [router, user])
 
   const handleSaveSettings = async () => {
     setIsLoading(true)
@@ -111,7 +117,6 @@ export default function SettingsPage() {
   }
 
   if (!user) {
-    router.push("/auth/login?redirect=/dashboard/settings")
     return null
   }
 
