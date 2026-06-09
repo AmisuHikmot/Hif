@@ -46,6 +46,7 @@ type AuthContextType = {
   ) => Promise<{ error: Error | null }>
   signOut: () => Promise<void>
   refreshProfile: () => Promise<void>
+  syncCurrentSession: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -110,6 +111,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (user?.id) {
       await fetchProfile(user.id)
     }
+  }
+
+  const syncCurrentSession = async () => {
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+
+    await syncServerSession(session)
   }
 
   useEffect(() => {
@@ -252,6 +261,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         signUp,
         signOut,
         refreshProfile,
+        syncCurrentSession,
       }}
     >
       {children}

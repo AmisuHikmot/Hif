@@ -18,7 +18,7 @@ import { signInWithOAuth } from "@/lib/auth/oauth"
 export default function LoginPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { signIn, isAuthenticated, isLoading: authLoading, profile } = useAuth()
+  const { isAuthenticated, isLoading: authLoading, profile, syncCurrentSession } = useAuth()
 
   const [showPassword, setShowPassword] = useState(false)
   const [isSigningIn, setIsSigningIn] = useState(false)
@@ -30,16 +30,34 @@ export default function LoginPage() {
 
   const redirectPath = searchParams.get("redirect") || "/dashboard"
 
-  // Only redirect once when fully authenticated
   useEffect(() => {
-    if (isAuthenticated && !authLoading && !hasRedirected) {
+    if (!isAuthenticated || authLoading || hasRedirected || isSigningIn) return
+
+    let isCancelled = false
+
+    const redirectAuthenticatedUser = async () => {
       console.log("[v0] User authenticated, profile loaded:", !!profile)
-      console.log("[v0] Redirecting to:", redirectPath)
-      setHasRedirected(true)
-      router.replace(redirectPath)
-      router.refresh()
+      console.log("[v0] Syncing server session before redirect:", redirectPath)
+
+      try {
+        await syncCurrentSession()
+      } catch (error) {
+        console.error("[v0] Server session sync failed:", error)
+      }
+
+      if (!isCancelled) {
+        console.log("[v0] Redirecting to:", redirectPath)
+        setHasRedirected(true)
+        window.location.replace(redirectPath)
+      }
     }
-  }, [isAuthenticated, authLoading, profile, router, redirectPath, hasRedirected])
+
+    redirectAuthenticatedUser()
+
+    return () => {
+      isCancelled = true
+    }
+  }, [isAuthenticated, authLoading, profile, redirectPath, hasRedirected, isSigningIn, syncCurrentSession])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -48,16 +66,21 @@ export default function LoginPage() {
 
     try {
       console.log("[v0] Attempting login with email:", email)
-      const { error: signInError } = await signIn(email, password)
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      })
 
-      if (signInError) {
-        console.error("[v0] Login error:", signInError.message)
-        setError(signInError.message)
+      if (!response.ok) {
+        const data = await response.json().catch(() => null)
+        const message = data?.error || "Invalid email or password"
+        console.error("[v0] Login error:", message)
+        setError(message)
         setIsSigningIn(false)
       } else {
         console.log("[v0] Login successful")
-        router.replace(redirectPath)
-        router.refresh()
+        window.location.assign(redirectPath)
       }
     } catch (err) {
       console.error("[v0] Unexpected login error:", err)

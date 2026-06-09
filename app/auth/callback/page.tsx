@@ -66,8 +66,7 @@ export default function AuthCallbackPage() {
         }
 
         console.log("[v0] Redirecting to dashboard")
-        router.replace("/dashboard")
-        router.refresh()
+        window.location.replace("/dashboard")
       } catch (err) {
         console.error("[v0] Auth callback error:", err)
         router.push("/auth/login?error=callback_error")
