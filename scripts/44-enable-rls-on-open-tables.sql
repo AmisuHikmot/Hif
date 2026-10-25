@@ -36,6 +36,13 @@ begin
     return new;
   end if;
 
+  -- Staff may change roles (the admin Users page does this with the admin's
+  -- own session). is_staff() reads the stored row, so a user cannot pass it by
+  -- setting is_admin in the same update.
+  if tg_op = 'UPDATE' and public.is_staff(auth.uid()) then
+    return new;
+  end if;
+
   if tg_op = 'INSERT' then
     new.role := 'user';
     new.is_admin := false;
@@ -55,6 +62,11 @@ create trigger profiles_protect_privileged_trg
 alter table public.profiles enable row level security;
 -- (policies on profiles already exist: select own/staff from script 39,
 --  insert own, update own)
+-- Staff also need to update other people's profiles (admin Users page: change
+-- role, approve membership). That worked only because RLS was off.
+create policy profiles_staff_update on public.profiles
+  for update to authenticated
+  using (public.is_staff(auth.uid())) with check (public.is_staff(auth.uid()));
 
 alter table public.admin_roles enable row level security;
 create policy admin_roles_staff_select on public.admin_roles
@@ -99,6 +111,7 @@ create policy search_analytics_staff_select on public.search_analytics
 commit;
 
 -- Rollback (re-opens the holes; only if something breaks):
+--   drop policy if exists profiles_staff_update on public.profiles;
 --   alter table public.profiles disable row level security;
 --   alter table public.admin_roles disable row level security;
 --   alter table public.admin_audit_log disable row level security;
