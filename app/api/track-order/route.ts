@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { sendEmail } from "@/lib/email/send-email"
 
 // ── Rate limiting (simple in-memory, resets on cold start) ─────
 const rateLimit = new Map<string, { count: number; resetAt: number }>()
 
-function checkRateLimit(ip: string): boolean {
+function checkRateLimit(ip: string, maxRequests = 10): boolean {
   const now = Date.now()
   const windowMs = 60_000 // 1 minute
-  const maxRequests = 10
 
   const entry = rateLimit.get(ip)
   if (!entry || now > entry.resetAt) {
@@ -167,47 +167,44 @@ export async function GET(request: NextRequest) {
     }
 
     // ── Search by email ──────────────────────────────────────
+    //
+    // References are emailed to the address, not returned. Returning them
+    // would let anyone who knows an address read its orders, and a reference
+    // is enough to see delivery details and download links.
 
     if (email) {
-      const { data: orders, error: ordersError } = await supabase
+      const normalized = email.toLowerCase()
+      const message = "If there are orders for this address, we have emailed their references to it."
+
+      // Limit per address as well as per IP, so one inbox cannot be flooded.
+      if (!checkRateLimit(`email:${normalized}`, 3)) {
+        return NextResponse.json({ message })
+      }
+
+      const { data: orders } = await supabase
         .from("shop_orders_enhanced")
-        .select(`
-          id,
-          reference,
-          customer_name,
-          customer_email,
-          total,
-          payment_status,
-          order_status,
-          created_at,
-          shop_order_items_enhanced (
-            id,
-            product_name,
-            product_type,
-            quantity
-          )
-        `)
-        .eq("customer_email", email)
+        .select("reference, total, order_status, created_at")
+        .ilike("customer_email", normalized)
         .order("created_at", { ascending: false })
+        .limit(10)
 
-      if (ordersError) {
-        console.error("[track-order] Orders lookup error:", ordersError)
-        return NextResponse.json(
-          { error: "Failed to retrieve orders" },
-          { status: 400 }
+      if (orders && orders.length > 0) {
+        const rows = orders
+          .map(
+            (o) =>
+              `<li><strong>${o.reference}</strong> &mdash; ${new Date(o.created_at).toDateString()} &mdash; ${o.order_status}</li>`
+          )
+          .join("")
+        await sendEmail(
+          normalized,
+          "Your HIF order references",
+          `<p>Assalamu alaikum,</p><p>Here are your recent HIF orders. Enter a reference on the track-order page to see its status.</p><ul>${rows}</ul><p>If you did not ask for this, you can ignore this email.</p>`
         )
       }
 
-      // Return same "not found" message regardless of whether
-      // email exists — prevents email enumeration
-      if (!orders || orders.length === 0) {
-        return NextResponse.json(
-          { error: "No orders found for this email address" },
-          { status: 404 }
-        )
-      }
-
-      return NextResponse.json({ orders })
+      // Same answer whether or not the address has orders, so addresses
+      // cannot be probed.
+      return NextResponse.json({ message })
     }
 
   } catch (error) {

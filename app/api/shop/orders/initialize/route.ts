@@ -27,6 +27,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Cart is empty" }, { status: 400 })
     }
 
+    // A negative or fractional quantity would lower the total.
+    if (!body.items.every((i) => Number.isInteger(i.quantity) && i.quantity >= 1 && i.quantity <= 99)) {
+      return NextResponse.json({ error: "Invalid quantity" }, { status: 400 })
+    }
+
     if (!body.customerEmail || !body.customerName || !body.customerPhone) {
       return NextResponse.json(
         { error: "Missing customer information" },
@@ -95,17 +100,27 @@ export async function POST(request: NextRequest) {
     if (body.promoCodeId) {
       const { data: promoData, error: promoError } = await supabase
         .from("shop_promo_codes")
-        .select("id, discount_type, discount_value, max_uses, used_count")
+        .select("id, discount_type, discount_value, max_uses, used_count, is_active, expires_at")
         .eq("id", body.promoCodeId)
         .single()
 
-      if (!promoError && promoData) {
-        // Validate promo
+      // The code must be live: active, unexpired and not used up. Without
+      // this a client could send any code id and take its discount.
+      const usable =
+        !promoError &&
+        promoData &&
+        promoData.is_active === true &&
+        (!promoData.expires_at || new Date(promoData.expires_at) > new Date()) &&
+        (promoData.max_uses == null || (promoData.used_count ?? 0) < promoData.max_uses)
+
+      if (usable && promoData) {
         if (promoData.discount_type === "percentage") {
-          discountAmount = (subtotal * promoData.discount_value) / 100
+          discountAmount = (subtotal * Math.min(Number(promoData.discount_value), 100)) / 100
         } else {
-          discountAmount = promoData.discount_value
+          discountAmount = Number(promoData.discount_value)
         }
+        // Never more than the goods cost.
+        discountAmount = Math.min(Math.max(discountAmount, 0), subtotal)
         promoCodeId = promoData.id
       }
     }

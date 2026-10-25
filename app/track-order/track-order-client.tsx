@@ -123,6 +123,7 @@ export function TrackOrderClient() {
   const [orders, setOrders] = useState<OrderSummary[]>([])
   const [referenceError, setReferenceError] = useState("")
   const [emailError, setEmailError] = useState("")
+  const [emailNotice, setEmailNotice] = useState("")
   const [searchCompleted, setSearchCompleted] = useState(false)
   const [realtimeConnected, setRealtimeConnected] = useState(false)
   const [hasAutoSearched, setHasAutoSearched] = useState(false)
@@ -177,6 +178,7 @@ export function TrackOrderClient() {
     }
     setIsLoading(true)
     setEmailError("")
+    setEmailNotice("")
     setReferenceError("")
     setOrder(null)
     setOrders([])
@@ -189,8 +191,9 @@ export function TrackOrderClient() {
         setSearchCompleted(true)
         return
       }
-      setOrders(data.orders ?? [])
-      setSearchCompleted(true)
+      // Order references are emailed, never shown, so a stranger who knows
+      // an address cannot read its orders.
+      setEmailNotice(data.message ?? "If there are orders for this address, we have emailed their references.")
     } catch {
       setEmailError("Something went wrong. Please try again.")
       setSearchCompleted(true)
@@ -341,7 +344,7 @@ export function TrackOrderClient() {
 
                   <TabsContent value="email" className="m-0 p-6 sm:p-8">
                     <div className="space-y-5">
-                      <p className="text-sm text-muted-foreground">We&apos;ll show all orders placed with this email address.</p>
+                      <p className="text-sm text-muted-foreground">We&apos;ll email the references of orders placed with this address, so only its owner can see them.</p>
                       <div className="space-y-2">
                         <label htmlFor="order-email" className="block text-sm font-medium text-foreground">Email Address</label>
                         <Input id="order-email" type="email" placeholder="your@email.com" value={email} onChange={(e) => { setEmail(e.target.value); if (emailError) setEmailError("") }} onKeyDown={(e) => { if (e.key === "Enter") handleSearchByEmail() }} className={emailError ? "border-destructive focus-visible:ring-destructive" : ""} aria-invalid={!!emailError} />
@@ -352,6 +355,9 @@ export function TrackOrderClient() {
                             </motion.p>
                           )}
                         </AnimatePresence>
+                        {emailNotice && (
+                          <p className="text-sm text-emerald-700" role="status">{emailNotice}</p>
+                        )}
                       </div>
                       <Button onClick={handleSearchByEmail} disabled={isLoading} className="w-full bg-emerald-700 text-white hover:bg-emerald-600" size="lg">
                         {isLoading ? (<span className="flex items-center gap-2"><span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />Searching...</span>) : (<span className="flex items-center gap-2"><Mail className="h-4 w-4" />Find My Orders</span>)}
