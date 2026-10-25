@@ -27,7 +27,7 @@ export default function DeleteAccountPage() {
       </p>
       <p className="mb-8">
         If you have an order on its way, please delete your account after it arrives. For help, use the{" "}
-        <Link className="underline" href="/contact">
+        <Link className="underline" href="/contact-us">
           contact page
         </Link>
         .
