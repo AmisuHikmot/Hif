@@ -116,6 +116,31 @@ export default function SettingsPage() {
     }
   }
 
+  const handlePermanentDelete = async () => {
+    setIsDeleting(true)
+    try {
+      const res = await fetch("/api/account/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ confirm: "DELETE" }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error || "Failed to delete account.")
+
+      await signOut()
+      router.push("/")
+      toast({ title: "Account deleted", description: "Your account and personal data have been deleted." })
+    } catch (error) {
+      toast({
+        title: "Could not delete account",
+        description: error instanceof Error ? error.message : "Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
   if (!user) {
     return null
   }
@@ -324,6 +349,33 @@ export default function SettingsPage() {
                         className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                       >
                         {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Deactivate"}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+                <p className="text-sm text-muted-foreground mt-6 mb-4">
+                  Or delete your account permanently. Your profile, activity and saved items are erased. Donation and
+                  order records are kept for HIF&apos;s accounts but no longer name you. This cannot be undone.
+                </p>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button variant="destructive">Delete Account Permanently</Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete your account for good?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Everything linked to your sign-in is removed and you will be signed out. This cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handlePermanentDelete}
+                        disabled={isDeleting}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        {isDeleting ? <Loader2 className="h-4 w-4 animate-spin" /> : "Delete permanently"}
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
