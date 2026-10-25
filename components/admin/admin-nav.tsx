@@ -12,6 +12,7 @@ import {
   BarChart3,
   LogOut,
   DollarSign,
+  MessageCircleQuestion,
 } from "lucide-react"
 
 const navigation = [
@@ -19,6 +20,7 @@ const navigation = [
   { name: "Events", href: "/admin/events", icon: Calendar },
   { name: "Users", href: "/admin/users", icon: Users },
   { name: "Donations", href: "/admin/donations", icon: DollarSign },
+  { name: "Questions", href: "/admin/questions", icon: MessageCircleQuestion },
   { name: "Audit Logs", href: "/admin/audit-logs", icon: BarChart3 },
 ]
 
