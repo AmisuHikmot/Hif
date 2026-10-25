@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
-import { updatePaystackTransaction } from "@/lib/paystack"
+import { updatePaystackTransaction, completeDonation } from "@/lib/paystack"
 import { sendOrderConfirmationEmail, sendDigitalDownloadEmail, sendMembershipConfirmationEmail } from "@/lib/email/send-email"
 import crypto from "crypto"
 
@@ -187,6 +187,12 @@ export async function POST(request: NextRequest) {
         // Handle donation payment (existing logic)
         // Update transaction
         await updatePaystackTransaction(reference, "success", event.data.paid_at)
+
+        // Complete the donation here too, so it is recorded even if the donor
+        // never returns to the app or site to run /api/payments/verify.
+        if (metadata?.donation_id) {
+          await completeDonation(metadata.donation_id)
+        }
 
         // Log activity
         await supabase.rpc("log_activity", {

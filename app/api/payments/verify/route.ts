@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { verifyPaystackPayment, updatePaystackTransaction } from "@/lib/paystack"
+import { verifyPaystackPayment, updatePaystackTransaction, completeDonation } from "@/lib/paystack"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { sendMembershipConfirmationEmail } from "@/lib/email/send-email"
 
@@ -120,40 +120,11 @@ export async function POST(request: NextRequest) {
     }
 
     if (transactionType === "donation" && donationId) {
-      console.log("[v0] Updating donation record for:", donationId)
-
-      const { error: donationUpdateError } = await supabase
-        .from("donations")
-        .update({
-          payment_status: "completed",
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", donationId)
-
-      if (donationUpdateError) {
+      try {
+        const { alreadyCompleted } = await completeDonation(donationId)
+        console.log("[v0] Donation", donationId, alreadyCompleted ? "was already completed" : "marked completed")
+      } catch (donationUpdateError) {
         console.error("[v0] Failed to update donation status:", donationUpdateError)
-      } else {
-        console.log("[v0] Donation status updated to completed")
-      }
-
-      const { data: donationRecord } = await supabase
-        .from("donations")
-        .select("project_id, amount")
-        .eq("id", donationId)
-        .single()
-
-      if (donationRecord?.project_id) {
-        console.log("[v0] Updating project amount_raised for project:", donationRecord.project_id)
-        const { error: projectUpdateError } = await supabase.rpc("increment_project_raised", {
-          project_id: donationRecord.project_id,
-          amount: donationRecord.amount,
-        })
-
-        if (projectUpdateError) {
-          console.warn("[v0] Failed to update project amount_raised:", projectUpdateError)
-        } else {
-          console.log("[v0] Project amount_raised updated successfully")
-        }
       }
     }
 

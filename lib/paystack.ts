@@ -118,6 +118,40 @@ export async function updatePaystackTransaction(reference: string, status: strin
   if (error) throw error
 }
 
+/**
+ * Marks a donation completed and adds it to its project's total, exactly once.
+ * The status change is a single conditional UPDATE, so when the verify route
+ * and the Paystack webhook both run for the same payment, only one of them
+ * claims the row and adds to the project total.
+ */
+export async function completeDonation(donationId: string): Promise<{ alreadyCompleted: boolean }> {
+  const supabase = createAdminClient()
+
+  const { data: claimed, error } = await supabase
+    .from("donations")
+    .update({ payment_status: "completed", updated_at: new Date().toISOString() })
+    .eq("id", donationId)
+    .in("payment_status", ["pending", "failed"])
+    .select("project_id, amount")
+
+  if (error) throw error
+
+  const donation = claimed?.[0]
+  if (!donation) return { alreadyCompleted: true }
+
+  if (donation.project_id) {
+    const { error: projectError } = await supabase.rpc("increment_project_raised", {
+      project_id: donation.project_id,
+      amount: donation.amount,
+    })
+    if (projectError) {
+      console.warn("[v0] Failed to update project amount_raised:", projectError)
+    }
+  }
+
+  return { alreadyCompleted: false }
+}
+
 export async function getPaystackPublicKey() {
   return PAYSTACK_PUBLIC_KEY
 }

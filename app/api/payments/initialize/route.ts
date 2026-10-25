@@ -1,11 +1,12 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
+import { createAdminClient } from "@/lib/supabase/admin"
 import { initializePaystackPayment, savePaystackTransaction } from "@/lib/paystack"
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { amount, email, donorName, purpose } = body
+    const { amount, email, donorName, purpose, projectId } = body
 
     console.log("[v0] Payment initialize request:", { amount, email, donorName, purpose })
 
@@ -35,13 +36,17 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const supabase = await createClient()
+    // The donations table is written with the service-role client (see scripts/40);
+    // the user id below is only ever taken from a verified session.
+    const supabase = createAdminClient()
 
     let userId: string | null = null
     try {
+      // The mobile app sends its Supabase access token; the website uses cookies.
+      const bearer = request.headers.get("authorization")?.match(/^Bearer (.+)$/i)?.[1]
       const {
         data: { user },
-      } = await supabase.auth.getUser()
+      } = bearer ? await supabase.auth.getUser(bearer) : await (await createClient()).auth.getUser()
       userId = user?.id || null
       console.log("[v0] User authenticated:", userId || "anonymous")
     } catch (authError) {
@@ -63,6 +68,7 @@ export async function POST(request: NextRequest) {
         donor_name: donorName.trim(),
         donor_email: email.toLowerCase().trim(),
         message: purpose?.trim() || "General Donation",
+        project_id: typeof projectId === "string" && projectId ? projectId : null,
         payment_status: "pending",
         created_at: new Date().toISOString(),
       })
