@@ -23,11 +23,13 @@ import {
   Flower2,
   GraduationCap,
   Code2,
+  QrCode,
 } from "lucide-react"
 
 const navigation = [
   { name: "Dashboard", href: "/admin", icon: LayoutDashboard },
   { name: "Events", href: "/admin/events", icon: Calendar },
+  { name: "Event check-in", href: "/admin/checkin", icon: QrCode },
   { name: "Users", href: "/admin/users", icon: Users },
   { name: "Donations", href: "/admin/donations", icon: DollarSign },
   { name: "Questions", href: "/admin/questions", icon: MessageCircleQuestion },

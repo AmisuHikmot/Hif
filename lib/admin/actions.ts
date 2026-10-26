@@ -201,3 +201,23 @@ export async function setCoursePublished(formData: FormData) {
     .eq("id", String(formData.get("id")))
   revalidatePath("/admin/studio")
 }
+
+/** Event door check-in: a scanned or typed ticket code marks the person attended. */
+export async function checkInTicket(_prev: { ok: boolean; message: string } | null, formData: FormData) {
+  await assertStaff()
+  const m = /^HIF-EVENT:([0-9a-f-]{36}):([0-9a-f-]{36})$/i.exec(String(formData.get("code") ?? "").trim())
+  if (!m) return { ok: false, message: "That is not a HIF ticket code." }
+  const db = createAdminClient()
+  const { data: reg } = await db
+    .from("event_registrations")
+    .select("id, attendance_status, events(title)")
+    .eq("event_id", m[1])
+    .eq("user_id", m[2])
+    .maybeSingle()
+  if (!reg) return { ok: false, message: "No registration found for this ticket." }
+  const title = Array.isArray(reg.events) ? reg.events[0]?.title : (reg.events as { title: string } | null)?.title
+  if (reg.attendance_status === "attended") return { ok: false, message: `Already checked in for ${title}.` }
+  const { error } = await db.from("event_registrations").update({ attendance_status: "attended" }).eq("id", reg.id)
+  if (error) return { ok: false, message: error.message }
+  return { ok: true, message: `Checked in for ${title}.` }
+}
