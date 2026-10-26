@@ -24,6 +24,7 @@ import {
   GraduationCap,
   Code2,
   QrCode,
+  PhoneCall,
 } from "lucide-react"
 
 const navigation = [
@@ -40,6 +41,7 @@ const navigation = [
   { name: "Mosques", href: "/admin/mosques", icon: MapPin },
   { name: "Janazah", href: "/admin/janazah", icon: Flower2 },
   { name: "Moderation", href: "/admin/moderation", icon: ShieldCheck },
+  { name: "Helplines", href: "/admin/helplines", icon: PhoneCall },
   { name: "Support", href: "/admin/support", icon: LifeBuoy },
   { name: "Schools", href: "/admin/schools", icon: GraduationCap },
   { name: "Developers", href: "/admin/developer", icon: Code2 },

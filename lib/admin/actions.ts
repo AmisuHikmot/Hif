@@ -221,3 +221,26 @@ export async function checkInTicket(_prev: { ok: boolean; message: string } | nu
   if (error) return { ok: false, message: error.message }
   return { ok: true, message: `Checked in for ${title}.` }
 }
+
+/** Helplines: add a number after checking it; it only shows once verified. */
+export async function saveHelpline(formData: FormData) {
+  await assertStaff()
+  const { error } = await createAdminClient().from("helplines").insert({
+    name: String(formData.get("name")),
+    phone: String(formData.get("phone")),
+    description: String(formData.get("description") ?? "") || null,
+    source: String(formData.get("source") ?? "") || null,
+    verified_on: formData.get("verified") === "on" ? new Date().toISOString().slice(0, 10) : null,
+  })
+  if (error) throw new Error(error.message)
+  revalidatePath("/admin/helplines")
+}
+
+export async function setHelplineActive(formData: FormData) {
+  await assertStaff()
+  await createAdminClient()
+    .from("helplines")
+    .update({ is_active: formData.get("active") === "true" })
+    .eq("id", String(formData.get("id")))
+  revalidatePath("/admin/helplines")
+}
