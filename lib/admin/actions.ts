@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { assertStaff } from "@/lib/admin/guard"
 import { createAdminClient } from "@/lib/supabase/admin"
+import { pushToKind } from "@/lib/push/fcm"
 
 const REVIEWABLE = {
   adhkar_categories: "id",
@@ -157,6 +158,9 @@ export async function saveJanazah(formData: FormData) {
     created_by: staff,
   })
   if (error) throw new Error(error.message)
+  if (formData.get("publish") === "on") {
+    await pushToKind("janazah", "Janazah prayer", `${String(formData.get("title"))} at ${String(formData.get("place"))}`)
+  }
   revalidatePath("/admin/janazah")
 }
 
@@ -166,6 +170,10 @@ export async function setJanazahPublished(formData: FormData) {
     .from("janazah_notices")
     .update({ published: formData.get("published") === "true" })
     .eq("id", String(formData.get("id")))
+  if (formData.get("published") === "true") {
+    const { data: n } = await createAdminClient().from("janazah_notices").select("title, place").eq("id", String(formData.get("id"))).single()
+    if (n) await pushToKind("janazah", "Janazah prayer", `${n.title} at ${n.place}`)
+  }
   revalidatePath("/admin/janazah")
 }
 
