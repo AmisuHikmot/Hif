@@ -13,6 +13,16 @@ import {
   LogOut,
   DollarSign,
   MessageCircleQuestion,
+  BookOpenCheck,
+  CalendarDays,
+  Landmark,
+  Building2,
+  LifeBuoy,
+  ShieldCheck,
+  MapPin,
+  Flower2,
+  GraduationCap,
+  Code2,
 } from "lucide-react"
 
 const navigation = [
@@ -21,6 +31,16 @@ const navigation = [
   { name: "Users", href: "/admin/users", icon: Users },
   { name: "Donations", href: "/admin/donations", icon: DollarSign },
   { name: "Questions", href: "/admin/questions", icon: MessageCircleQuestion },
+  { name: "Content Studio", href: "/admin/studio", icon: BookOpenCheck },
+  { name: "Hijri override", href: "/admin/hijri", icon: CalendarDays },
+  { name: "Finance", href: "/admin/finance", icon: Landmark },
+  { name: "Branches", href: "/admin/branches", icon: Building2 },
+  { name: "Mosques", href: "/admin/mosques", icon: MapPin },
+  { name: "Janazah", href: "/admin/janazah", icon: Flower2 },
+  { name: "Moderation", href: "/admin/moderation", icon: ShieldCheck },
+  { name: "Support", href: "/admin/support", icon: LifeBuoy },
+  { name: "Schools", href: "/admin/schools", icon: GraduationCap },
+  { name: "Developers", href: "/admin/developer", icon: Code2 },
   { name: "Audit Logs", href: "/admin/audit-logs", icon: BarChart3 },
 ]
 
