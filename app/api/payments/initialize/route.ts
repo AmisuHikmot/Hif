@@ -6,7 +6,10 @@ import { initializePaystackPayment, savePaystackTransaction } from "@/lib/paysta
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
-    const { amount, email, donorName, purpose, projectId } = body
+    const { amount, email, donorName, purpose, projectId, anonymous, dedication } = body
+    // Optional extras from the mobile app: hide the name publicly, and give in someone's name.
+    const inNameOf =
+      typeof dedication === "string" && dedication.trim() ? dedication.trim().slice(0, 80) : null
 
     console.log("[v0] Payment initialize request:", { amount, email, donorName, purpose })
 
@@ -67,7 +70,8 @@ export async function POST(request: NextRequest) {
         currency: "NGN",
         donor_name: donorName.trim(),
         donor_email: email.toLowerCase().trim(),
-        message: purpose?.trim() || "General Donation",
+        message: `${purpose?.trim() || "General Donation"}${inNameOf ? ` (in the name of ${inNameOf})` : ""}`,
+        is_anonymous: anonymous === true,
         project_id: typeof projectId === "string" && projectId ? projectId : null,
         payment_status: "pending",
         created_at: new Date().toISOString(),
