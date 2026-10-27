@@ -21,9 +21,6 @@ const ERRORS: Record<string, string> = {
   session_error: "We could not complete sign in. Please try again.",
   link_expired: "That link has expired. Request a new one.",
   no_session: "Sign in did not finish. Please try again.",
-  vercel_not_configured: "Sign in with Vercel is not set up yet.",
-  vercel_failed: "Sign in with Vercel failed. Please try again.",
-  vercel_no_email: "Your Vercel account did not share a verified email.",
 }
 
 export default function LoginPage() {
@@ -290,16 +287,6 @@ export default function LoginPage() {
               <span className="sr-only">Sign in with Facebook</span>
             </Button>
           </div>
-          {process.env.NEXT_PUBLIC_VERCEL_LOGIN === "1" && (
-            <Button type="button" variant="outline" className="mt-2 w-full" asChild>
-              <a href={`/api/auth/vercel?next=${encodeURIComponent(redirectPath)}`}>
-                <svg className="mr-2 h-4 w-4 fill-current" viewBox="0 0 76 65" aria-hidden="true">
-                  <path d="M37.5274 0L75.0548 65H0L37.5274 0Z" />
-                </svg>
-                Continue with Vercel
-              </a>
-            </Button>
-          )}
         </CardContent>
         <CardFooter className="flex flex-col">
           <p className="mt-2 text-center text-sm text-muted-foreground">
