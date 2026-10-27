@@ -156,14 +156,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event: string, session: Session | null) => {
-      console.log("[v0] Auth state changed, event:", _event, "has session:", !!session)
+    } = supabase.auth.onAuthStateChange((_event: string, session: Session | null) => {
       setSession(session ?? null)
       setUser(session?.user ?? null)
 
       if (session?.user) {
-        console.log("[v0] Session found, user ID:", session.user.id)
-        await fetchProfile(session.user.id)
+        // Do not call Supabase from inside this callback: it holds the auth lock,
+        // so a query here would wait on the lock forever and sign-in would hang.
+        const id = session.user.id
+        setTimeout(() => void fetchProfile(id), 0)
       } else {
         setProfile(null)
       }

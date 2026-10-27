@@ -10,8 +10,7 @@ import { safeNext } from "@/lib/auth/redirect"
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = request.nextUrl
   const rawNext = searchParams.get("next")
-  // Password reset goes to its own page, which is under /auth.
-  const next = rawNext === "/auth/reset-password" ? rawNext : safeNext(rawNext)
+  const next = safeNext(rawNext)
   const fail = (reason: string) => NextResponse.redirect(`${origin}/auth/login?error=${reason}`)
 
   const providerError = searchParams.get("error_description") || searchParams.get("error")
