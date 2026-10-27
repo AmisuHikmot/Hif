@@ -53,7 +53,9 @@ export default function LoginPage() {
     setIsSigningIn(true)
     setError(null)
 
-    const { error: signInError } = await signIn(email.trim(), password)
+    // A school pupil signs in with the username printed on their slip.
+    const id = email.trim()
+    const { error: signInError } = await signIn(id.includes("@") ? id : `${id.toLowerCase()}@pupils.hif.com.ng`, password)
     if (signInError) {
       setError(
         signInError.message === "Invalid login credentials"
@@ -122,12 +124,14 @@ export default function LoginPage() {
             <TabsContent value="email">
               <form onSubmit={handleLogin} className="space-y-4 pt-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email">Email or pupil username</Label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
                     <Input
                       id="email"
-                      type="email"
+                      type="text"
+                      autoComplete="username"
+                      autoCapitalize="none"
                       placeholder="m@example.com"
                       className="pl-10"
                       required
