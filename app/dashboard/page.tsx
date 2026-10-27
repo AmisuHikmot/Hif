@@ -177,18 +177,16 @@ async function getDashboardData(userId: string) {
 }
 
 export default async function DashboardPage() {
-  try {
+  {
     const supabase = await createClient()
     
     const {
       data: { user },
-      error: userError,
     } = await supabase.auth.getUser()
 
-    if (userError || !user) {
-      console.error("[Dashboard] Auth error:", userError?.message)
-      redirect("/auth/login?redirect=/dashboard")
-    }
+    // Only a missing session sends you to sign in. A render error must not:
+    // the login page would bounce a signed-in user straight back here.
+    if (!user) redirect("/auth/login?redirect=/dashboard")
 
     console.log("[Dashboard] Loading dashboard for user:", user.id)
 
@@ -469,8 +467,5 @@ export default async function DashboardPage() {
         </div>
       </div>
     )
-  } catch (error) {
-    console.error("[Dashboard] Fatal error:", error)
-    redirect("/auth/login?redirect=/dashboard")
   }
 }

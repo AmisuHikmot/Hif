@@ -58,6 +58,7 @@ export default function DashboardNav() {
   const handleSignOut = async () => {
     await signOut()
     router.push("/")
+    router.refresh()
   }
 
   const getInitials = () => {

@@ -1,10 +1,12 @@
-import { createClient as createBrowserClient } from "@supabase/supabase-js"
+import { createBrowserClient } from "@supabase/ssr"
 
 type BrowserClient = any
 
 let supabaseClient: BrowserClient | null = null
 
-// Always return the same instance
+// Always return the same instance. The session lives in cookies (not
+// localStorage), so the server, the proxy and the browser all see the same
+// signed-in user.
 export function createClient() {
   if (supabaseClient) return supabaseClient
 
@@ -15,13 +17,7 @@ export function createClient() {
     throw new Error("Missing Supabase browser configuration")
   }
 
-  supabaseClient = createBrowserClient(supabaseUrl, supabaseAnonKey, {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-      detectSessionInUrl: true,
-    },
-  })
+  supabaseClient = createBrowserClient(supabaseUrl, supabaseAnonKey)
 
   return supabaseClient
 }

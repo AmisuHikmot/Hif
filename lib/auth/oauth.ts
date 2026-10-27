@@ -7,7 +7,7 @@ export type OAuthProvider = "google" | "apple" | "facebook"
  * Handles Google, Apple, and Facebook authentication
  * Automatically redirects to callback page on success
  */
-export async function signInWithOAuth(provider: OAuthProvider) {
+export async function signInWithOAuth(provider: OAuthProvider, next?: string) {
   try {
     console.log("[v0] Initiating OAuth sign in with provider:", provider)
 
@@ -18,7 +18,7 @@ export async function signInWithOAuth(provider: OAuthProvider) {
     }
 
     // Get redirect URL with fallback
-    const redirectUrl = getOAuthRedirectUrl()
+    const redirectUrl = getOAuthRedirectUrl(next)
     console.log("[v0] OAuth redirect URL:", redirectUrl)
 
     // Initiate OAuth flow
@@ -52,21 +52,12 @@ export async function signInWithOAuth(provider: OAuthProvider) {
   }
 }
 
-/**
- * Get the OAuth redirect URL
- * Uses environment variable if available, falls back to window.location.origin
- */
-function getOAuthRedirectUrl(): string {
-  // Try environment variable first (useful for production/different domains)
-  if (process.env.NEXT_PUBLIC_SUPABASE_REDIRECT_URL) {
-    return `${process.env.NEXT_PUBLIC_SUPABASE_REDIRECT_URL}/auth/callback`
-  }
-
-  // Fall back to current origin for development
-  if (typeof window !== "undefined") {
-    return `${window.location.origin}/auth/callback`
-  }
-
-  // This shouldn't happen in client context, but just in case
-  throw new Error("Unable to determine OAuth redirect URL")
+/** Where the provider sends the user back to; the server route finishes sign-in. */
+function getOAuthRedirectUrl(next?: string): string {
+  const base =
+    (typeof window !== "undefined" ? window.location.origin : "") || process.env.NEXT_PUBLIC_SITE_URL || ""
+  if (!base) throw new Error("Unable to determine OAuth redirect URL")
+  const url = new URL("/auth/callback", base)
+  if (next) url.searchParams.set("next", next)
+  return url.toString()
 }

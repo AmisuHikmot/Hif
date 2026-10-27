@@ -14,10 +14,21 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useAuth } from "@/contexts/auth-context"
 import { signInWithOAuth } from "@/lib/auth/oauth"
+import { safeNext } from "@/lib/auth/redirect"
+
+const ERRORS: Record<string, string> = {
+  oauth_denied: "Sign in was cancelled or refused by the provider.",
+  session_error: "We could not complete sign in. Please try again.",
+  link_expired: "That link has expired. Request a new one.",
+  no_session: "Sign in did not finish. Please try again.",
+  vercel_not_configured: "Sign in with Vercel is not set up yet.",
+  vercel_failed: "Sign in with Vercel failed. Please try again.",
+  vercel_no_email: "Your Vercel account did not share a verified email.",
+}
 
 export default function LoginPage() {
   const searchParams = useSearchParams()
-  const { isAuthenticated, isLoading: authLoading, profile, syncCurrentSession } = useAuth()
+  const { isAuthenticated, isLoading: authLoading, signIn } = useAuth()
 
   const [showPassword, setShowPassword] = useState(false)
   const [isSigningIn, setIsSigningIn] = useState(false)
@@ -27,72 +38,37 @@ export default function LoginPage() {
   const [password, setPassword] = useState("")
   const [hasRedirected, setHasRedirected] = useState(false)
 
-  const requestedRedirect = searchParams.get("redirect")
-  const redirectPath =
-    requestedRedirect &&
-    requestedRedirect.startsWith("/") &&
-    requestedRedirect !== "/" &&
-    !requestedRedirect.startsWith("/auth")
-      ? requestedRedirect
-      : "/dashboard"
+  const redirectPath = safeNext(searchParams.get("redirect"))
+
+  useEffect(() => {
+    const code = searchParams.get("error")
+    if (code) setError(ERRORS[code] ?? "Sign in failed. Please try again.")
+  }, [searchParams])
 
   useEffect(() => {
     if (!isAuthenticated || authLoading || hasRedirected || isSigningIn) return
-
-    let isCancelled = false
-
-    const redirectAuthenticatedUser = async () => {
-      console.log("[v0] User authenticated, profile loaded:", !!profile)
-      console.log("[v0] Syncing server session before redirect:", redirectPath)
-
-      try {
-        await syncCurrentSession()
-      } catch (error) {
-        console.error("[v0] Server session sync failed:", error)
-      }
-
-      if (!isCancelled) {
-        console.log("[v0] Redirecting to:", redirectPath)
-        setHasRedirected(true)
-        window.location.replace(redirectPath)
-      }
-    }
-
-    redirectAuthenticatedUser()
-
-    return () => {
-      isCancelled = true
-    }
-  }, [isAuthenticated, authLoading, profile, redirectPath, hasRedirected, isSigningIn, syncCurrentSession])
+    setHasRedirected(true)
+    window.location.replace(redirectPath)
+  }, [isAuthenticated, authLoading, hasRedirected, isSigningIn, redirectPath])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSigningIn(true)
     setError(null)
 
-    try {
-      console.log("[v0] Attempting login with email:", email)
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      })
-
-      if (!response.ok) {
-        const data = await response.json().catch(() => null)
-        const message = data?.error || "Invalid email or password"
-        console.error("[v0] Login error:", message)
-        setError(message)
-        setIsSigningIn(false)
-      } else {
-        console.log("[v0] Login successful")
-        window.location.assign(redirectPath)
-      }
-    } catch (err) {
-      console.error("[v0] Unexpected login error:", err)
-      setError("An unexpected error occurred. Please try again.")
+    const { error: signInError } = await signIn(email.trim(), password)
+    if (signInError) {
+      setError(
+        signInError.message === "Invalid login credentials"
+          ? "Wrong email or password."
+          : signInError.message,
+      )
       setIsSigningIn(false)
+      return
     }
+    // A full page load, so server pages see the new cookies.
+    setHasRedirected(true)
+    window.location.assign(redirectPath)
   }
 
   const handleOAuthLogin = async (provider: "google" | "apple" | "facebook") => {
@@ -101,7 +77,7 @@ export default function LoginPage() {
 
     try {
       console.log("[v0] Starting OAuth login with provider:", provider)
-      const { error: oAuthError } = await signInWithOAuth(provider)
+      const { error: oAuthError } = await signInWithOAuth(provider, redirectPath)
 
       if (oAuthError) {
         console.error("[v0] OAuth error:", oAuthError.message)
@@ -314,6 +290,16 @@ export default function LoginPage() {
               <span className="sr-only">Sign in with Facebook</span>
             </Button>
           </div>
+          {process.env.NEXT_PUBLIC_VERCEL_LOGIN === "1" && (
+            <Button type="button" variant="outline" className="mt-2 w-full" asChild>
+              <a href={`/api/auth/vercel?next=${encodeURIComponent(redirectPath)}`}>
+                <svg className="mr-2 h-4 w-4 fill-current" viewBox="0 0 76 65" aria-hidden="true">
+                  <path d="M37.5274 0L75.0548 65H0L37.5274 0Z" />
+                </svg>
+                Continue with Vercel
+              </a>
+            </Button>
+          )}
         </CardContent>
         <CardFooter className="flex flex-col">
           <p className="mt-2 text-center text-sm text-muted-foreground">

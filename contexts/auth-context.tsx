@@ -51,20 +51,6 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-async function syncServerSession(session: Session | null) {
-  if (!session) return
-
-  const response = await fetch("/api/auth/callback", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ session }),
-  })
-
-  if (!response.ok) {
-    throw new Error("Unable to sync authenticated session")
-  }
-}
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<UserProfile | null>(null)
@@ -73,6 +59,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   
   // Prevent multiple simultaneous profile fetches
   const fetchingProfile = useRef<string | null>(null)
+
+  const ensureProfile = async (
+    u: User,
+    metadata?: { first_name?: string; last_name?: string; phone?: string },
+  ) => {
+    const meta = (u.user_metadata ?? {}) as Record<string, string | undefined>
+    const fullName = (meta.full_name ?? meta.name ?? "").split(" ")
+    const { error } = await supabase.from("profiles").upsert(
+      {
+        id: u.id,
+        user_id: u.id,
+        email: u.email,
+        first_name: metadata?.first_name ?? meta.first_name ?? fullName[0] ?? null,
+        last_name: metadata?.last_name ?? meta.last_name ?? (fullName.slice(1).join(" ") || null),
+        phone: metadata?.phone ?? meta.phone ?? null,
+        role: "user",
+        is_active: true,
+      },
+      { onConflict: "id", ignoreDuplicates: true },
+    )
+    if (error) console.error("[auth] ensureProfile:", error.message)
+  }
 
   const fetchProfile = async (userId: string) => {
     // If already fetching this user's profile, skip
@@ -89,10 +97,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .from("profiles")
         .select("*")
         .eq("id", userId)
-        .single()
+        .maybeSingle()
 
       if (error) {
         console.error("[v0] fetchProfile error:", error.message)
+        return
+      }
+
+      if (!data) {
+        // First sign-in (OAuth or a confirmed email): create the row, then read it.
+        const { data: authData } = await supabase.auth.getUser()
+        if (authData?.user) await ensureProfile(authData.user)
+        const retry = await supabase.from("profiles").select("*").eq("id", userId).maybeSingle()
+        if (retry.data) setProfile(retry.data as UserProfile)
         return
       }
 
@@ -113,13 +130,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const syncCurrentSession = async () => {
-    const {
-      data: { session },
-    } = await supabase.auth.getSession()
-
-    await syncServerSession(session)
-  }
+  // Sessions live in cookies now, so there is nothing to copy to the server.
+  const syncCurrentSession = async () => {}
 
   useEffect(() => {
     const getSession = async () => {
@@ -175,8 +187,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { error: new Error(error.message) }
       }
 
-      await syncServerSession(data.session)
-      console.log("[v0] Sign in successful")
       setSession(data.session ?? null)
       setUser(data.user ?? null)
 
@@ -201,9 +211,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       email,
       password,
       options: {
-        emailRedirectTo:
-          process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL ??
-          `${window.location.origin}/auth/callback`,
+        emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
+        data: {
+          first_name: metadata?.first_name ?? null,
+          last_name: metadata?.last_name ?? null,
+          phone: metadata?.phone ?? null,
+        },
       },
     })
 
@@ -216,28 +229,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { error: new Error("Signup succeeded but no user returned") }
     }
 
-    await syncServerSession(data.session)
-
-    const { error: profileError } = await supabase.from("profiles").upsert(
-      {
-        id: createdUser.id,
-        user_id: createdUser.id,
-        email,
-        first_name: metadata?.first_name ?? null,
-        last_name: metadata?.last_name ?? null,
-        phone: metadata?.phone ?? null,
-        role: "user",
-        is_active: true,
-      },
-      { onConflict: "id" },
-    )
-
-    if (profileError) {
-      console.error("[v0] Profile upsert error:", profileError)
-      return { error: new Error(profileError.message) }
+    // With email confirmation on there is no session yet, so the profile row
+    // cannot be written from the browser (row-level security). It is created
+    // when the user first signs in; see ensureProfile.
+    if (data.session) {
+      await ensureProfile(createdUser, metadata)
     }
 
-    // Let onAuthStateChange fetch the profile
     return { error: null }
   }
 
