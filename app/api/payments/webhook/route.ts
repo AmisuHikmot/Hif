@@ -40,6 +40,17 @@ export async function POST(request: NextRequest) {
     if (event.event === "charge.success") {
       const { reference, status, metadata } = event.data
 
+      if (metadata?.type === "plus") {
+        const { grantPlus } = await import("@/lib/plus/grant")
+        try {
+          await grantPlus(String(metadata.user_id), String(metadata.plan), reference, Math.floor(event.data.amount / 100))
+        } catch (e) {
+          console.error("[plus] webhook grant:", e instanceof Error ? e.message : e)
+          return NextResponse.json({ error: "grant failed" }, { status: 500 })
+        }
+        return NextResponse.json({ received: true })
+      }
+
       // Check transaction type
       if (metadata?.type === "membership_registration") {
         const expiresAt = new Date()
