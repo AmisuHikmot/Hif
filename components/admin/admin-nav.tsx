@@ -23,6 +23,7 @@ import {
   Flower2,
   GraduationCap,
   Utensils,
+  Smartphone,
   Code2,
   QrCode,
   PhoneCall,
@@ -46,6 +47,7 @@ const navigation = [
   { name: "Support", href: "/admin/support", icon: LifeBuoy },
   { name: "Schools", href: "/admin/schools", icon: GraduationCap },
   { name: "Halal places", href: "/admin/halal", icon: Utensils },
+  { name: "App releases", href: "/admin/releases", icon: Smartphone },
   { name: "Developers", href: "/admin/developer", icon: Code2 },
   { name: "Audit Logs", href: "/admin/audit-logs", icon: BarChart3 },
 ]
