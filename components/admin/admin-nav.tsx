@@ -22,6 +22,7 @@ import {
   MapPin,
   Flower2,
   GraduationCap,
+  Utensils,
   Code2,
   QrCode,
   PhoneCall,
@@ -44,6 +45,7 @@ const navigation = [
   { name: "Helplines", href: "/admin/helplines", icon: PhoneCall },
   { name: "Support", href: "/admin/support", icon: LifeBuoy },
   { name: "Schools", href: "/admin/schools", icon: GraduationCap },
+  { name: "Halal places", href: "/admin/halal", icon: Utensils },
   { name: "Developers", href: "/admin/developer", icon: Code2 },
   { name: "Audit Logs", href: "/admin/audit-logs", icon: BarChart3 },
 ]
