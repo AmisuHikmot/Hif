@@ -211,6 +211,11 @@ export default async function DonationsPage() {
                                 {donation.currency} {Number(donation.amount).toLocaleString()}
                               </p>
                               {getStatusBadge(donation.payment_status)}
+                              {donation.payment_status === "completed" && (
+                                <Link href={`/dashboard/donations/${donation.id}/receipt`} className="mt-1 block text-xs text-emerald-700 underline">
+                                  Receipt
+                                </Link>
+                              )}
                             </div>
                           </div>
                           <Separator className="mt-4" />

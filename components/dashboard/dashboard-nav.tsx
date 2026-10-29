@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { CalendarDays, CreditCard, FileText, Home, Settings, User, LogOut, Bell, Menu } from "lucide-react"
+import { CalendarDays, CreditCard, FileText, Home, Settings, User, LogOut, Bell, Menu, Smartphone } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -37,6 +37,11 @@ export default function DashboardNav() {
       title: "Donations",
       href: "/dashboard/donations",
       icon: <CreditCard className="mr-2 h-4 w-4" />,
+    },
+    {
+      title: "HIF App",
+      href: "/dashboard/app",
+      icon: <Smartphone className="mr-2 h-4 w-4" />,
     },
     {
       title: "Resources",
