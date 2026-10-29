@@ -458,7 +458,9 @@ export function SiteFooter() {
               <Link href="/terms"         className="hover:text-slate-400 transition-colors px-2 py-1">Terms of Service</Link>
               <Dot />
               <Link href="/cookie-policy" className="hover:text-slate-400 transition-colors px-2 py-1">Cookie Policy</Link>
-            </nav>
+              <Link href="/faq" className="hover:text-slate-400 transition-colors px-2 py-1">FAQ</Link>
+              <Link href="/zakat" className="hover:text-slate-400 transition-colors px-2 py-1">Zakat Calculator</Link>
+              <Link href="/app" className="hover:text-slate-400 transition-colors px-2 py-1">Get the App</Link>            </nav>
           </div>
         </div>
       </div>
