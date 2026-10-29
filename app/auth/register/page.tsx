@@ -57,11 +57,10 @@ export default function RegisterPage() {
       if (error) {
         setError(error.message)
       } else {
-        console.log("[v0] Signup successful, redirecting to verify email...")
         router.push("/auth/verify-email?email=" + encodeURIComponent(email))
       }
     } catch (err) {
-      console.error("[v0] Unexpected signup error:", err)
+      console.error("Unexpected signup error:", err)
       setError("An unexpected error occurred. Please try again.")
     } finally {
       setIsLoading(false)
@@ -73,17 +72,16 @@ export default function RegisterPage() {
     setError(null)
 
     try {
-      console.log("[v0] Starting OAuth signup with provider:", provider)
       const { error: oAuthError } = await signInWithOAuth(provider)
 
       if (oAuthError) {
-        console.error("[v0] OAuth error:", oAuthError.message)
+        console.error("OAuth error:", oAuthError.message)
         setError(oAuthError.message)
         setIsOAuthLoading(null)
       }
       // OAuth redirects automatically, no need to redirect manually
     } catch (err) {
-      console.error("[v0] Unexpected OAuth error:", err)
+      console.error("Unexpected OAuth error:", err)
       setError("An unexpected error occurred. Please try again.")
       setIsOAuthLoading(null)
     }

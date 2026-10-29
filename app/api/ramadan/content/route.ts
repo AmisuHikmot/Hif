@@ -71,7 +71,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ error: 'Invalid type parameter' }, { status: 400 });
   } catch (error) {
-    console.error('[v0] Ramadan API Error:', error);
+    console.error('Ramadan API Error:', error);
     return NextResponse.json(
       { error: 'Failed to fetch ramadan content' },
       { status: 500 }

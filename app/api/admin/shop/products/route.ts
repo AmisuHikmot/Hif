@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ products })
   } catch (error) {
-    console.error('[v0] Admin GET products error:', error)
+    console.error('Admin GET products error:', error)
     return NextResponse.json(
       { error: 'Failed to fetch products' },
       { status: 500 }
@@ -111,7 +111,7 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     )
   } catch (error) {
-    console.error('[v0] Admin POST product error:', error)
+    console.error('Admin POST product error:', error)
     return NextResponse.json(
       { error: 'Failed to create product' },
       { status: 500 }
@@ -166,7 +166,7 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json({ product, message: 'Product updated successfully' })
   } catch (error) {
-    console.error('[v0] Admin PUT product error:', error)
+    console.error('Admin PUT product error:', error)
     return NextResponse.json(
       { error: 'Failed to update product' },
       { status: 500 }
@@ -219,7 +219,7 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({ message: 'Product deleted successfully' })
   } catch (error) {
-    console.error('[v0] Admin DELETE product error:', error)
+    console.error('Admin DELETE product error:', error)
     return NextResponse.json(
       { error: 'Failed to delete product' },
       { status: 500 }

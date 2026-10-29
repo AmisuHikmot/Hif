@@ -157,7 +157,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (orderError || !orderData) {
-      console.error("[v0] Failed to create order:", orderError)
+      console.error("Failed to create order:", orderError)
       return NextResponse.json({ error: "Failed to create order" }, { status: 500 })
     }
 
@@ -177,7 +177,7 @@ export async function POST(request: NextRequest) {
       )
 
     if (itemsError) {
-      console.error("[v0] Failed to insert order items:", itemsError)
+      console.error("Failed to insert order items:", itemsError)
       // Clean up order
       await supabase.from("shop_orders_enhanced").delete().eq("id", orderData.id)
       return NextResponse.json({ error: "Failed to create order items" }, { status: 500 })
@@ -194,7 +194,7 @@ export async function POST(request: NextRequest) {
     })
 
     if (!paystackResponse.data || !paystackResponse.data.authorization_url) {
-      console.error("[v0] Paystack initialization failed:", paystackResponse)
+      console.error("Paystack initialization failed:", paystackResponse)
       return NextResponse.json(
         { error: "Failed to initialize payment" },
         { status: 500 }
@@ -209,7 +209,7 @@ export async function POST(request: NextRequest) {
       accessCode: paystackResponse.data.access_code,
     })
   } catch (error) {
-    console.error("[v0] Order initialization error:", error)
+    console.error("Order initialization error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

@@ -44,7 +44,7 @@ export function TwoFAStatus() {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to load status';
       setError(message);
-      console.error('[v0] Fetch 2FA status error:', err);
+      console.error('Fetch 2FA status error:', err);
     } finally {
       setLoading(false);
     }
@@ -85,7 +85,7 @@ export function TwoFAStatus() {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to disable 2FA';
       setError(message);
-      console.error('[v0] Disable 2FA error:', err);
+      console.error('Disable 2FA error:', err);
     } finally {
       setActionLoading(false);
     }

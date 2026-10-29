@@ -9,7 +9,6 @@ export type OAuthProvider = "google" | "apple" | "facebook"
  */
 export async function signInWithOAuth(provider: OAuthProvider, next?: string) {
   try {
-    console.log("[v0] Initiating OAuth sign in with provider:", provider)
 
     // Validate provider
     const validProviders: OAuthProvider[] = ["google", "apple", "facebook"]
@@ -19,7 +18,6 @@ export async function signInWithOAuth(provider: OAuthProvider, next?: string) {
 
     // Get redirect URL with fallback
     const redirectUrl = getOAuthRedirectUrl(next)
-    console.log("[v0] OAuth redirect URL:", redirectUrl)
 
     // Initiate OAuth flow
     const { data, error } = await supabase.auth.signInWithOAuth({
@@ -32,21 +30,20 @@ export async function signInWithOAuth(provider: OAuthProvider, next?: string) {
     })
 
     if (error) {
-      console.error("[v0] OAuth sign in error:", error.message, error)
+      console.error("OAuth sign in error:", error.message, error)
       return { error }
     }
 
     if (data?.url) {
-      console.log("[v0] OAuth sign in initiated successfully, redirecting to OAuth provider")
       // The browser will handle the redirect automatically
       // OAuth flow will redirect back to callback page after user authenticates
       return { error: null }
     } else {
-      console.warn("[v0] OAuth initiated but no redirect URL returned")
+      console.warn("OAuth initiated but no redirect URL returned")
       return { error: null }
     }
   } catch (err) {
-    console.error("[v0] Unexpected OAuth error:", err)
+    console.error("Unexpected OAuth error:", err)
     const error = err instanceof Error ? err : new Error("OAuth sign in failed")
     return { error }
   }

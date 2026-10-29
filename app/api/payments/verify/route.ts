@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
       const result = await verifyPaystackPayment(reference)
       paystackData = result.data
     } catch (error) {
-      console.error("[v0] Paystack verification failed:", error instanceof Error ? error.message : String(error))
+      console.error("Paystack verification failed:", error instanceof Error ? error.message : String(error))
       return NextResponse.json(
         {
           success: false,
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
     try {
       await updatePaystackTransaction(reference, "success", paystackData.paid_at)
     } catch (updateError) {
-      console.error("[v0] Failed to update transaction:", updateError)
+      console.error("Failed to update transaction:", updateError)
       // Don't fail the verification if transaction update fails
     }
 
@@ -131,7 +131,7 @@ export async function POST(request: NextRequest) {
       try {
         const { alreadyCompleted } = await completeDonation(donationId)
       } catch (donationUpdateError) {
-        console.error("[v0] Failed to update donation status:", donationUpdateError)
+        console.error("Failed to update donation status:", donationUpdateError)
       }
     }
 
@@ -156,7 +156,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(responseData)
   } catch (error) {
-    console.error("[v0] Unexpected error in payment verification:", error)
+    console.error("Unexpected error in payment verification:", error)
     return NextResponse.json(
       {
         success: false,

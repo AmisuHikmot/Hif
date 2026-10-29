@@ -105,13 +105,13 @@ export async function getProfile(userId: string): Promise<UserProfile | null> {
       .single();
 
     if (error) {
-      console.error('[v0] Error fetching profile:', error);
+      console.error('Error fetching profile:', error);
       return null;
     }
 
     return data as UserProfile;
   } catch (error) {
-    console.error('[v0] Profile fetch error:', error);
+    console.error('Profile fetch error:', error);
     return null;
   }
 }
@@ -137,13 +137,13 @@ export async function updateProfile(
       .single();
 
     if (error) {
-      console.error('[v0] Error updating profile:', error);
+      console.error('Error updating profile:', error);
       throw new Error(`Failed to update profile: ${error.message}`);
     }
 
     return data as UserProfile;
   } catch (error) {
-    console.error('[v0] Profile update error:', error);
+    console.error('Profile update error:', error);
     throw error;
   }
 }
@@ -178,7 +178,7 @@ export async function uploadAndUpdateProfilePicture(
 
     return profilePictureUrl;
   } catch (error) {
-    console.error('[v0] Profile picture upload error:', error);
+    console.error('Profile picture upload error:', error);
     throw error;
   }
 }
@@ -206,7 +206,7 @@ export async function deleteUserProfilePicture(userId: string): Promise<void> {
       profile_picture_uploaded_at: null
     });
   } catch (error) {
-    console.error('[v0] Delete profile picture error:', error);
+    console.error('Delete profile picture error:', error);
     throw error;
   }
 }
@@ -221,7 +221,7 @@ export async function getNotificationPreferences(
     const profile = await getProfile(userId);
     return profile?.notification_preferences || null;
   } catch (error) {
-    console.error('[v0] Error fetching notification preferences:', error);
+    console.error('Error fetching notification preferences:', error);
     return null;
   }
 }
@@ -246,7 +246,7 @@ export async function updateNotificationPreferences(
 
     return profile?.notification_preferences || null;
   } catch (error) {
-    console.error('[v0] Error updating notification preferences:', error);
+    console.error('Error updating notification preferences:', error);
     throw error;
   }
 }
@@ -318,7 +318,7 @@ export async function setup2FA(userId: string): Promise<{
       })
     };
   } catch (error) {
-    console.error('[v0] 2FA setup error:', error);
+    console.error('2FA setup error:', error);
     throw error;
   }
 }
@@ -368,7 +368,7 @@ export async function verify2FASetup(
 
     return true;
   } catch (error) {
-    console.error('[v0] 2FA verification error:', error);
+    console.error('2FA verification error:', error);
     throw error;
   }
 }
@@ -397,7 +397,7 @@ export async function get2FAStatus(userId: string): Promise<TwoFAStatus | null> 
       has_backup_codes: Array.isArray(data.backup_codes) && data.backup_codes.length > 0
     };
   } catch (error) {
-    console.error('[v0] Error fetching 2FA status:', error);
+    console.error('Error fetching 2FA status:', error);
     return null;
   }
 }
@@ -422,7 +422,7 @@ export async function disable2FA(userId: string): Promise<void> {
       throw error;
     }
   } catch (error) {
-    console.error('[v0] Error disabling 2FA:', error);
+    console.error('Error disabling 2FA:', error);
     throw error;
   }
 }
@@ -489,7 +489,7 @@ export async function verify2FALogin(
     await recordTOTPAttempt(userId, false);
     return false;
   } catch (error) {
-    console.error('[v0] 2FA login verification error:', error);
+    console.error('2FA login verification error:', error);
     return false;
   }
 }
@@ -511,7 +511,7 @@ async function recordTOTPAttempt(
       created_at: new Date().toISOString()
     });
   } catch (error) {
-    console.warn('[v0] Error recording 2FA attempt:', error);
+    console.warn('Error recording 2FA attempt:', error);
   }
 }
 
@@ -533,7 +533,7 @@ async function recordBackupCodeUsage(
       created_at: new Date().toISOString()
     });
   } catch (error) {
-    console.warn('[v0] Error recording backup code usage:', error);
+    console.warn('Error recording backup code usage:', error);
   }
 }
 
@@ -577,7 +577,7 @@ export async function check2FARateLimit(
       remainingAttempts: maxAttempts - failedAttempts
     };
   } catch (error) {
-    console.error('[v0] Error checking 2FA rate limit:', error);
+    console.error('Error checking 2FA rate limit:', error);
     return { allowed: true, remainingAttempts: 5 }; // Default to allowing if error
   }
 }
@@ -598,7 +598,7 @@ export async function changePassword(userId: string): Promise<void> {
       password_change_count: newCount
     });
   } catch (error) {
-    console.error('[v0] Error recording password change:', error);
+    console.error('Error recording password change:', error);
     throw error;
   }
 }

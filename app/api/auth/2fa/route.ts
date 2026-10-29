@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
       { status: 400 }
     );
   } catch (error) {
-    console.error('[v0] 2FA API error:', error);
+    console.error('2FA API error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

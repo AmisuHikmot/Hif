@@ -21,7 +21,6 @@ async function getDashboardData(userId: string) {
   const supabase = await createClient()
 
   try {
-    console.log("[Dashboard] Starting data fetch for user:", userId)
 
     const currentYear = new Date().getFullYear()
 
@@ -81,7 +80,6 @@ async function getDashboardData(userId: string) {
     if (profileError) {
       console.error("[Dashboard] Profile fetch error:", profileError.message)
     } else {
-      console.log("[Dashboard] Profile fetched:", profile?.email)
     }
 
     const { data: membership, error: membershipError } = membershipResult
@@ -144,7 +142,6 @@ async function getDashboardData(userId: string) {
 
     const attendedEventsCount = eventAttendance?.length || 0
 
-    console.log("[Dashboard] All data fetched successfully")
 
     return {
       profile: profile || null,
@@ -187,8 +184,6 @@ export default async function DashboardPage() {
     // Only a missing session sends you to sign in. A render error must not:
     // the login page would bounce a signed-in user straight back here.
     if (!user) redirect("/auth/login?redirect=/dashboard")
-
-    console.log("[Dashboard] Loading dashboard for user:", user.id)
 
     const {
       profile,

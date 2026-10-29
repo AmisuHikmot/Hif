@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ url });
   } catch (error) {
-    console.error('[v0] Picture upload error:', error);
+    console.error('Picture upload error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -108,7 +108,7 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('[v0] Picture delete error:', error);
+    console.error('Picture delete error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

@@ -39,7 +39,7 @@ export function TrackingResults({ order, onBackClick, onOrderUpdate }: TrackingR
     try {
       await navigator.clipboard.writeText(order.reference)
       shadcnToast({ description: "Order reference copied to clipboard" })
-    } catch (err) { console.error("[v0] Copy error:", err) }
+    } catch (err) { console.error("Copy error:", err) }
   }
 
   const handleShareLink = async () => {
@@ -51,7 +51,7 @@ export function TrackingResults({ order, onBackClick, onOrderUpdate }: TrackingR
         await navigator.clipboard.writeText(trackingUrl)
         shadcnToast({ description: "Tracking link copied to clipboard" })
       }
-    } catch (err) { console.error("[v0] Share error:", err) }
+    } catch (err) { console.error("Share error:", err) }
   }
 
   const handlePrint = () => { window.print() }

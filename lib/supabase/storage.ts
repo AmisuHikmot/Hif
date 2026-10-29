@@ -118,13 +118,13 @@ export async function uploadProfilePicture(
       });
 
     if (error) {
-      console.error('[v0] Storage upload error:', error);
+      console.error('Storage upload error:', error);
       throw new Error(`Upload failed: ${error.message}`);
     }
 
     return filePath;
   } catch (error) {
-    console.error('[v0] Profile picture upload error:', error);
+    console.error('Profile picture upload error:', error);
     throw error;
   }
 }
@@ -145,11 +145,11 @@ export async function deleteProfilePicture(filePath: string): Promise<void> {
       .remove([filePath]);
 
     if (error) {
-      console.error('[v0] Storage delete error:', error);
+      console.error('Storage delete error:', error);
       throw new Error(`Delete failed: ${error.message}`);
     }
   } catch (error) {
-    console.error('[v0] Profile picture delete error:', error);
+    console.error('Profile picture delete error:', error);
     throw error;
   }
 }
@@ -173,13 +173,13 @@ export async function getProfilePictureSignedUrl(
       .createSignedUrl(filePath, expiresIn);
 
     if (error) {
-      console.error('[v0] Signed URL error:', error);
+      console.error('Signed URL error:', error);
       throw new Error(`Failed to generate URL: ${error.message}`);
     }
 
     return data.signedUrl;
   } catch (error) {
-    console.error('[v0] Get signed URL error:', error);
+    console.error('Get signed URL error:', error);
     throw error;
   }
 }
@@ -213,7 +213,7 @@ export async function ensureProfilePicturesBucket(): Promise<void> {
       .listBuckets();
 
     if (listError) {
-      console.error('[v0] Error listing buckets:', listError);
+      console.error('Error listing buckets:', listError);
       return;
     }
 
@@ -229,14 +229,13 @@ export async function ensureProfilePicturesBucket(): Promise<void> {
         });
 
       if (createError) {
-        console.error('[v0] Error creating bucket:', createError);
+        console.error('Error creating bucket:', createError);
         return;
       }
 
-      console.log(`[v0] Created ${BUCKET_NAME} storage bucket`);
     }
   } catch (error) {
-    console.error('[v0] Error ensuring bucket:', error);
+    console.error('Error ensuring bucket:', error);
     // Don't throw - this is non-critical initialization
   }
 }
@@ -261,10 +260,10 @@ export async function cleanupOldProfilePicture(
 
     if (error) {
       // Log but don't throw - old file cleanup shouldn't fail the operation
-      console.warn('[v0] Failed to cleanup old profile picture:', error);
+      console.warn('Failed to cleanup old profile picture:', error);
     }
   } catch (error) {
-    console.warn('[v0] Error cleaning up old profile picture:', error);
+    console.warn('Error cleaning up old profile picture:', error);
   }
 }
 
@@ -287,13 +286,13 @@ export async function listUserProfilePictures(
       });
 
     if (error) {
-      console.error('[v0] Error listing files:', error);
+      console.error('Error listing files:', error);
       return [];
     }
 
     return data?.map((file) => `${userId}/${file.name}`) || [];
   } catch (error) {
-    console.error('[v0] Error listing user files:', error);
+    console.error('Error listing user files:', error);
     return [];
   }
 }

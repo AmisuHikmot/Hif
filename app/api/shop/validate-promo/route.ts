@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
       .rpc("shop_validate_promo_code", { p_code: code.toUpperCase() })
 
     if (error) {
-      console.error("[v0] Promo validation error:", error)
+      console.error("Promo validation error:", error)
       return NextResponse.json({ error: "Failed to validate promo code" }, { status: 500 })
     }
 
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
       discountValue: parseFloat(promo.discount_value),
     })
   } catch (error) {
-    console.error("[v0] Promo validation error:", error)
+    console.error("Promo validation error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

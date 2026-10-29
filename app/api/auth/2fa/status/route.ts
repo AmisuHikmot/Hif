@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
       has_backup_codes: false
     });
   } catch (error) {
-    console.error('[v0] 2FA status error:', error);
+    console.error('2FA status error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -98,7 +98,7 @@ export async function DELETE(request: NextRequest) {
       message: '2FA has been disabled'
     });
   } catch (error) {
-    console.error('[v0] 2FA disable error:', error);
+    console.error('2FA disable error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

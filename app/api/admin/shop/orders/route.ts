@@ -78,7 +78,7 @@ export async function GET(request: NextRequest) {
       },
     })
   } catch (error) {
-    console.error('[v0] Admin GET orders error:', error)
+    console.error('Admin GET orders error:', error)
     return NextResponse.json(
       { error: 'Failed to fetch orders' },
       { status: 500 }
@@ -166,7 +166,7 @@ export async function PUT(request: NextRequest) {
       message: 'Order updated successfully',
     })
   } catch (error) {
-    console.error('[v0] Admin PUT order error:', error)
+    console.error('Admin PUT order error:', error)
     return NextResponse.json(
       { error: 'Failed to update order' },
       { status: 500 }
@@ -223,7 +223,7 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({ message: 'Order cancelled successfully' })
   } catch (error) {
-    console.error('[v0] Admin DELETE order error:', error)
+    console.error('Admin DELETE order error:', error)
     return NextResponse.json(
       { error: 'Failed to cancel order' },
       { status: 500 }

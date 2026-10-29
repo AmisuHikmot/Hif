@@ -22,13 +22,13 @@ export async function sendEmail(
     })
 
     if (result.error) {
-      console.error("[v0] Resend error:", result.error)
+      console.error("Resend error:", result.error)
       return { success: false, error: result.error.message }
     }
 
     return { success: true, messageId: result.data?.id }
   } catch (error) {
-    console.error("[v0] Email sending failed:", error)
+    console.error("Email sending failed:", error)
     return { success: false, error: error instanceof Error ? error.message : "Unknown error" }
   }
 }

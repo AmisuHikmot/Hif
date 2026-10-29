@@ -118,7 +118,7 @@ export default function DonationProjects() {
 
       if (!initResponse.ok) {
         const errorData = await initResponse.json().catch(() => ({}))
-        console.error("[v0] Payment initialization failed:", errorData)
+        console.error("Payment initialization failed:", errorData)
         throw new Error(errorData.error || "Failed to initialize payment")
       }
 
@@ -131,7 +131,7 @@ export default function DonationProjects() {
       window.location.href = initData.authorization_url
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Failed to process donation"
-      console.error("[v0] Donation error:", error)
+      console.error("Donation error:", error)
       toast({
         title: "Error",
         description: errorMessage,

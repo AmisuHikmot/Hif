@@ -41,7 +41,7 @@ export async function initializePaystackPayment(params: {
     } catch {
       errorDetails = `HTTP ${response.status}: ${response.statusText}`
     }
-    console.error("[v0] Paystack API error:", {
+    console.error("Paystack API error:", {
       status: response.status,
       statusText: response.statusText,
       details: errorDetails,
@@ -70,7 +70,7 @@ export async function verifyPaystackPayment(reference: string) {
     } catch {
       errorDetails = `HTTP ${response.status}: ${response.statusText}`
     }
-    console.error("[v0] Paystack verification error:", {
+    console.error("Paystack verification error:", {
       status: response.status,
       statusText: response.statusText,
       details: errorDetails,
@@ -145,7 +145,7 @@ export async function completeDonation(donationId: string): Promise<{ alreadyCom
       amount: donation.amount,
     })
     if (projectError) {
-      console.warn("[v0] Failed to update project amount_raised:", projectError)
+      console.warn("Failed to update project amount_raised:", projectError)
     }
   }
 
@@ -195,7 +195,7 @@ export async function initializeShopPayment(params: {
     } catch {
       errorDetails = `HTTP ${response.status}: ${response.statusText}`
     }
-    console.error("[v0] Paystack API error:", {
+    console.error("Paystack API error:", {
       status: response.status,
       statusText: response.statusText,
       details: errorDetails,

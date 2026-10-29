@@ -24,7 +24,6 @@ export default function PaymentCallbackPage() {
         return
       }
 
-      console.log("[v0] Callback received with reference:", reference)
 
       try {
         const response = await fetch("/api/payments/verify", {
@@ -34,7 +33,6 @@ export default function PaymentCallbackPage() {
         })
 
         const data = await response.json()
-        console.log("[v0] Verification response:", { success: data.success, status: data.status, type: data.type })
 
         if (data.success && data.status === "success") {
           setStatus("success")
@@ -54,7 +52,7 @@ export default function PaymentCallbackPage() {
           setMessage(data.message || "Payment verification failed. Please check your payment status and try again.")
         }
       } catch (error) {
-        console.error("[v0] Callback verification error:", error)
+        console.error("Callback verification error:", error)
         setStatus("failed")
         setMessage("An error occurred while verifying payment. Please contact support.")
       }

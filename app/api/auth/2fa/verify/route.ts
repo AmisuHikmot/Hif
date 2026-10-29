@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
       message: '2FA has been enabled'
     });
   } catch (error) {
-    console.error('[v0] 2FA verification error:', error);
+    console.error('2FA verification error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

@@ -55,7 +55,7 @@ export function QrCodeModal({ isOpen, onClose, reference }: QrCodeModalProps) {
         await navigator.share({ title: `Track Order ${reference}`, text: "Track my order on HIF", url: trackingUrl })
         setShareState("done")
         setTimeout(() => setShareState("idle"), 2500)
-      } catch (err) { console.error("[v0] Share error:", err) }
+      } catch (err) { console.error("Share error:", err) }
     } else {
       await navigator.clipboard.writeText(trackingUrl)
       setShareState("done")

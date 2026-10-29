@@ -81,7 +81,7 @@ export function NotificationPreferences() {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to load preferences';
       setError(message);
-      console.error('[v0] Fetch preferences error:', err);
+      console.error('Fetch preferences error:', err);
     } finally {
       setLoading(false);
     }
@@ -125,7 +125,7 @@ export function NotificationPreferences() {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to save preferences';
       setError(message);
-      console.error('[v0] Save preferences error:', err);
+      console.error('Save preferences error:', err);
     } finally {
       setSaving(false);
     }

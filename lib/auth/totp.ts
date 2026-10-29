@@ -104,7 +104,7 @@ export function generateTOTPToken(secret: string, time: number = Date.now()): st
     const token = (code % 1000000).toString().padStart(6, '0');
     return token;
   } catch (error) {
-    console.error('[v0] Error generating TOTP token:', error);
+    console.error('Error generating TOTP token:', error);
     throw new Error('Failed to generate TOTP token');
   }
 }
@@ -141,7 +141,7 @@ export function verifyTOTPToken(
 
     return false;
   } catch (error) {
-    console.error('[v0] Error verifying TOTP token:', error);
+    console.error('Error verifying TOTP token:', error);
     return false;
   }
 }

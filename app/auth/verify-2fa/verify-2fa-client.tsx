@@ -40,7 +40,6 @@ export function Verify2FAContent() {
 
       // This would typically be handled by your auth flow
       // For now, we'll show the structure
-      console.log('[v0] Verifying 2FA code:', { mode, code });
 
       // In a real implementation, this would verify with your backend
       // and set up a proper authenticated session
@@ -70,7 +69,7 @@ export function Verify2FAContent() {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Verification failed';
       setError(message);
-      console.error('[v0] Verify 2FA error:', err);
+      console.error('Verify 2FA error:', err);
     } finally {
       setLoading(false);
     }

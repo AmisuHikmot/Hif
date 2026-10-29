@@ -98,11 +98,6 @@ export default function DonationForm() {
     const finalAmount = amount === "custom" ? Number.parseFloat(customAmount) : Number.parseFloat(amount)
 
     try {
-      console.log("[v0] Donation form submitted:", {
-        amount: finalAmount,
-        email: formData.donorEmail,
-        name: formData.donorName,
-      })
 
       const initResponse = await fetch("/api/payments/initialize", {
         method: "POST",
@@ -117,14 +112,14 @@ export default function DonationForm() {
 
       if (!initResponse.ok) {
         const errorData = await initResponse.json().catch(() => ({}))
-        console.error("[v0] Payment initialization failed:", errorData)
+        console.error("Payment initialization failed:", errorData)
         throw new Error(errorData.error || "Failed to initialize payment")
       }
 
       const initData = await initResponse.json()
 
       if (!initData.authorization_url || !initData.reference) {
-        console.error("[v0] Missing payment data:", initData)
+        console.error("Missing payment data:", initData)
         throw new Error("Invalid payment response from server")
       }
 
@@ -134,7 +129,7 @@ export default function DonationForm() {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Failed to process donation. Please try again."
       setError(errorMessage)
-      console.error("[v0] Donation error:", err)
+      console.error("Donation error:", err)
       toast({
         title: "Error",
         description: errorMessage,

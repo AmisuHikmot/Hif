@@ -88,7 +88,7 @@ export default function RamadanCharityPage() {
         setCharityInfo(json.charityInfo ?? []);
         setBankAccounts(json.bankAccounts ?? []);
       } catch (error) {
-        console.error('[v0] Error fetching charity info:', error);
+        console.error('Error fetching charity info:', error);
         toast({ title: 'Error', description: 'Failed to load charity information.', variant: 'destructive' });
       } finally {
         setLoading(false);

@@ -75,16 +75,15 @@ export default function LoginPage() {
     setError(null)
 
     try {
-      console.log("[v0] Starting OAuth login with provider:", provider)
       const { error: oAuthError } = await signInWithOAuth(provider, redirectPath)
 
       if (oAuthError) {
-        console.error("[v0] OAuth error:", oAuthError.message)
+        console.error("OAuth error:", oAuthError.message)
         setError(oAuthError.message)
         setIsOAuthLoading(null)
       }
     } catch (err) {
-      console.error("[v0] Unexpected OAuth error:", err)
+      console.error("Unexpected OAuth error:", err)
       setError("An unexpected error occurred. Please try again.")
       setIsOAuthLoading(null)
     }

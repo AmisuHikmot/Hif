@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ promoCodes })
   } catch (error) {
-    console.error('[v0] Admin GET promo codes error:', error)
+    console.error('Admin GET promo codes error:', error)
     return NextResponse.json(
       { error: 'Failed to fetch promo codes' },
       { status: 500 }
@@ -121,7 +121,7 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     )
   } catch (error) {
-    console.error('[v0] Admin POST promo code error:', error)
+    console.error('Admin POST promo code error:', error)
     return NextResponse.json(
       { error: 'Failed to create promo code' },
       { status: 500 }
@@ -179,7 +179,7 @@ export async function PUT(request: NextRequest) {
       message: 'Promo code updated successfully',
     })
   } catch (error) {
-    console.error('[v0] Admin PUT promo code error:', error)
+    console.error('Admin PUT promo code error:', error)
     return NextResponse.json(
       { error: 'Failed to update promo code' },
       { status: 500 }
@@ -232,7 +232,7 @@ export async function DELETE(request: NextRequest) {
 
     return NextResponse.json({ message: 'Promo code deleted successfully' })
   } catch (error) {
-    console.error('[v0] Admin DELETE promo code error:', error)
+    console.error('Admin DELETE promo code error:', error)
     return NextResponse.json(
       { error: 'Failed to delete promo code' },
       { status: 500 }

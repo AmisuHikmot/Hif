@@ -50,7 +50,7 @@ export default function Setup2FAPage() {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'An error occurred';
       setError(message);
-      console.error('[v0] Setup 2FA error:', err);
+      console.error('Setup 2FA error:', err);
     } finally {
       setLoading(false);
     }
@@ -86,7 +86,7 @@ export default function Setup2FAPage() {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Verification failed';
       setError(message);
-      console.error('[v0] Verify 2FA error:', err);
+      console.error('Verify 2FA error:', err);
     } finally {
       setLoading(false);
     }

@@ -114,7 +114,7 @@ export function PasswordChangeForm() {
       });
 
       if (!response.ok) {
-        console.warn('[v0] Failed to record password change');
+        console.warn('Failed to record password change');
       }
 
       setSuccess(true);
@@ -134,7 +134,7 @@ export function PasswordChangeForm() {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to change password';
       setError(message);
-      console.error('[v0] Password change error:', err);
+      console.error('Password change error:', err);
     } finally {
       setLoading(false);
     }

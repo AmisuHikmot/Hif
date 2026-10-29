@@ -39,7 +39,7 @@ export async function POST(request: NextRequest) {
       message: 'Password change recorded'
     });
   } catch (error) {
-    console.error('[v0] Password change recording error:', error);
+    console.error('Password change recording error:', error);
     // Don't fail the response - password was changed in Supabase
     // This is just for tracking
     return NextResponse.json({

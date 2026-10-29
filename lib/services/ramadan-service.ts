@@ -88,13 +88,13 @@ class RamadanService {
         .single();
 
       if (error) {
-        console.error('[v0] Error fetching daily reminder:', error);
+        console.error('Error fetching daily reminder:', error);
         return null;
       }
 
       return data;
     } catch (error) {
-      console.error('[v0] Unexpected error in getDailyReminder:', error);
+      console.error('Unexpected error in getDailyReminder:', error);
       return null;
     }
   }
@@ -113,13 +113,13 @@ class RamadanService {
         .limit(limit);
 
       if (error) {
-        console.error('[v0] Error fetching daily reminders:', error);
+        console.error('Error fetching daily reminders:', error);
         return [];
       }
 
       return data || [];
     } catch (error) {
-      console.error('[v0] Unexpected error in getAllDailyReminders:', error);
+      console.error('Unexpected error in getAllDailyReminders:', error);
       return [];
     }
   }
@@ -139,13 +139,13 @@ class RamadanService {
         .single();
 
       if (error) {
-        console.error('[v0] Error fetching reflection verse:', error);
+        console.error('Error fetching reflection verse:', error);
         return null;
       }
 
       return data;
     } catch (error) {
-      console.error('[v0] Unexpected error in getFeaturedReflectionVerse:', error);
+      console.error('Unexpected error in getFeaturedReflectionVerse:', error);
       return null;
     }
   }
@@ -163,13 +163,13 @@ class RamadanService {
         .order('order_rank', { ascending: true });
 
       if (error) {
-        console.error('[v0] Error fetching knowledge articles:', error);
+        console.error('Error fetching knowledge articles:', error);
         return [];
       }
 
       return data || [];
     } catch (error) {
-      console.error('[v0] Unexpected error in getKnowledgeArticles:', error);
+      console.error('Unexpected error in getKnowledgeArticles:', error);
       return [];
     }
   }
@@ -188,13 +188,13 @@ class RamadanService {
         .single();
 
       if (error) {
-        console.error('[v0] Error fetching knowledge article:', error);
+        console.error('Error fetching knowledge article:', error);
         return null;
       }
 
       return data;
     } catch (error) {
-      console.error('[v0] Unexpected error in getKnowledgeArticleBySlug:', error);
+      console.error('Unexpected error in getKnowledgeArticleBySlug:', error);
       return null;
     }
   }
@@ -212,13 +212,13 @@ class RamadanService {
         .order('order_rank', { ascending: true });
 
       if (error) {
-        console.error('[v0] Error fetching duas:', error);
+        console.error('Error fetching duas:', error);
         return [];
       }
 
       return data || [];
     } catch (error) {
-      console.error('[v0] Unexpected error in getDuasByCategory:', error);
+      console.error('Unexpected error in getDuasByCategory:', error);
       return [];
     }
   }
@@ -236,13 +236,13 @@ class RamadanService {
         .order('order_rank', { ascending: true });
 
       if (error) {
-        console.error('[v0] Error fetching featured duas:', error);
+        console.error('Error fetching featured duas:', error);
         return [];
       }
 
       return data || [];
     } catch (error) {
-      console.error('[v0] Unexpected error in getFeaturedDuas:', error);
+      console.error('Unexpected error in getFeaturedDuas:', error);
       return [];
     }
   }
@@ -260,13 +260,13 @@ class RamadanService {
         .order('order_rank', { ascending: true });
 
       if (error) {
-        console.error('[v0] Error fetching all duas:', error);
+        console.error('Error fetching all duas:', error);
         return [];
       }
 
       return data || [];
     } catch (error) {
-      console.error('[v0] Unexpected error in getAllDuas:', error);
+      console.error('Unexpected error in getAllDuas:', error);
       return [];
     }
   }
@@ -284,13 +284,13 @@ class RamadanService {
         .order('order_rank', { ascending: true });
 
       if (error) {
-        console.error('[v0] Error fetching charity info:', error);
+        console.error('Error fetching charity info:', error);
         return [];
       }
 
       return data || [];
     } catch (error) {
-      console.error('[v0] Unexpected error in getCharityInfo:', error);
+      console.error('Unexpected error in getCharityInfo:', error);
       return [];
     }
   }
@@ -308,13 +308,13 @@ class RamadanService {
         .order('display_order', { ascending: true });
 
       if (error) {
-        console.error('[v0] Error fetching bank accounts:', error);
+        console.error('Error fetching bank accounts:', error);
         return [];
       }
 
       return data || [];
     } catch (error) {
-      console.error('[v0] Unexpected error in getBankAccounts:', error);
+      console.error('Unexpected error in getBankAccounts:', error);
       return [];
     }
   }
@@ -332,7 +332,7 @@ class RamadanService {
         .order('category', { ascending: true });
 
       if (error) {
-        console.error('[v0] Error fetching dua categories:', error);
+        console.error('Error fetching dua categories:', error);
         return [];
       }
 
@@ -340,7 +340,7 @@ class RamadanService {
       const categories = data?.map(item => item.category) || [];
       return [...new Set(categories)];
     } catch (error) {
-      console.error('[v0] Unexpected error in getDuaCategories:', error);
+      console.error('Unexpected error in getDuaCategories:', error);
       return [];
     }
   }

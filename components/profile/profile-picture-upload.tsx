@@ -88,7 +88,7 @@ export function ProfilePictureUpload({
       const message = err instanceof Error ? err.message : 'Upload failed';
       setError(message);
       setPreview(currentImageUrl || null);
-      console.error('[v0] Upload error:', err);
+      console.error('Upload error:', err);
     } finally {
       setLoading(false);
     }
@@ -120,7 +120,7 @@ export function ProfilePictureUpload({
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Delete failed';
       setError(message);
-      console.error('[v0] Delete error:', err);
+      console.error('Delete error:', err);
     } finally {
       setLoading(false);
     }

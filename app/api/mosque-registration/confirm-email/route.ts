@@ -294,7 +294,6 @@ export async function POST(req: NextRequest) {
       }
     });
 
-    console.log(`[resend] ${reg_code} — sent: ${sent}, failed: ${failed}`);
 
     return NextResponse.json({ sent, failed, reg_code }, { status: 200 });
 

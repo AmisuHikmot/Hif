@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
       ...(profile?.notification_preferences || {})
     });
   } catch (error) {
-    console.error('[v0] GET /api/profile/notifications error:', error);
+    console.error('GET /api/profile/notifications error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -97,7 +97,7 @@ export async function PUT(request: NextRequest) {
 
     return NextResponse.json(updated);
   } catch (error) {
-    console.error('[v0] PUT /api/profile/notifications error:', error);
+    console.error('PUT /api/profile/notifications error:', error);
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

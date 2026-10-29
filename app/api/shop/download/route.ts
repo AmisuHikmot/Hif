@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
     const token = searchParams.get("token")
 
     if (!token) {
-      console.error("[v0] Download API: No token provided")
+      console.error("Download API: No token provided")
       return NextResponse.json({ error: "Download token is required" }, { status: 400 })
     }
 
@@ -36,12 +36,12 @@ export async function GET(request: NextRequest) {
       .single()
 
     if (downloadError) {
-      console.error("[v0] Download lookup error:", downloadError)
+      console.error("Download lookup error:", downloadError)
       return NextResponse.json({ error: "Download link not found" }, { status: 404 })
     }
 
     if (!downloadData) {
-      console.error("[v0] No download data found for token")
+      console.error("No download data found for token")
       return NextResponse.json({ error: "Download link not found" }, { status: 404 })
     }
 
@@ -49,7 +49,7 @@ export async function GET(request: NextRequest) {
     // Check if expired
     const expiresAt = new Date(downloadData.expires_at)
     if (expiresAt < new Date()) {
-      console.error("[v0] Download link expired at:", expiresAt)
+      console.error("Download link expired at:", expiresAt)
       return NextResponse.json(
         { error: "Download link has expired" },
         { status: 410 }
@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
 
     // Check if max downloads reached
     if (downloadData.download_count >= downloadData.max_downloads) {
-      console.error("[v0] Max downloads reached:", downloadData.download_count, ">=", downloadData.max_downloads)
+      console.error("Max downloads reached:", downloadData.download_count, ">=", downloadData.max_downloads)
       return NextResponse.json(
         { error: "Maximum downloads reached for this link" },
         { status: 403 }
@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
 
     const product = downloadData.shop_products_enhanced as any
     if (!product) {
-      console.error("[v0] Product not found for product_id:", downloadData.product_id)
+      console.error("Product not found for product_id:", downloadData.product_id)
       return NextResponse.json(
         { error: "Product not found" },
         { status: 404 }
@@ -87,7 +87,7 @@ export async function GET(request: NextRequest) {
         .eq("id", downloadData.id)
 
       if (updateError) {
-        console.error("[v0] Failed to update download count:", updateError)
+        console.error("Failed to update download count:", updateError)
       }
 
       return NextResponse.json({
@@ -99,7 +99,7 @@ export async function GET(request: NextRequest) {
 
     // Otherwise, try to generate a signed URL from storage
     if (!product.digital_file_path) {
-      console.error("[v0] No digital_file_path found in product")
+      console.error("No digital_file_path found in product")
       return NextResponse.json(
         { error: "Digital file not configured for this product" },
         { status: 404 }
@@ -113,7 +113,7 @@ export async function GET(request: NextRequest) {
       .createSignedUrl(product.digital_file_path, 3600) // 1 hour expiry
 
     if (signError) {
-      console.error("[v0] Failed to generate signed URL:", signError)
+      console.error("Failed to generate signed URL:", signError)
       return NextResponse.json(
         { error: "Failed to generate download link: " + signError.message },
         { status: 500 }
@@ -121,7 +121,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (!signedUrl) {
-      console.error("[v0] Signed URL is null")
+      console.error("Signed URL is null")
       return NextResponse.json(
         { error: "Failed to generate download link" },
         { status: 500 }
@@ -138,7 +138,7 @@ export async function GET(request: NextRequest) {
       .eq("id", downloadData.id)
 
     if (updateError) {
-      console.error("[v0] Failed to update download count:", updateError)
+      console.error("Failed to update download count:", updateError)
     }
 
     return NextResponse.json({
@@ -147,7 +147,7 @@ export async function GET(request: NextRequest) {
       expiresIn: 3600, // seconds
     })
   } catch (error) {
-    console.error("[v0] Download API error:", error)
+    console.error("Download API error:", error)
     return NextResponse.json(
       { error: "Internal server error: " + (error instanceof Error ? error.message : "Unknown error") },
       { status: 500 }
