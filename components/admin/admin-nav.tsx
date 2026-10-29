@@ -48,6 +48,7 @@ const navigation = [
   { name: "Schools", href: "/admin/schools", icon: GraduationCap },
   { name: "Halal places", href: "/admin/halal", icon: Utensils },
   { name: "App releases", href: "/admin/releases", icon: Smartphone },
+  { name: "App settings", href: "/admin/app-config", icon: Smartphone },
   { name: "Developers", href: "/admin/developer", icon: Code2 },
   { name: "Audit Logs", href: "/admin/audit-logs", icon: BarChart3 },
 ]
