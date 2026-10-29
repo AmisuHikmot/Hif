@@ -30,13 +30,20 @@ const GROQ_TEXT_MODELS = [process.env.GROQ_MODEL, "openai/gpt-oss-120b", "llama-
 const GROQ_VISION_MODEL = process.env.GROQ_VISION_MODEL
 const GROQ_SEARCH_MODEL = process.env.GROQ_SEARCH_MODEL
 
+// A model that answered 404 or timed out is skipped for ten minutes on this
+// server instance, so one dead name does not eat the whole request time.
+const benched = new Map<string, number>()
+const bench = (m: string) => benched.set(m, Date.now() + 10 * 60_000)
+const usable = (m: string) => (benched.get(m) ?? 0) < Date.now()
+
 async function gemini(o: LlmOptions): Promise<LlmResult> {
   let last: unknown = new Error("no gemini model")
-  for (const model of GEMINI_MODELS) {
+  for (const model of GEMINI_MODELS.filter(usable).length ? GEMINI_MODELS.filter(usable) : GEMINI_MODELS) {
     try {
       return await geminiOnce(o, model)
     } catch (e) {
       last = e
+      bench(model)
       console.error("[ai] gemini", model, "failed:", e instanceof Error ? e.message.slice(0, 160) : e)
     }
   }
@@ -64,10 +71,12 @@ async function geminiOnce(o: LlmOptions, model: string): Promise<LlmResult> {
         maxOutputTokens: (o.maxTokens ?? 1400) + 1200,
         // 2.5 models can switch thinking off; newer ones manage it themselves.
         ...(model.startsWith("gemini-2.5") ? { thinkingConfig: { thinkingBudget: 0 } } : {}),
+        // Gemini 3 models think for a long time by default and were timing out.
+        ...(model.startsWith("gemini-3") ? { thinkingConfig: { thinkingLevel: "low" } } : {}),
         ...(o.json && !o.search ? { responseMimeType: "application/json" } : {}),
       },
     }),
-    signal: AbortSignal.timeout(30000),
+    signal: AbortSignal.timeout(15000),
   })
   if (!r.ok) throw new Error(`gemini ${r.status} ${(await r.text()).replace(/\s+/g, " ").slice(0, 300)}`)
   const j = await r.json()
@@ -82,11 +91,12 @@ async function groq(o: LlmOptions): Promise<LlmResult> {
   const models = o.image ? [GROQ_VISION_MODEL] : o.search ? [GROQ_SEARCH_MODEL] : GROQ_TEXT_MODELS
   let last: unknown = new Error("no groq model for this request")
   for (const model of models) {
-    if (!model) continue
+    if (!model || !usable(model)) continue
     try {
       return await groqOnce(o, model)
     } catch (e) {
       last = e
+      bench(model)
       console.error("[ai] groq", model, "failed:", e instanceof Error ? e.message.slice(0, 160) : e)
     }
   }
@@ -118,7 +128,7 @@ async function groqOnce(o: LlmOptions, model: string): Promise<LlmResult> {
         })),
       ],
     }),
-    signal: AbortSignal.timeout(25000),
+    signal: AbortSignal.timeout(12000),
   })
   if (!r.ok) throw new Error(`groq ${r.status} ${(await r.text()).replace(/\s+/g, " ").slice(0, 300)}`)
   const j = await r.json()
