@@ -85,13 +85,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const fetchProfile = async (userId: string) => {
     // If already fetching this user's profile, skip
     if (fetchingProfile.current === userId) {
-      console.log("[v0] Already fetching profile for:", userId)
       return
     }
 
     try {
       fetchingProfile.current = userId
-      console.log("[v0] Fetching profile for user:", userId)
       
       const { data, error } = await supabase
         .from("profiles")
@@ -100,7 +98,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .maybeSingle()
 
       if (error) {
-        console.error("[v0] fetchProfile error:", error.message)
+        console.error("fetchProfile error:", error.message)
         return
       }
 
@@ -114,11 +112,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (data) {
-        console.log("[v0] Profile loaded successfully:", data.email)
         setProfile(data as UserProfile)
       }
     } catch (err) {
-      console.error("[v0] Unexpected error in fetchProfile:", err)
+      console.error("Unexpected error in fetchProfile:", err)
     } finally {
       fetchingProfile.current = null
     }
@@ -177,7 +174,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
-      console.log("[v0] Signing in with email:", email)
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
