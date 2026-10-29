@@ -12,9 +12,14 @@ export function clientIp(req: NextRequest | Request) {
  * fails (e.g. SQL not yet applied) the request is allowed through.
  */
 export async function rateLimit(req: NextRequest | Request, name: string, max: number, windowSeconds: number) {
+  return rateLimitKey(`${name}:${clientIp(req)}`, max, windowSeconds)
+}
+
+/** Same as [rateLimit] but for an explicit key, such as a user id. */
+export async function rateLimitKey(key: string, max: number, windowSeconds: number) {
   try {
     const { data, error } = await createAdminClient().rpc("rate_limit_hit", {
-      p_key: `${name}:${clientIp(req)}`,
+      p_key: key,
       p_max: max,
       p_window_seconds: windowSeconds,
     })

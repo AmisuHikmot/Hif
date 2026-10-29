@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "ng.com.hif.app",
+      "sha256_cert_fingerprints": [
+        "8C:ED:E0:0F:22:B6:17:DB:78:5A:D1:BD:74:3F:A4:D6:75:80:58:A2:8B:3B:FA:7C:BA:CE:94:8C:77:39:30:C4"
+      ]
+    }
+  }
+]

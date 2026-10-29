@@ -460,6 +460,7 @@ export function SiteFooter() {
               <Link href="/cookie-policy" className="hover:text-slate-400 transition-colors px-2 py-1">Cookie Policy</Link>
               <Dot />
               <Link href="/faq" className="hover:text-slate-400 transition-colors px-2 py-1">FAQ</Link>
+              <Link href="/ai" className="hover:text-slate-400 transition-colors px-2 py-1">AI Assistant</Link>
               <Dot />
               <Link href="/zakat" className="hover:text-slate-400 transition-colors px-2 py-1">Zakat Calculator</Link>
               <Dot />
