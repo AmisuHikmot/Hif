@@ -1,6 +1,9 @@
 import { MetadataRoute } from "next"
+import { createAdminClient } from "@/lib/supabase/admin"
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export const revalidate = 3600
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = "https://www.hif.com.ng"
 
   // Static routes with priority for important pages
@@ -67,37 +70,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.95,
     },
     {
-      url: `${baseUrl}/cart`,
-      lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 0.85,
-    },
-    {
-      url: `${baseUrl}/checkout`,
-      lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/track-order`,
-      lastModified: new Date(),
-      changeFrequency: "weekly",
-      priority: 0.9,
-    },
-    {
       url: `${baseUrl}/contact-us`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/auth/login`,
-      lastModified: new Date(),
-      changeFrequency: "monthly",
-      priority: 0.7,
-    },
-    {
-      url: `${baseUrl}/auth/register`,
       lastModified: new Date(),
       changeFrequency: "monthly",
       priority: 0.8,
@@ -279,5 +252,27 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ]
 
-  return staticRoutes
+  const extra: MetadataRoute.Sitemap = ["/app", "/schools", "/schools/apply", "/developers", "/developers/docs"].map((p) => ({
+    url: `${baseUrl}${p}`,
+    lastModified: new Date(),
+    changeFrequency: "monthly" as const,
+    priority: 0.7,
+  }))
+
+  // Events and products come from the database; a failure just leaves them out.
+  const dynamic: MetadataRoute.Sitemap = []
+  try {
+    const supabase = createAdminClient()
+    const [{ data: events }, { data: products }] = await Promise.all([
+      supabase.from("events").select("id, updated_at").limit(1000),
+      supabase.from("shop_products_enhanced").select("slug, updated_at").eq("is_active", true).limit(1000),
+    ])
+    for (const e of events ?? [])
+      dynamic.push({ url: `${baseUrl}/events/${e.id}`, lastModified: e.updated_at ? new Date(e.updated_at) : new Date(), changeFrequency: "weekly", priority: 0.7 })
+    for (const pr of products ?? [])
+      if (pr.slug)
+        dynamic.push({ url: `${baseUrl}/shop/product/${pr.slug}`, lastModified: pr.updated_at ? new Date(pr.updated_at) : new Date(), changeFrequency: "weekly", priority: 0.7 })
+  } catch {}
+
+  return [...staticRoutes, ...extra, ...dynamic]
 }
