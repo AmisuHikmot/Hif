@@ -19,6 +19,10 @@ export async function publishRelease(formData: FormData) {
     sha256: sha || null,
     size_mb: Number(formData.get("size_mb")) || null,
     notes: String(formData.get("notes") ?? "").trim().slice(0, 1000) || null,
+    // Only sent when filled in, so releases still publish before db/23 is run.
+    ...(Number.isInteger(Number(formData.get("min_build"))) && Number(formData.get("min_build")) > 0
+      ? { min_build: Number(formData.get("min_build")) }
+      : {}),
   })
   if (error) throw new Error(error.message)
   revalidatePath("/app")

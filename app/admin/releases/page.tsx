@@ -19,6 +19,7 @@ export default async function ReleasesPage() {
         <Input name="apk_url" placeholder="https:// link to the APK" className="sm:col-span-2" required />
         <Input name="sha256" placeholder="SHA-256 (64 hex characters)" className="sm:col-span-2" />
         <Input name="size_mb" type="number" step="0.1" placeholder="Size in MB" />
+        <Input name="min_build" type="number" placeholder="Oldest build still fine (optional, needs db/23)" />
         <Input name="notes" placeholder="What changed (one or two lines)" />
         <Button type="submit" className="sm:col-span-2">Publish release</Button>
       </form>
