@@ -7,5 +7,5 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   // Only paths that read the session; the rest of the public site skips the auth round-trip.
-  matcher: ["/dashboard/:path*", "/admin/:path*", "/schools/:path*", "/developers/:path*", "/oauth/:path*", "/auth/:path*"],
+  matcher: ["/dashboard/:path*", "/admin/:path*", "/api/admin/:path*", "/schools/:path*", "/developers/:path*", "/oauth/:path*", "/auth/:path*"],
 }

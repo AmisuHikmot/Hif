@@ -51,7 +51,7 @@ export function TwoFAStatus() {
   };
 
   const handleSetup = () => {
-    router.push('/auth/setup-2fa');
+    router.push('/auth/mfa?redirect=/dashboard/profile');
   };
 
   const handleDisable = async () => {
