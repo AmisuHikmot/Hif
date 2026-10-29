@@ -49,7 +49,7 @@ async function gemini(o: LlmOptions): Promise<LlmResult> {
     }),
     signal: AbortSignal.timeout(30000),
   })
-  if (!r.ok) throw new Error(`gemini ${r.status}`)
+  if (!r.ok) throw new Error(`gemini ${r.status} ${(await r.text()).replace(/\s+/g, " ").slice(0, 300)}`)
   const j = await r.json()
   const text: string = (j?.candidates?.[0]?.content?.parts ?? []).map((p: { text?: string }) => p.text ?? "").join("").trim()
   if (!text) throw new Error("gemini empty")
@@ -85,7 +85,7 @@ async function groq(o: LlmOptions): Promise<LlmResult> {
     }),
     signal: AbortSignal.timeout(25000),
   })
-  if (!r.ok) throw new Error(`groq ${r.status}`)
+  if (!r.ok) throw new Error(`groq ${r.status} ${(await r.text()).replace(/\s+/g, " ").slice(0, 300)}`)
   const j = await r.json()
   const text: string = j?.choices?.[0]?.message?.content?.trim() ?? ""
   if (!text) throw new Error("groq empty")
@@ -96,9 +96,11 @@ export async function generate(o: LlmOptions): Promise<LlmResult> {
   try {
     return await gemini(o)
   } catch (first) {
+    console.error("[ai] gemini failed:", first instanceof Error ? first.message : first)
     try {
       return await groq(o)
-    } catch {
+    } catch (second) {
+      console.error("[ai] groq failed:", second instanceof Error ? second.message : second)
       throw first
     }
   }

@@ -101,7 +101,8 @@ export async function POST(req: NextRequest) {
     const madhab = MADHABS.has(body.madhab ?? "") ? body.madhab : undefined
     const out = await answerQuestion(text || "What does this say?", history, { madhab, extra, image })
     return NextResponse.json({ answer: out.answer, sources: out.sources, model: out.model })
-  } catch {
+  } catch (e) {
+    console.error("[ai] answer failed:", e instanceof Error ? e.message : e)
     return NextResponse.json({ error: "The assistant is busy. Try again soon." }, { status: 502 })
   }
 }
