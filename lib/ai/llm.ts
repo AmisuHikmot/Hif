@@ -18,15 +18,35 @@ export type LlmOptions = {
 
 export type LlmResult = { text: string; model: string; webSources?: { title: string; uri: string }[] }
 
-const GEMINI_MODEL = process.env.GEMINI_MODEL || "gemini-2.5-flash"
-const GROQ_MODEL = process.env.GROQ_MODEL || "llama-3.3-70b-versatile"
-const GROQ_VISION_MODEL = process.env.GROQ_VISION_MODEL || "meta-llama/llama-4-scout-17b-16e-instruct"
-const GROQ_SEARCH_MODEL = process.env.GROQ_SEARCH_MODEL || "groq/compound-mini"
+// Model names change often and Google retires them for new users, so each
+// provider tries a list in order. Override the first with an env variable.
+const GEMINI_MODELS = [process.env.GEMINI_MODEL, "gemini-3.8-flash", "gemini-3.5-flash-lite", "gemini-3.6-flash", "gemini-3.1-flash-lite"].filter(
+  (m, i, a): m is string => !!m && a.indexOf(m) === i,
+)
+const GROQ_TEXT_MODELS = [process.env.GROQ_MODEL, "openai/gpt-oss-120b", "llama-3.3-70b-versatile", "llama-3.1-8b-instant"].filter(
+  (m, i, a): m is string => !!m && a.indexOf(m) === i,
+)
+// Groq's docs list no vision or search model by default; set these to use them.
+const GROQ_VISION_MODEL = process.env.GROQ_VISION_MODEL
+const GROQ_SEARCH_MODEL = process.env.GROQ_SEARCH_MODEL
 
 async function gemini(o: LlmOptions): Promise<LlmResult> {
+  let last: unknown = new Error("no gemini model")
+  for (const model of GEMINI_MODELS) {
+    try {
+      return await geminiOnce(o, model)
+    } catch (e) {
+      last = e
+      console.error("[ai] gemini", model, "failed:", e instanceof Error ? e.message.slice(0, 160) : e)
+    }
+  }
+  throw last
+}
+
+async function geminiOnce(o: LlmOptions, model: string): Promise<LlmResult> {
   const key = process.env.GEMINI_API_KEY
   if (!key) throw new Error("no gemini key")
-  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`, {
+  const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
     method: "POST",
     headers: { "Content-Type": "application/json", "x-goog-api-key": key },
     body: JSON.stringify({
@@ -41,9 +61,9 @@ async function gemini(o: LlmOptions): Promise<LlmResult> {
       ...(o.search ? { tools: [{ google_search: {} }] } : {}),
       generationConfig: {
         temperature: o.temperature ?? 0.2,
-        maxOutputTokens: o.maxTokens ?? 1400,
-        // Thinking tokens would eat the answer budget on the free tier.
-        thinkingConfig: { thinkingBudget: 0 },
+        maxOutputTokens: (o.maxTokens ?? 1400) + 1200,
+        // 2.5 models can switch thinking off; newer ones manage it themselves.
+        ...(model.startsWith("gemini-2.5") ? { thinkingConfig: { thinkingBudget: 0 } } : {}),
         ...(o.json && !o.search ? { responseMimeType: "application/json" } : {}),
       },
     }),
@@ -55,17 +75,32 @@ async function gemini(o: LlmOptions): Promise<LlmResult> {
   if (!text) throw new Error("gemini empty")
   const chunks: { web?: { title?: string; uri?: string } }[] = j?.candidates?.[0]?.groundingMetadata?.groundingChunks ?? []
   const webSources = chunks.flatMap((c) => (c.web?.uri ? [{ title: c.web.title ?? c.web.uri, uri: c.web.uri }] : []))
-  return { text, model: GEMINI_MODEL, ...(webSources.length ? { webSources } : {}) }
+  return { text, model, ...(webSources.length ? { webSources } : {}) }
 }
 
 async function groq(o: LlmOptions): Promise<LlmResult> {
+  const models = o.image ? [GROQ_VISION_MODEL] : o.search ? [GROQ_SEARCH_MODEL] : GROQ_TEXT_MODELS
+  let last: unknown = new Error("no groq model for this request")
+  for (const model of models) {
+    if (!model) continue
+    try {
+      return await groqOnce(o, model)
+    } catch (e) {
+      last = e
+      console.error("[ai] groq", model, "failed:", e instanceof Error ? e.message.slice(0, 160) : e)
+    }
+  }
+  throw last
+}
+
+async function groqOnce(o: LlmOptions, model: string): Promise<LlmResult> {
   const key = process.env.GROQ_API_KEY
   if (!key) throw new Error("no groq key")
   const r = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
     body: JSON.stringify({
-      model: o.image ? GROQ_VISION_MODEL : o.search ? GROQ_SEARCH_MODEL : GROQ_MODEL,
+      model,
       temperature: o.temperature ?? 0.2,
       max_tokens: o.maxTokens ?? 1400,
       ...(o.json && !o.image && !o.search ? { response_format: { type: "json_object" } } : {}),
@@ -89,7 +124,7 @@ async function groq(o: LlmOptions): Promise<LlmResult> {
   const j = await r.json()
   const text: string = j?.choices?.[0]?.message?.content?.trim() ?? ""
   if (!text) throw new Error("groq empty")
-  return { text, model: j?.model ?? GROQ_MODEL }
+  return { text, model: j?.model ?? model }
 }
 
 export async function generate(o: LlmOptions): Promise<LlmResult> {
