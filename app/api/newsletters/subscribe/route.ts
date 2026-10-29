@@ -1,6 +1,9 @@
+import { rateLimit } from "@/lib/rate-limit"
 import { createClient } from "@/lib/supabase/server"
 
 export async function POST(request: Request) {
+  const limited = await rateLimit(request, "newsletter", 5, 3600)
+  if (limited) return limited
   try {
     const body = await request.json()
     const { email, firstName, lastName } = body

@@ -1,7 +1,10 @@
+import { rateLimit } from "@/lib/rate-limit"
 import { type NextRequest, NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 
 export async function GET(request: NextRequest) {
+  const limited = await rateLimit(request, "membership-check", 30, 600)
+  if (limited) return limited
   const { searchParams } = new URL(request.url)
   const membershipId = searchParams.get("membershipId")?.trim()
   const email = searchParams.get("email")?.trim().toLowerCase()

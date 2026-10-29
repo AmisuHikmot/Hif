@@ -1,7 +1,10 @@
+import { rateLimit } from "@/lib/rate-limit"
 import { type NextRequest, NextResponse } from "next/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 
 export async function POST(request: NextRequest) {
+  const limited = await rateLimit(request, "validate-promo", 30, 600)
+  if (limited) return limited
   try {
     const { code } = await request.json()
 

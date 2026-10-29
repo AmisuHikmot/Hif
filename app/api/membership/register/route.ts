@@ -1,3 +1,4 @@
+import { rateLimit } from "@/lib/rate-limit"
 import { type NextRequest, NextResponse } from "next/server"
 import crypto from "crypto"
 import { createAdminClient } from "@/lib/supabase/admin"
@@ -10,6 +11,8 @@ const MEMBERSHIP_FEES: Record<string, number> = {
 }
 
 export async function POST(request: NextRequest) {
+  const limited = await rateLimit(request, "membership-register", 10, 3600)
+  if (limited) return limited
   try {
     const body = await request.json()
     const required = ["firstName", "lastName", "email", "phone", "address", "city", "state", "membershipType"]

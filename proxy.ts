@@ -6,5 +6,6 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"],
+  // Only paths that read the session; the rest of the public site skips the auth round-trip.
+  matcher: ["/dashboard/:path*", "/admin/:path*", "/schools/:path*", "/developers/:path*", "/oauth/:path*", "/auth/:path*"],
 }

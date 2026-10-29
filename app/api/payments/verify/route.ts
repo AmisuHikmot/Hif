@@ -1,9 +1,12 @@
+import { rateLimit } from "@/lib/rate-limit"
 import { type NextRequest, NextResponse } from "next/server"
 import { verifyPaystackPayment, updatePaystackTransaction, completeDonation } from "@/lib/paystack"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { sendMembershipConfirmationEmail } from "@/lib/email/send-email"
 
 export async function POST(request: NextRequest) {
+  const limited = await rateLimit(request, "payments-verify", 30, 600)
+  if (limited) return limited
   try {
     const body = await request.json()
     const { reference, access_code } = body
@@ -12,13 +15,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Reference is required" }, { status: 400 })
     }
 
-    console.log("[v0] Verifying payment with reference:", reference)
 
     let paystackData: any
     try {
       const result = await verifyPaystackPayment(reference)
       paystackData = result.data
-      console.log("[v0] Paystack verification response status:", paystackData?.status)
     } catch (error) {
       console.error("[v0] Paystack verification failed:", error instanceof Error ? error.message : String(error))
       return NextResponse.json(
@@ -41,14 +42,11 @@ export async function POST(request: NextRequest) {
     }
 
     const isPaymentSuccessful = paystackData.status === "success"
-    console.log("[v0] Payment status:", paystackData.status, "- Success:", isPaymentSuccessful)
 
     if (!isPaymentSuccessful) {
-      console.log("[v0] Payment not successful - status:", paystackData.status)
       try {
         await updatePaystackTransaction(reference, paystackData.status || "failed", paystackData.paid_at)
       } catch (updateError) {
-        console.warn("[v0] Failed to update transaction status:", updateError)
       }
 
       return NextResponse.json({
@@ -60,7 +58,6 @@ export async function POST(request: NextRequest) {
 
     try {
       await updatePaystackTransaction(reference, "success", paystackData.paid_at)
-      console.log("[v0] Transaction status updated to success")
     } catch (updateError) {
       console.error("[v0] Failed to update transaction:", updateError)
       // Don't fail the verification if transaction update fails
@@ -76,7 +73,18 @@ export async function POST(request: NextRequest) {
       const expiresAt = new Date()
       expiresAt.setFullYear(expiresAt.getFullYear() + 1)
 
-      const { data: application } = await supabase
+      // Replays of the same reference must not re-activate or re-email, and the
+      // amount actually paid must cover the fee on the application.
+      const { data: existing } = await supabase
+        .from("membership_applications")
+        .select("payment_status, amount")
+        .eq("id", applicationId)
+        .maybeSingle()
+      const feeKobo = Math.round(Number(existing?.amount ?? 0) * 100)
+      const coversFee = Number(paystackData.amount) >= feeKobo
+      const alreadyPaid = existing?.payment_status === "paid"
+
+      const { data: application } = !existing || alreadyPaid || !coversFee ? { data: null } : await supabase
         .from("membership_applications")
         .update({
           payment_status: "paid",
@@ -122,7 +130,6 @@ export async function POST(request: NextRequest) {
     if (transactionType === "donation" && donationId) {
       try {
         const { alreadyCompleted } = await completeDonation(donationId)
-        console.log("[v0] Donation", donationId, alreadyCompleted ? "was already completed" : "marked completed")
       } catch (donationUpdateError) {
         console.error("[v0] Failed to update donation status:", donationUpdateError)
       }

@@ -14,7 +14,6 @@ export async function GET(request: NextRequest) {
     const supabase = createAdminClient()
 
     // Look up the download token with detailed logging
-    console.log("[v0] Looking up token:", token)
     const { data: downloadData, error: downloadError } = await supabase
       .from("shop_digital_downloads")
       .select(
@@ -46,12 +45,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Download link not found" }, { status: 404 })
     }
 
-    console.log("[v0] Download data found:", {
-      id: downloadData.id,
-      expires_at: downloadData.expires_at,
-      download_count: downloadData.download_count,
-      max_downloads: downloadData.max_downloads,
-    })
 
     // Check if expired
     const expiresAt = new Date(downloadData.expires_at)
@@ -83,7 +76,6 @@ export async function GET(request: NextRequest) {
 
     // If digital_file_path is already a complete signed URL, return it directly
     if (product.digital_file_path && (product.digital_file_path.startsWith("http") || product.digital_file_path.includes("supabase"))) {
-      console.log("[v0] Using pre-signed URL from database")
       
       // Increment download count
       const { error: updateError } = await supabase
@@ -114,7 +106,6 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    console.log("[v0] Generating signed URL for path:", product.digital_file_path)
 
     // Generate signed URL for the file
     const { data: signedUrl, error: signError } = await supabase.storage
@@ -150,7 +141,6 @@ export async function GET(request: NextRequest) {
       console.error("[v0] Failed to update download count:", updateError)
     }
 
-    console.log("[v0] Successfully generated signed URL")
     return NextResponse.json({
       downloadUrl: signedUrl.signedUrl,
       productName: product.name,
