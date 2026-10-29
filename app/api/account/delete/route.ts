@@ -156,6 +156,12 @@ export async function POST(request: NextRequest) {
     }
   }
 
+  // Certificates the person chose to keep checkable stay (their name and the
+  // course, no account link); the rest are removed. Skipped if the table is
+  // not there yet (db/25).
+  const certs = await admin.from("certificates").delete().eq("user_id", user.id).eq("keep_verifiable", false)
+  if (certs.error && certs.error.code !== "42P01" && certs.error.code !== "PGRST205") return fail("delete certificates", certs.error.message)
+
   // Removing the sign-in account also removes the profile and 2FA rows.
   const { error: authError } = await admin.auth.admin.deleteUser(user.id)
   if (authError) return fail("delete auth user", authError.message)

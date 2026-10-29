@@ -57,6 +57,7 @@
     "next": "^16.2.6",
     "next-themes": "latest",
     "nodemailer": "8.0.2",
+    "pdf-lib": "1.17.1",
     "qrcode.react": "4.2.0",
     "react": "^19.2.6",
     "react-day-picker": "9.8.0",
