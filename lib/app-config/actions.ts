@@ -25,6 +25,28 @@ export async function saveModules(formData: FormData) {
   revalidatePath("/admin/app-config")
 }
 
+/** The Shariah Board's zakat al-fitr value for the year, in naira per person. */
+export async function saveFitr(formData: FormData) {
+  await assertStaff()
+  const naira = Number(formData.get("naira"))
+  const year = Number(formData.get("year"))
+  const db = createAdminClient()
+  if (!formData.get("naira")) {
+    const { error } = await db.from("app_config").delete().eq("key", "fitr")
+    if (error) throw new Error(error.message)
+  } else {
+    if (!Number.isFinite(naira) || naira <= 0 || naira > 1000000) throw new Error("Enter the naira value per person.")
+    const { error } = await db.from("app_config").upsert({
+      key: "fitr",
+      // Whole kobo, so the app never rounds money.
+      value: { per_person_kobo: Math.round(naira * 100), year: Number.isInteger(year) && year > 1400 ? year : null },
+      updated_at: new Date().toISOString(),
+    })
+    if (error) throw new Error(error.message)
+  }
+  revalidatePath("/admin/app-config")
+}
+
 export async function saveLayout(formData: FormData) {
   await assertStaff()
   const raw = String(formData.get("layout") ?? "").trim()

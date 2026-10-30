@@ -14,7 +14,7 @@ import {
 export const metadata = { title: "Mosque dashboard | HIF" }
 export const dynamic = "force-dynamic"
 
-const PRAYERS = ["fajr", "dhuhr", "asr", "maghrib", "isha", "jumuah"]
+const PRAYERS = ["fajr", "dhuhr", "asr", "maghrib", "isha", "jumuah", "eid"]
 
 export default async function MosqueAdminPage({ searchParams }: { searchParams: Promise<{ id?: string }> }) {
   const ctx = await requireMosqueAdmin("/mosque-admin")
@@ -70,7 +70,7 @@ export default async function MosqueAdminPage({ searchParams }: { searchParams: 
 
       <section className="grid gap-3 sm:grid-cols-3">
         <div className="rounded-lg border p-4">
-          <div className="text-2xl font-semibold">{times.size} of 6</div>
+          <div className="text-2xl font-semibold">{times.size} of 7</div>
           <div className="text-sm text-muted-foreground">iqama times set</div>
         </div>
         <div className="rounded-lg border p-4">
@@ -90,7 +90,7 @@ export default async function MosqueAdminPage({ searchParams }: { searchParams: 
 
       <section className="space-y-3">
         <h2 className="text-xl font-semibold">Iqama times</h2>
-        <p className="text-sm text-muted-foreground">Fixed daily times. Jumu’ah is shown on Fridays in place of Dhuhr.</p>
+        <p className="text-sm text-muted-foreground">Fixed daily times. Jumu’ah is shown on Fridays in place of Dhuhr. “Eid” is the time of your Eid prayer (needs db/34 to be run).</p>
         <div className="grid gap-2 md:grid-cols-2">
           {PRAYERS.map((p) => (
             <form action={saveMosqueIqama} key={p} className="flex items-center gap-2">

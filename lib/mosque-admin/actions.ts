@@ -5,7 +5,7 @@ import { assertStaff } from "@/lib/admin/guard"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { assertCanEditMosque } from "./guard"
 
-const PRAYERS = ["fajr", "dhuhr", "asr", "maghrib", "isha", "jumuah"]
+const PRAYERS = ["fajr", "dhuhr", "asr", "maghrib", "isha", "jumuah", "eid"]
 const TIME = /^([01]?\d|2[0-3]):[0-5]\d$/
 
 function mosqueId(formData: FormData) {

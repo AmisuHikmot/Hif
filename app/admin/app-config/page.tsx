@@ -2,8 +2,9 @@ import { requireStaff } from "@/lib/admin/guard"
 import { createAdminClient } from "@/lib/supabase/admin"
 import ConsoleShell from "@/components/admin/console/console-shell"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { SWITCHABLE_MODULES, saveLayout, saveModules } from "@/lib/app-config/actions"
+import { SWITCHABLE_MODULES, saveFitr, saveLayout, saveModules } from "@/lib/app-config/actions"
 
 export const metadata = { title: "App settings | Admin" }
 export const dynamic = "force-dynamic"
@@ -13,6 +14,7 @@ export default async function AppConfigPage() {
   const { data: rows, error } = await createAdminClient().from("app_config").select("key,value")
   const byKey = Object.fromEntries((rows ?? []).map((r) => [r.key, r.value]))
   const off = (byKey.modules ?? {}) as Record<string, boolean>
+  const fitr = (byKey.fitr ?? {}) as { per_person_kobo?: number; year?: number | null }
   const layout = byKey.home_layout ? JSON.stringify(byKey.home_layout, null, 2) : ""
   return (
     <ConsoleShell title="App settings" intro="Changes reach phones the next time the app refreshes (within about six hours). No app update is needed. Leave everything as it is to use what is built into the app.">
@@ -32,6 +34,15 @@ export default async function AppConfigPage() {
             {id}
           </label>
         ))}
+        <Button type="submit" className="sm:col-span-2">Save</Button>
+      </form>
+      <form action={saveFitr} className="grid gap-2 rounded-lg border p-4 sm:grid-cols-2">
+        <h2 className="font-medium sm:col-span-2">Zakat al-fitr value</h2>
+        <p className="text-sm text-muted-foreground sm:col-span-2">
+          The naira value per person that the Shariah Board publishes each year. The app fills it in for people; they can change it. Clear the box and save to remove it.
+        </p>
+        <Input name="naira" type="number" step="0.01" min="0" placeholder="Naira per person" defaultValue={fitr.per_person_kobo ? fitr.per_person_kobo / 100 : ""} />
+        <Input name="year" type="number" placeholder="Hijri year, e.g. 1448" defaultValue={fitr.year ?? ""} />
         <Button type="submit" className="sm:col-span-2">Save</Button>
       </form>
       <form action={saveLayout} className="grid gap-2 rounded-lg border p-4">
