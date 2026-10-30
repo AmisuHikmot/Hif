@@ -41,6 +41,8 @@ const navigation = [
   { name: "Finance", href: "/admin/finance", icon: Landmark },
   { name: "Branches", href: "/admin/branches", icon: Building2 },
   { name: "Mosques", href: "/admin/mosques", icon: MapPin },
+  { name: "Mosque admins", href: "/admin/mosque-admins", icon: MapPin },
+  { name: "Dua translations", href: "/admin/dua-translations", icon: CalendarDays },
   { name: "Janazah", href: "/admin/janazah", icon: Flower2 },
   { name: "Moderation", href: "/admin/moderation", icon: ShieldCheck },
   { name: "Helplines", href: "/admin/helplines", icon: PhoneCall },
@@ -49,6 +51,7 @@ const navigation = [
   { name: "Halal places", href: "/admin/halal", icon: Utensils },
   { name: "App releases", href: "/admin/releases", icon: Smartphone },
   { name: "App settings", href: "/admin/app-config", icon: Smartphone },
+  { name: "Late adhan reports", href: "/admin/alarm-reports", icon: Smartphone },
   { name: "Developers", href: "/admin/developer", icon: Code2 },
   { name: "Audit Logs", href: "/admin/audit-logs", icon: BarChart3 },
 ]
