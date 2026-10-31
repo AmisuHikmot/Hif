@@ -73,9 +73,11 @@ export async function saveTafsirLive(formData: FormData) {
     const m = /(?:v=|youtu\.be\/|live\/|embed\/)([A-Za-z0-9_-]{11})/.exec(raw)
     const id = m ? m[1] : /^[A-Za-z0-9_-]{11}$/.test(raw) ? raw : null
     if (!id) throw new Error("Paste a YouTube link or the 11-character video id.")
+    const time = text(formData, "time")
+    if (time && !/^([01]\d|2[0-3]):[0-5]\d$/.test(time)) throw new Error("Time must look like 21:30.")
     const { error } = await db.from("app_config").upsert({
       key: "tafsir_live",
-      value: { video_id: id, title: text(formData, "title"), schedule: text(formData, "schedule") },
+      value: { video_id: id, title: text(formData, "title"), schedule: text(formData, "schedule"), time },
       updated_at: new Date().toISOString(),
     })
     if (error) throw new Error(error.message)

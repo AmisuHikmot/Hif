@@ -34,7 +34,7 @@ export default async function SeasonContentPage({ searchParams }: { searchParams
     db.from("eid_grounds").select("*").order("state").order("name").limit(300),
     db.from("app_config").select("value").eq("key", "tafsir_live").maybeSingle(),
   ])
-  const live = (cfg?.value ?? {}) as { video_id?: string; title?: string; schedule?: string }
+  const live = (cfg?.value ?? {}) as { video_id?: string; title?: string; schedule?: string; time?: string }
 
   return (
     <ConsoleShell title="Seasons" intro="Ramadan, Eid and Dhul Hijjah content. Anything you add stays pending; the app shows it only after you approve it. Enter only text the Shariah Board has approved.">
@@ -51,7 +51,8 @@ export default async function SeasonContentPage({ searchParams }: { searchParams
         </p>
         <Input name="video" placeholder="https://www.youtube.com/live/…" defaultValue={live.video_id ?? ""} />
         <Input name="title" placeholder="Title" defaultValue={live.title ?? ""} />
-        <Input name="schedule" placeholder="Schedule, e.g. Every night after Taraweeh" defaultValue={live.schedule ?? ""} className="sm:col-span-2" />
+        <Input name="schedule" placeholder="Schedule, e.g. Every night after Taraweeh" defaultValue={live.schedule ?? ""} />
+        <Input name="time" placeholder="Start time for reminders, 24-hour, e.g. 21:30" defaultValue={live.time ?? ""} />
         <Button type="submit" className="sm:col-span-2">Save</Button>
       </form>
 
