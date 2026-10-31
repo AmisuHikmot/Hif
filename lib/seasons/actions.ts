@@ -115,3 +115,16 @@ export async function deleteEidGround(formData: FormData) {
   if (error) throw new Error(error.message)
   revalidatePath("/admin/season-content")
 }
+
+/** Marks a Quran or hadith error report as fixed or withdrawn. */
+export async function resolveTextReport(formData: FormData) {
+  await assertStaff()
+  const status = String(formData.get("status"))
+  if (!["open", "fixed", "withdrawn"].includes(status)) throw new Error("Bad request")
+  const { error } = await createAdminClient()
+    .from("text_reports")
+    .update({ status, resolved_at: status === "open" ? null : new Date().toISOString() })
+    .eq("id", String(formData.get("id")))
+  if (error) throw new Error(error.message)
+  revalidatePath("/admin/text-reports")
+}
