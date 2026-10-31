@@ -42,6 +42,7 @@ const navigation = [
   { name: "Branches", href: "/admin/branches", icon: Building2 },
   { name: "Mosques", href: "/admin/mosques", icon: MapPin },
   { name: "Mosque admins", href: "/admin/mosque-admins", icon: MapPin },
+  { name: "Seasons", href: "/admin/season-content", icon: CalendarDays },
   { name: "Dua translations", href: "/admin/dua-translations", icon: CalendarDays },
   { name: "Janazah", href: "/admin/janazah", icon: Flower2 },
   { name: "Moderation", href: "/admin/moderation", icon: ShieldCheck },
