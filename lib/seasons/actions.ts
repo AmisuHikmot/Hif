@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache"
 import { assertStaff } from "@/lib/admin/guard"
 import { createAdminClient } from "@/lib/supabase/admin"
 
-const KINDS = ["ramadan_day", "laylat_dua", "itikaf", "takbir", "dhul_hijjah", "eid_greeting", "tafsir_recording"]
+const KINDS = ["ramadan_day", "laylat_dua", "itikaf", "takbir", "dhul_hijjah", "eid_greeting", "tafsir_recording", "qurbani"]
 const MADHABS = ["maliki", "hanafi", "shafii", "hanbali"]
 const text = (f: FormData, k: string) => String(f.get(k) ?? "").trim() || null
 const int = (f: FormData, k: string) => {
