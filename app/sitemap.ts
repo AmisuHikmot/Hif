@@ -27,6 +27,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.95,
     },
     {
+      url: `${baseUrl}/quran`,
+      lastModified: new Date(),
+      changeFrequency: "monthly",
+      priority: 0.9,
+    },
+    ...Array.from({ length: 114 }, (_, i) => ({
+      url: `${baseUrl}/quran/${i + 1}`,
+      lastModified: new Date(),
+      changeFrequency: "yearly" as const,
+      priority: 0.6,
+    })),
+    {
       url: `${baseUrl}/ramadan`,
       lastModified: new Date(),
       changeFrequency: "daily",

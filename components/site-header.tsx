@@ -68,6 +68,7 @@ const NAV_GROUPS = [
 ]
 
 const STANDALONE = [
+  { key: "nav.quran", href: "/quran" },
   { key: "nav.events", href: "/events" },
   { key: "nav.donate", href: "/donate" },
   { key: "nav.contact", href: "/contact-us" },
