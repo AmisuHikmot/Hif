@@ -44,6 +44,8 @@ const navigation = [
   { name: "Mosque admins", href: "/admin/mosque-admins", icon: MapPin },
   { name: "Text reports", href: "/admin/text-reports", icon: ShieldCheck },
   { name: "Seasons", href: "/admin/season-content", icon: CalendarDays },
+  { name: "Quran content", href: "/admin/quran-content", icon: BookOpenCheck },
+  { name: "Hadith translations", href: "/admin/hadith-translations", icon: BookOpenCheck },
   { name: "Dua translations", href: "/admin/dua-translations", icon: CalendarDays },
   { name: "Janazah", href: "/admin/janazah", icon: Flower2 },
   { name: "Moderation", href: "/admin/moderation", icon: ShieldCheck },
