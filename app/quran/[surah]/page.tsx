@@ -13,9 +13,9 @@ function parse(raw: string): number | null {
   return Number.isInteger(n) && n >= 1 && n <= 114 ? n : null
 }
 
-export async function generateStaticParams() {
-  return Array.from({ length: 114 }, (_, i) => ({ surah: String(i + 1) }))
-}
+// Surahs are built on first visit and then kept for a week. They are not all
+// built at deploy time: 114 requests at once make the data service throttle.
+export const dynamicParams = true
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const n = parse((await params).surah)
@@ -37,22 +37,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function SurahPage({ params }: Props) {
   const n = parse((await params).surah)
   if (!n) notFound()
-  let data
-  try {
-    data = await getSurah(n)
-  } catch {
-    return (
-      <main className="container mx-auto max-w-3xl px-4 py-10">
-        <p className="rounded-md border p-4 text-sm">
-          This surah could not be loaded. Please try again in a moment, or{" "}
-          <Link href="/quran" className="underline">
-            go back to the list
-          </Link>
-          .
-        </p>
-      </main>
-    )
-  }
+  // A failure is thrown (not rendered) so it is never kept as the saved page.
+  const data = await getSurah(n)
   const { info, ayahs } = data
   const first = ayahs[0] ? splitBismillah(n, ayahs[0].arabic) : { bismillah: false, text: "" }
   const view = ayahs.map((a, i) => (i === 0 ? { ...a, arabic: first.text } : a))

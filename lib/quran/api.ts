@@ -34,11 +34,27 @@ export function audioUrl(r: Reciter, global: number) {
   return `https://cdn.islamic.network/quran/audio/${r.kbps}/${r.edition}/${global}.mp3`
 }
 
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
+
+// The service sometimes throttles a burst of requests (429) or hiccups (5xx).
+// Try a few times, waiting longer each time, before giving up.
 async function get<T>(path: string, revalidate: number): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, { next: { revalidate } })
-  if (!res.ok) throw new Error(`Quran service returned ${res.status}`)
-  const body = (await res.json()) as { data: T }
-  return body.data
+  let last = "no answer"
+  for (let attempt = 0; attempt < 4; attempt++) {
+    if (attempt > 0) await sleep(400 * 2 ** attempt)
+    try {
+      const res = await fetch(`${BASE}${path}`, { next: { revalidate } })
+      if (res.ok) {
+        const body = (await res.json()) as { data: T }
+        return body.data
+      }
+      last = `status ${res.status}`
+      if (res.status !== 429 && res.status < 500) break // not worth retrying
+    } catch (e) {
+      last = e instanceof Error ? e.message : "network error"
+    }
+  }
+  throw new Error(`Quran service failed (${last})`)
 }
 
 export async function getSurahs(): Promise<SurahInfo[]> {

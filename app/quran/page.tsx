@@ -12,13 +12,8 @@ export const metadata: Metadata = {
 }
 
 export default async function QuranPage() {
-  let surahs: Awaited<ReturnType<typeof getSurahs>> = []
-  let failed = false
-  try {
-    surahs = await getSurahs()
-  } catch {
-    failed = true
-  }
+  // A failure is thrown so it is never kept as the saved page.
+  const surahs = await getSurahs()
   return (
     <main className="container mx-auto max-w-5xl px-4 py-10">
       <h1 className="mb-2 text-3xl font-bold tracking-tight">The Quran</h1>
@@ -26,11 +21,7 @@ export default async function QuranPage() {
         Read with the Saheeh International translation and listen verse by verse. Free for everyone, no account needed.
         For offline reading, word-by-word following and more reciters, get the HIF app.
       </p>
-      {failed ? (
-        <p className="rounded-md border p-4 text-sm">The Quran service could not be reached. Please try again in a moment.</p>
-      ) : (
-        <SurahList surahs={surahs} />
-      )}
+      <SurahList surahs={surahs} />
       <p className="mt-10 text-xs text-muted-foreground">
         Arabic text and translation come from Al-Quran Cloud (Tanzil text; Saheeh International). Audio from the Islamic
         Network CDN. Awaiting review by the HIF Shariah Board.
