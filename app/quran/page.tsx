@@ -7,7 +7,7 @@ export const revalidate = 86400
 export const metadata: Metadata = {
   title: "Read and listen to the Quran | Hamduk Islamic Foundation",
   description:
-    "Read the Quran with the Saheeh International translation and listen verse by verse in the voice of five reciters. Free, no account needed.",
+    "Read the Quran with the Saheeh International translation and listen verse by verse in the voice of 23 reciters. Free, no account needed.",
   alternates: { canonical: "https://www.hif.com.ng/quran" },
 }
 
@@ -24,7 +24,7 @@ export default async function QuranPage() {
       <SurahList surahs={surahs} />
       <p className="mt-10 text-xs text-muted-foreground">
         Arabic text and translation come from Al-Quran Cloud (Tanzil text; Saheeh International). Audio from the Islamic
-        Network CDN. Awaiting review by the HIF Shariah Board.
+        Network CDN, Tarteel (via QUL) and the EveryAyah mirror at QuranicAudio.com. Awaiting review by the HIF Shariah Board.
       </p>
     </main>
   )

@@ -29,7 +29,10 @@ function write(key: string, v: string) {
 }
 
 export default function QuranReader({ surah, bismillah, ayahs, prev, next }: Props) {
-  const audio = useRef<HTMLAudioElement | null>(null)
+  // Two players take turns: while one recites a verse the other is already
+  // loading the next, so there is no wait between verses.
+  const players = useRef<(HTMLAudioElement | null)[]>([null, null])
+  const active = useRef(0)
   const [current, setCurrent] = useState<number | null>(null) // index into ayahs
   const [playing, setPlaying] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -48,25 +51,48 @@ export default function QuranReader({ surah, bismillah, ayahs, prev, next }: Pro
 
   const reciter = RECITERS.find((r) => r.id === reciterId) ?? RECITERS[0]
 
+  const urlFor = useCallback(
+    (i: number) => {
+      const a = ayahs[i]
+      return a ? audioUrl(reciter, { global: a.global, surah, number: a.number }) : null
+    },
+    [ayahs, reciter, surah],
+  )
+
+  // Start loading verse i into the player that is not playing.
+  const preload = useCallback(
+    (i: number) => {
+      const el = players.current[1 - active.current]
+      const u = urlFor(i)
+      if (!el || !u) return
+      el.preload = "auto"
+      el.src = u
+      el.load()
+    },
+    [urlFor],
+  )
+
   const playIndex = useCallback(
     async (i: number) => {
-      const a = ayahs[i]
-      const el = audio.current
-      if (!a || !el) return
+      const el = players.current[active.current]
+      const u = urlFor(i)
+      if (!u || !el) return
+      players.current[1 - active.current]?.pause()
       setCurrent(i)
       setProblem(null)
       setLoading(true)
-      el.src = audioUrl(reciter, a.global)
+      el.src = u
       try {
         await el.play()
         setPlaying(true)
+        preload(i + 1)
       } catch {
         setPlaying(false)
         setProblem("Could not play this recitation. Check your connection and try again.")
       }
       setLoading(false)
     },
-    [ayahs, reciter],
+    [urlFor, preload],
   )
 
   // Keep the verse being recited in view.
@@ -76,7 +102,7 @@ export default function QuranReader({ surah, bismillah, ayahs, prev, next }: Pro
   }, [current, ayahs])
 
   function toggle() {
-    const el = audio.current
+    const el = players.current[active.current]
     if (!el) return
     if (current === null) return void playIndex(0)
     if (playing) {
@@ -87,24 +113,39 @@ export default function QuranReader({ surah, bismillah, ayahs, prev, next }: Pro
     }
   }
 
-  function onEnded() {
-    if (current !== null && current + 1 < ayahs.length) void playIndex(current + 1)
-    else setPlaying(false)
+  function onEnded(which: number) {
+    if (which !== active.current) return
+    if (current === null || current + 1 >= ayahs.length) {
+      setPlaying(false)
+      return
+    }
+    // The next verse is already loaded in the other player: start it at once.
+    const next = players.current[1 - active.current]
+    if (!next || !next.src) return void playIndex(current + 1)
+    active.current = 1 - active.current
+    setCurrent(current + 1)
+    next.play().then(() => preload(current + 2)).catch(() => {
+      setPlaying(false)
+      setProblem("Could not play this recitation. Check your connection and try again.")
+    })
   }
 
   function chooseReciter(id: string) {
     setReciterId(id)
     write("hif.quran.reciter", id)
-    // Carry on from the same verse in the new voice.
-    if (current !== null && playing) {
-      const r = RECITERS.find((x) => x.id === id) ?? RECITERS[0]
-      const el = audio.current
-      if (el) {
-        el.src = audioUrl(r, ayahs[current].global)
-        el.play().catch(() => setPlaying(false))
-      }
-    }
   }
+
+  // Carry on from the same verse in a newly chosen voice.
+  const firstRun = useRef(true)
+  useEffect(() => {
+    if (firstRun.current) {
+      firstRun.current = false
+      return
+    }
+    if (current !== null && playing) void playIndex(current)
+    else if (current !== null) preload(current + 1)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reciterId])
 
   return (
     <>
@@ -253,7 +294,18 @@ export default function QuranReader({ surah, bismillah, ayahs, prev, next }: Pro
             ))}
           </select>
         </div>
-        <audio ref={audio} onEnded={onEnded} onPause={() => setPlaying(false)} onPlay={() => setPlaying(true)} preload="none" />
+        {[0, 1].map((n) => (
+          <audio
+            key={n}
+            ref={(el) => {
+              players.current[n] = el
+            }}
+            onEnded={() => onEnded(n)}
+            onPause={() => n === active.current && !players.current[n]?.ended && setPlaying(false)}
+            onPlay={() => n === active.current && setPlaying(true)}
+            preload="none"
+          />
+        ))}
       </div>
     </>
   )
