@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input"
 import { requireOrgRole } from "@/lib/schools/guard"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createClass } from "@/lib/schools/actions"
+import { saveRecitationSettings } from "@/lib/schools/recitations"
 
 export const dynamic = "force-dynamic"
 
@@ -36,6 +37,25 @@ export default async function SchoolDashboard({ params }: { params: Promise<{ or
         <div className="flex flex-wrap gap-2">
           <Button asChild><Link href={`/schools/${orgId}/roster`}>Import the roster</Link></Button>
         </div>
+      )}
+
+      {role === "school_admin" && (
+        <form action={saveRecitationSettings} className="grid gap-2 rounded-lg border p-4 sm:grid-cols-3">
+          <input type="hidden" name="org_id" value={orgId} />
+          <div className="sm:col-span-3">
+            <h2 className="text-lg font-semibold">Recitation recordings</h2>
+            <p className="text-sm text-muted-foreground">How long a pupil’s recording is kept after the teacher grades it, and who may hear it.</p>
+          </div>
+          <label className="text-sm">
+            Delete after (days, 30 to 180)
+            <Input name="recording_days" type="number" min={30} max={180} defaultValue={org.recording_days ?? 90} required />
+          </label>
+          <label className="flex items-center gap-2 text-sm sm:col-span-2">
+            <input type="checkbox" name="guardians_hear" defaultChecked={!!org.guardians_hear_recordings} />
+            Guardians may hear their child’s recordings (they always see grades and comments)
+          </label>
+          <Button type="submit" className="w-fit">Save</Button>
+        </form>
       )}
 
       <h2 className="text-xl font-semibold">Classes</h2>

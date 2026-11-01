@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { notFound } from "next/navigation"
 import SchoolShell from "@/components/schools/school-shell"
 import ResetPasswordButton from "@/components/schools/reset-password-button"
@@ -48,6 +49,12 @@ export default async function ClassPage({ params }: { params: Promise<{ orgId: s
       crumbs={[{ href: "/schools", label: "Schools" }, { href: `/schools/${orgId}`, label: org.name }]}
       intro={`${students.length} pupils`}
     >
+      <div>
+        <Button asChild variant="outline">
+          <Link href={`/schools/${orgId}/classes/${classId}/recitations`}>Recitations to mark</Link>
+        </Button>
+      </div>
+
       <section className="space-y-3">
         <h2 className="text-xl font-semibold">Assign work</h2>
         <form action={addAssignment} className="grid gap-2 rounded-lg border p-4 md:grid-cols-4">
