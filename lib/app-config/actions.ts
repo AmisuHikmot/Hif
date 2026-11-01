@@ -3,13 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { assertStaff } from "@/lib/admin/guard"
 import { createAdminClient } from "@/lib/supabase/admin"
-
-/** Switchable More items. Core items (language, preferences, backup, account, help, about) are kept on by the app. */
-export const SWITCHABLE_MODULES = [
-  "assistant", "stories", "school", "hadith", "hifz", "plus", "giving", "ramadan", "fasting",
-  "adhkar", "volunteer", "notifications", "zakat", "events", "branches", "membership",
-  "market", "inbox", "mosques", "halal", "family", "study", "services",
-] as const
+import { SWITCHABLE_MODULES } from "./modules"
 
 export async function saveModules(formData: FormData) {
   await assertStaff()

@@ -4,7 +4,8 @@ import ConsoleShell from "@/components/admin/console/console-shell"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { SWITCHABLE_MODULES, saveFitr, saveLayout, saveModules } from "@/lib/app-config/actions"
+import { saveFitr, saveLayout, saveModules } from "@/lib/app-config/actions"
+import { SWITCHABLE_MODULES } from "@/lib/app-config/modules"
 
 export const metadata = { title: "App settings | Admin" }
 export const dynamic = "force-dynamic"
