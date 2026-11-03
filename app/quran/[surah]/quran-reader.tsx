@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { Pause, Play, SkipBack, SkipForward } from "lucide-react"
-import { RECITERS, audioUrl, type AyahView } from "@/lib/quran/api"
+import { RECITERS, audioUrl, type AyahView, type ChapterAudio } from "@/lib/quran/api"
 
 type Props = {
   surah: number
@@ -33,6 +33,13 @@ export default function QuranReader({ surah, bismillah, ayahs, prev, next }: Pro
   // loading the next, so there is no wait between verses.
   const players = useRef<(HTMLAudioElement | null)[]>([null, null])
   const active = useRef(0)
+  // Where a whole-surah recording exists, one file plays from start to end and
+  // the verse is found from the time (how Quran.com avoids a break between
+  // verses). The two players above are the fallback.
+  const chapterEl = useRef<HTMLAudioElement | null>(null)
+  const [chapter, setChapter] = useState<ChapterAudio | null>(null)
+  const [chapterReady, setChapterReady] = useState(false)
+  const resumeAt = useRef<number | null>(null)
   const [current, setCurrent] = useState<number | null>(null) // index into ayahs
   const [playing, setPlaying] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -50,6 +57,26 @@ export default function QuranReader({ surah, bismillah, ayahs, prev, next }: Pro
   }, [])
 
   const reciter = RECITERS.find((r) => r.id === reciterId) ?? RECITERS[0]
+
+  useEffect(() => {
+    let alive = true
+    setChapter(null)
+    setChapterReady(false)
+    if (!reciter.qf) {
+      setChapterReady(true)
+      return
+    }
+    fetch(`/api/quran/chapter?reciter=${reciter.qf}&chapter=${surah}`)
+      .then((r) => (r.ok ? (r.json() as Promise<ChapterAudio>) : Promise.reject(new Error("no recording"))))
+      .then((c) => {
+        if (alive && c.verses.length >= ayahs.length * 0.9) setChapter(c)
+      })
+      .catch(() => {})
+      .finally(() => alive && setChapterReady(true))
+    return () => {
+      alive = false
+    }
+  }, [reciter.qf, surah, ayahs.length])
 
   const urlFor = useCallback(
     (i: number) => {
@@ -72,11 +99,44 @@ export default function QuranReader({ surah, bismillah, ayahs, prev, next }: Pro
     [urlFor],
   )
 
+  const playChapter = useCallback(
+    async (i: number, c: ChapterAudio) => {
+      const el = chapterEl.current
+      const v = c.verses.find((x) => x.n === ayahs[i]?.number)
+      if (!el || !v) return false
+      players.current.forEach((p) => p?.pause())
+      setCurrent(i)
+      setProblem(null)
+      setLoading(true)
+      if (el.src !== c.audioUrl) {
+        el.src = c.audioUrl
+        el.load()
+      }
+      const seek = () => {
+        el.currentTime = v.from / 1000
+      }
+      if (el.readyState >= 1) seek()
+      else el.addEventListener("loadedmetadata", seek, { once: true })
+      try {
+        await el.play()
+        setPlaying(true)
+      } catch {
+        setPlaying(false)
+        setProblem("Could not play this recitation. Check your connection and try again.")
+      }
+      setLoading(false)
+      return true
+    },
+    [ayahs],
+  )
+
   const playIndex = useCallback(
     async (i: number) => {
+      if (chapter && (await playChapter(i, chapter))) return
       const el = players.current[active.current]
       const u = urlFor(i)
       if (!u || !el) return
+      chapterEl.current?.pause()
       players.current[1 - active.current]?.pause()
       setCurrent(i)
       setProblem(null)
@@ -92,7 +152,7 @@ export default function QuranReader({ surah, bismillah, ayahs, prev, next }: Pro
       }
       setLoading(false)
     },
-    [urlFor, preload],
+    [chapter, playChapter, urlFor, preload],
   )
 
   // Keep the verse being recited in view.
@@ -102,7 +162,8 @@ export default function QuranReader({ surah, bismillah, ayahs, prev, next }: Pro
   }, [current, ayahs])
 
   function toggle() {
-    const el = players.current[active.current]
+    const usingChapter = !!chapter && !!chapterEl.current?.src && chapterEl.current.src === chapter.audioUrl && !chapterEl.current.paused
+    const el = usingChapter || (chapter && chapterEl.current?.src === chapter.audioUrl) ? chapterEl.current : players.current[active.current]
     if (!el) return
     if (current === null) return void playIndex(0)
     if (playing) {
@@ -111,6 +172,20 @@ export default function QuranReader({ surah, bismillah, ayahs, prev, next }: Pro
     } else {
       el.play().then(() => setPlaying(true)).catch(() => setProblem("Could not play this recitation."))
     }
+  }
+
+  // The verse follows the clock in the whole-surah recording.
+  function onChapterTime() {
+    const el = chapterEl.current
+    if (!el || !chapter || el.paused) return
+    const t = el.currentTime * 1000
+    let n = chapter.verses[0].n
+    for (const v of chapter.verses) {
+      if (v.from <= t + 40) n = v.n
+      else break
+    }
+    const idx = ayahs.findIndex((a) => a.number === n)
+    if (idx >= 0 && idx !== current) setCurrent(idx)
   }
 
   function onEnded(which: number) {
@@ -131,21 +206,22 @@ export default function QuranReader({ surah, bismillah, ayahs, prev, next }: Pro
   }
 
   function chooseReciter(id: string) {
+    resumeAt.current = playing ? current : null
+    chapterEl.current?.pause()
+    players.current.forEach((p) => p?.pause())
     setReciterId(id)
     write("hif.quran.reciter", id)
   }
 
-  // Carry on from the same verse in a newly chosen voice.
-  const firstRun = useRef(true)
+  // Carry on from the same verse in a newly chosen voice, once we know
+  // whether that voice has a whole-surah recording.
   useEffect(() => {
-    if (firstRun.current) {
-      firstRun.current = false
-      return
-    }
-    if (current !== null && playing) void playIndex(current)
-    else if (current !== null) preload(current + 1)
+    if (!chapterReady || resumeAt.current === null) return
+    const i = resumeAt.current
+    resumeAt.current = null
+    void playIndex(i)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reciterId])
+  }, [chapterReady])
 
   return (
     <>
@@ -294,6 +370,18 @@ export default function QuranReader({ surah, bismillah, ayahs, prev, next }: Pro
             ))}
           </select>
         </div>
+        <audio
+          ref={chapterEl}
+          preload="none"
+          onTimeUpdate={onChapterTime}
+          onWaiting={() => setLoading(true)}
+          onPlaying={() => {
+            setLoading(false)
+            setPlaying(true)
+          }}
+          onPause={() => !chapterEl.current?.ended && setPlaying(false)}
+          onEnded={() => setPlaying(false)}
+        />
         {[0, 1].map((n) => (
           <audio
             key={n}

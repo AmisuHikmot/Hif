@@ -25,32 +25,35 @@ export type AyahView = {
  * files are named by surah and verse (001001.mp3) under a base address.
  */
 export type Reciter =
-  | { id: string; label: string; kind: "cloud"; edition: string; kbps: number }
-  | { id: string; label: string; kind: "direct"; base: string }
+  | { id: string; label: string; kind: "cloud"; edition: string; kbps: number; qf?: number }
+  | { id: string; label: string; kind: "direct"; base: string; qf?: number }
 
-const cloud = (id: string, label: string, kbps: number): Reciter => ({
+// [qf] is the reciter's number on Quran.com, where a whole-surah recording
+// (played without a break between verses) exists for them.
+const cloud = (id: string, label: string, kbps: number, qf?: number): Reciter => ({
   id,
   label,
   kind: "cloud",
   edition: `ar.${id}`,
   kbps,
+  qf,
 })
-const direct = (id: string, label: string, base: string): Reciter => ({ id, label, kind: "direct", base })
+const direct = (id: string, label: string, base: string, qf?: number): Reciter => ({ id, label, kind: "direct", base, qf })
 
 export const RECITERS: Reciter[] = [
-  cloud("alafasy", "Mishary Alafasy", 128),
-  direct("dosari", "Yasser ad-Dosari", "https://audio-cdn.tarteel.ai/quran/yasserAlDosari/"),
-  cloud("abdurrahmaansudais", "Abdurrahman As-Sudais", 64),
-  cloud("saoodshuraym", "Saud ash-Shuraim", 64),
+  cloud("alafasy", "Mishary Alafasy", 128, 7),
+  direct("dosari", "Yasser ad-Dosari", "https://audio-cdn.tarteel.ai/quran/yasserAlDosari/", 97),
+  cloud("abdurrahmaansudais", "Abdurrahman As-Sudais", 64, 3),
+  cloud("saoodshuraym", "Saud ash-Shuraim", 64, 10),
   cloud("mahermuaiqly", "Maher Al-Muaiqly", 128),
   direct("ghamdi", "Saad al-Ghamdi", "https://audio-cdn.tarteel.ai/quran/ghamadi/"),
-  cloud("husary", "Mahmoud Khalil Al-Husary", 128),
+  cloud("husary", "Mahmoud Khalil Al-Husary", 128, 6),
   cloud("husarymujawwad", "Al-Husary (Mujawwad)", 128),
-  cloud("abdulsamad", "Abdul Basit Abdul Samad", 64),
+  cloud("abdulsamad", "Abdul Basit Abdul Samad", 64, 2),
   direct("abdulbasit-mujawwad", "Abdul Basit (Mujawwad)", "https://audio-cdn.tarteel.ai/quran/abdulBasitMujawwad/"),
-  direct("minshawi", "Muhammad Siddiq al-Minshawi", "https://audio-cdn.tarteel.ai/quran/minshawyMurattal/"),
-  cloud("hanirifai", "Hani ar-Rifai", 192),
-  cloud("shaatree", "Abu Bakr ash-Shatri", 128),
+  direct("minshawi", "Muhammad Siddiq al-Minshawi", "https://audio-cdn.tarteel.ai/quran/minshawyMurattal/", 9),
+  cloud("hanirifai", "Hani ar-Rifai", 192, 5),
+  cloud("shaatree", "Abu Bakr ash-Shatri", 128, 4),
   cloud("hudhaify", "Ali al-Hudhaify", 128),
   cloud("ahmedajamy", "Ahmed al-Ajamy", 128),
   cloud("abdullahbasfar", "Abdullah Basfar", 192),
@@ -59,7 +62,7 @@ export const RECITERS: Reciter[] = [
   cloud("ibrahimakhbar", "Ibrahim al-Akhdar", 32),
   cloud("aymanswoaid", "Ayman Sowaid", 64),
   cloud("parhizgar", "Shahriar Parhizgar", 48),
-  direct("tunaiji", "Khalifa al-Tunaiji", "https://audio-cdn.tarteel.ai/quran/khalifaAlTunaiji/"),
+  direct("tunaiji", "Khalifa al-Tunaiji", "https://audio-cdn.tarteel.ai/quran/khalifaAlTunaiji/", 161),
   direct("tablawi", "Mohamed al-Tablawi", "https://mirrors.quranicaudio.com/everyayah/Mohammad_al_Tablaway_128kbps/"),
 ]
 
@@ -129,3 +132,5 @@ export function splitBismillah(surah: number, first: string): { bismillah: boole
   if (words.length > 4) return { bismillah: true, text: words.slice(4).join(" ") }
   return { bismillah: false, text: first }
 }
+
+export type ChapterAudio = { audioUrl: string; verses: { n: number; from: number; to: number }[] }
