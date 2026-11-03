@@ -2,7 +2,9 @@
 
 import Link from "next/link"
 import { useCallback, useEffect, useRef, useState } from "react"
-import { Pause, Play, SkipBack, SkipForward } from "lucide-react"
+import { Bookmark, BookOpenText, Pause, Play, SkipBack, SkipForward } from "lucide-react"
+import TafsirPanel from "@/components/quran/tafsir-panel"
+import { getBookmarks, setLastRead, toggleBookmark } from "@/lib/quran/bookmarks"
 import { RECITERS, audioUrl, type AyahView, type ChapterAudio } from "@/lib/quran/api"
 
 type Props = {
@@ -33,6 +35,8 @@ export default function QuranReader({ surah, bismillah, ayahs, prev, next }: Pro
   // loading the next, so there is no wait between verses.
   const players = useRef<(HTMLAudioElement | null)[]>([null, null])
   const active = useRef(0)
+  const [marks, setMarks] = useState<string[]>([])
+  const [tafsirFor, setTafsirFor] = useState<number | null>(null)
   // Where a whole-surah recording exists, one file plays from start to end and
   // the verse is found from the time (how Quran.com avoids a break between
   // verses). The two players above are the fallback.
@@ -57,6 +61,19 @@ export default function QuranReader({ surah, bismillah, ayahs, prev, next }: Pro
   }, [])
 
   const reciter = RECITERS.find((r) => r.id === reciterId) ?? RECITERS[0]
+
+  useEffect(() => {
+    setMarks(getBookmarks())
+    // Open at the verse in the link (a bookmark or a search result).
+    const m = /^#ayah-(\d+)$/.exec(window.location.hash)
+    if (m) document.getElementById(`ayah-${m[1]}`)?.scrollIntoView({ block: "center" })
+  }, [])
+
+  // Remember where the reader got to so the Quran page can offer to continue.
+  useEffect(() => {
+    if (current === null) return
+    setLastRead({ href: `/quran/${surah}#ayah-${ayahs[current]?.number}`, label: `Surah ${surah}, verse ${ayahs[current]?.number}` })
+  }, [current, surah, ayahs])
 
   useEffect(() => {
     let alive = true
@@ -290,6 +307,27 @@ export default function QuranReader({ surah, bismillah, ayahs, prev, next }: Pro
               <span>
                 {surah}:{a.number}
               </span>
+              <button
+                type="button"
+                aria-label={marks.includes(`${surah}:${a.number}`) ? "Remove bookmark" : "Bookmark this verse"}
+                aria-pressed={marks.includes(`${surah}:${a.number}`)}
+                onClick={() => {
+                  toggleBookmark(`${surah}:${a.number}`)
+                  setMarks(getBookmarks())
+                }}
+                className="ml-auto flex h-8 w-8 items-center justify-center rounded-full border hover:bg-muted"
+              >
+                <Bookmark className={`h-4 w-4 ${marks.includes(`${surah}:${a.number}`) ? "fill-current text-primary" : ""}`} />
+              </button>
+              <button
+                type="button"
+                aria-label="Tafsir"
+                aria-expanded={tafsirFor === a.number}
+                onClick={() => setTafsirFor(tafsirFor === a.number ? null : a.number)}
+                className="flex h-8 w-8 items-center justify-center rounded-full border hover:bg-muted"
+              >
+                <BookOpenText className="h-4 w-4" />
+              </button>
             </div>
             <p
               lang="ar"
@@ -300,6 +338,7 @@ export default function QuranReader({ surah, bismillah, ayahs, prev, next }: Pro
               {a.arabic}
             </p>
             {showTranslation && <p className="mt-3 text-[15px] leading-relaxed text-muted-foreground">{a.translation}</p>}
+            {tafsirFor === a.number && <TafsirPanel surah={surah} ayah={a.number} />}
           </li>
         ))}
       </ol>

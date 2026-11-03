@@ -7,7 +7,7 @@ import type { SurahInfo } from "@/lib/quran/api"
 // Letters only, lower case, so "al baqara", "Al-Baqarah" and "2" all find it.
 const plain = (s: string) => s.toLowerCase().replace(/[^a-z0-9؀-ۿ]/g, "")
 
-export default function SurahList({ surahs }: { surahs: SurahInfo[] }) {
+export default function SurahList({ surahs, pages }: { surahs: SurahInfo[]; pages?: Record<number, number> }) {
   const [q, setQ] = useState("")
   const shown = useMemo(() => {
     const k = plain(q)
@@ -52,6 +52,11 @@ export default function SurahList({ surahs }: { surahs: SurahInfo[] }) {
                 {s.name.replace(/^سُورَةُ\s*/, "")}
               </span>
             </Link>
+            {pages?.[s.number] && (
+              <Link href={`/quran/mushaf/${pages[s.number]}`} className="ml-4 mt-1 inline-block text-xs text-primary hover:underline">
+                Mushaf page {pages[s.number]}
+              </Link>
+            )}
           </li>
         ))}
       </ul>

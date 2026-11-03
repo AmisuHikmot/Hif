@@ -170,3 +170,25 @@ export async function getMushafPage(page: number): Promise<MushafPage> {
   }
   throw lastError instanceof Error ? lastError : new Error("mushaf page unavailable")
 }
+
+/** First page of each surah in the Madani mushaf, keyed by surah number. */
+export async function getSurahStartPages(): Promise<Record<number, number>> {
+  let lastError: unknown
+  for (const host of MUSHAF_HOSTS) {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const res = await fetch(`${host}/chapters`, { next: { revalidate: 2592000 } })
+        if (!res.ok) throw new Error(`chapters ${res.status}`)
+        const d = (await res.json()) as { chapters: { id: number; pages: number[] }[] }
+        const out: Record<number, number> = {}
+        for (const c of d.chapters) out[c.id] = c.pages[0]
+        if (Object.keys(out).length < 114) throw new Error("incomplete")
+        return out
+      } catch (e) {
+        lastError = e
+        await new Promise((r) => setTimeout(r, 400 * (attempt + 1)))
+      }
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error("chapters unavailable")
+}
