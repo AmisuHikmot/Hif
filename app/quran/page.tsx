@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import Link from "next/link"
 import { getSurahs } from "@/lib/quran/api"
 import SurahList from "./surah-list"
 
@@ -21,6 +22,12 @@ export default async function QuranPage() {
         Read with the Saheeh International translation and listen verse by verse. Free for everyone, no account needed.
         For offline reading, word-by-word following and more reciters, get the HIF app.
       </p>
+      <Link
+        href="/quran/mushaf/1"
+        className="mb-6 inline-block rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted"
+      >
+        Read as mushaf pages (604 pages) →
+      </Link>
       <SurahList surahs={surahs} />
       <p className="mt-10 text-xs text-muted-foreground">
         Arabic text and translation come from Al-Quran Cloud (Tanzil text; Saheeh International). Audio from the Islamic

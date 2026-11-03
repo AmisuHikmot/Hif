@@ -134,3 +134,39 @@ export function splitBismillah(surah: number, first: string): { bismillah: boole
 }
 
 export type ChapterAudio = { audioUrl: string; verses: { n: number; from: number; to: number }[] }
+
+/** One word of a mushaf page, placed on its printed line. */
+export type MushafWord = { text: string; line: number; end: boolean; verseKey: string }
+export type MushafPage = { page: number; words: MushafWord[] }
+
+const MUSHAF_HOSTS = [
+  "https://api.quran.com/api/v4",
+  "https://api.qurancdn.com/api/qdc",
+]
+
+/** A page (1 to 604) of the 15-line Madani mushaf, with each word's line. */
+export async function getMushafPage(page: number): Promise<MushafPage> {
+  const qs = "words=true&word_fields=text_uthmani,line_number&per_page=50&mushaf=1"
+  let lastError: unknown
+  for (const host of MUSHAF_HOSTS) {
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const res = await fetch(`${host}/verses/by_page/${page}?${qs}`, { next: { revalidate: 2592000 } })
+        if (!res.ok) throw new Error(`mushaf ${res.status}`)
+        const data = (await res.json()) as {
+          verses: { verse_key: string; words: { text_uthmani: string; line_number: number; char_type_name: string }[] }[]
+        }
+        const words: MushafWord[] = []
+        for (const v of data.verses)
+          for (const w of v.words)
+            words.push({ text: w.text_uthmani, line: w.line_number, end: w.char_type_name === "end", verseKey: v.verse_key })
+        if (!words.length) throw new Error("empty page")
+        return { page, words }
+      } catch (e) {
+        lastError = e
+        await new Promise((r) => setTimeout(r, 400 * (attempt + 1)))
+      }
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error("mushaf page unavailable")
+}
